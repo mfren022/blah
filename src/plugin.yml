@@ -1,0 +1,8 @@
+main: me.Silonyx.TestPlugin.Main
+name: TestPlugin
+version: 1.8
+
+commands:
+   hello:
+      description: Your description
+      usage: hello
