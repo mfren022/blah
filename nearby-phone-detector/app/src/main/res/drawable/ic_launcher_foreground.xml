@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Phone body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,34h20a4,4 0,0 1,4 4v32a4,4 0,0 1,-4 4H44a4,4 0,0 1,-4 -4V38a4,4 0,0 1,4 -4z" />
+    <path
+        android:fillColor="#1E6BE6"
+        android:pathData="M44,39h20v26H44z" />
+    <!-- Signal waves -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M74,44a12,12 0,0 1,0 20M80,38a20,20 0,0 1,0 32M34,44a12,12 0,0 0,0 20M28,38a20,20 0,0 0,0 32" />
+</vector>

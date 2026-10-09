@@ -1,0 +1,8 @@
+<resources>
+    <color name="brand">#1E6BE6</color>
+    <color name="brand_dark">#0B4AB0</color>
+    <color name="phone_high">#2E7D32</color>
+    <color name="phone_medium">#EF6C00</color>
+    <color name="phone_low">#757575</color>
+    <color name="ic_launcher_background">#1E6BE6</color>
+</resources>
