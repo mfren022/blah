@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Drive-In</string>
+
+    <string name="tab_device">On this phone</string>
+    <string name="tab_samples">Sample videos</string>
+    <string name="open_file">Open file</string>
+    <string name="play_url">Play URL</string>
+    <string name="grant_access">Allow access</string>
+    <string name="permission_rationale">Drive-In needs access to the videos on this phone to list them here and in your car.</string>
+    <string name="no_videos">No videos found on this phone.</string>
+    <string name="loading">Loading…</string>
+
+    <string name="url_dialog_title">Play a video from the web</string>
+    <string name="url_dialog_hint">https://example.com/video.mp4</string>
+    <string name="url_invalid">Enter an http or https address.</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+    <string name="next">Next video</string>
+    <string name="previous">Previous video</string>
+    <string name="rewind">Back 10 seconds</string>
+    <string name="fast_forward">Forward 30 seconds</string>
+    <string name="now_playing">Now playing</string>
+    <string name="live">Live</string>
+
+    <string name="error_cannot_open">This video can\'t be opened.</string>
+    <string name="error_playback">This video can\'t be played (error %1$d, %2$d).</string>
+    <string name="error_not_found">That video isn\'t available any more.</string>
+    <string name="error_no_permission">Open Drive-In on your phone and allow access to your videos.</string>
+
+    <string name="driving_paused">Video paused while driving.</string>
+
+    <string name="browse_device_subtitle">Videos saved on your phone</string>
+    <string name="browse_device_locked">Open Drive-In on your phone to allow access</string>
+    <string name="browse_samples_subtitle">Free short films to try playback</string>
+
+    <string name="notification_channel">Playback</string>
+    <string name="notification_channel_description">Controls for the video that is playing</string>
+</resources>

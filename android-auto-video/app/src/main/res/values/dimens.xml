@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Car screens need large touch targets; these also work fine on phones. -->
+    <dimen name="touch_target">64dp</dimen>
+    <dimen name="touch_target_large">88dp</dimen>
+    <dimen name="gutter">16dp</dimen>
+    <dimen name="grid_column_width">300dp</dimen>
+</resources>
