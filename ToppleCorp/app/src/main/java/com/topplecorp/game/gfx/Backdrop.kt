@@ -20,23 +20,14 @@ data class CityTheme(
 )
 
 object Themes {
-    val cities = listOf(
-        // Toronto: clear day
-        CityTheme(0xFF5BB8F0.toInt(), 0xFFD4F0FF.toInt(), 0xFF9DB8D2.toInt(), 0xFF6C8FA8.toInt(), 0xFFFFE89C.toInt(),
-            0xFFC9C2B5.toInt(), 0xFF8E867A.toInt(), 0xFFE8303A.toInt()),
-        // Sydney: bright harbour
-        CityTheme(0xFF3FA9F0.toInt(), 0xFFC5ECFF.toInt(), 0xFF8FB0D2.toInt(), 0xFF5D7FA3.toInt(), 0xFFE0F0FF.toInt(),
-            0xFFE3C58F.toInt(), 0xFFB89A66.toInt(), 0xFF2E8BD0.toInt()),
-        // Istanbul: sunset
-        CityTheme(0xFF5B3F8C.toInt(), 0xFFF7A55A.toInt(), 0xFF9C6E8F.toInt(), 0xFF6B4A6A.toInt(), 0xFFFFD9A0.toInt(),
-            0xFFB08D6E.toInt(), 0xFF7A5E48.toInt(), 0xFF2BA3A6.toInt(), sun = 0xFFFFD27A.toInt()),
-        // Zurich: alpine morning
-        CityTheme(0xFF7DBBE6.toInt(), 0xFFEAF6FF.toInt(), 0xFF8A9BB8.toInt(), 0xFF6F809E.toInt(), 0xFFFFF7D6.toInt(),
-            0xFFA9A49A.toInt(), 0xFF6E6A62.toInt(), 0xFFE03A3E.toInt(), sun = 0xFFFFFBE0.toInt()),
-        // San Francisco: golden hour
-        CityTheme(0xFFFF8E6B.toInt(), 0xFFFFDDB0.toInt(), 0xFFA88AA0.toInt(), 0xFF8C6E8E.toInt(), 0xFFFFE2B8.toInt(),
-            0xFF6E6A70.toInt(), 0xFF4A464C.toInt(), 0xFFC8372D.toInt(), sun = 0xFFFFF0C0.toInt()),
-    )
+    /** In-game themes derived from each city's colour identity (see [CityIdentity]). */
+    val cities = CityIdentity.all.map { id ->
+        CityTheme(
+            skyTop = id.skyTop, skyBottom = id.skyBottom,
+            far = id.hill, near = Pal.shade(id.hill, 0.75f), window = id.lit,
+            ground = id.surface, groundEdge = id.surfaceEdge, accent = id.roof,
+        )
+    }
 
     fun of(city: Int) = cities[city.coerceIn(0, cities.size - 1)]
 }

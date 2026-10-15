@@ -15,10 +15,24 @@ android {
         versionName = "1.0"
     }
 
+    // One shared key so every build (local or CI) installs over the previous one and keeps progress.
+    // This key is only for sideloading; use a private key for a Play Store release.
+    signingConfigs {
+        create("sideload") {
+            storeFile = file("signing/sideload.keystore")
+            storePassword = "toppleCorp"
+            keyAlias = "topple"
+            keyPassword = "toppleCorp"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("sideload")
+        }
         release {
-            isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("sideload")
         }
     }
 

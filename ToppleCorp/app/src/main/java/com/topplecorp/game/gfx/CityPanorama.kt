@@ -4,84 +4,144 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import kotlin.math.abs
 import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
 
+/** Colour identity of a city, used by its castle, sky, ground and in-game theme. */
+data class CityIdentity(
+    val skyTop: Int, val skyBottom: Int, val hill: Int,
+    val wall: Int, val wallShade: Int, val outline: Int,
+    val roof: Int, val roofShade: Int, val accent: Int, val accent2: Int,
+    val window: Int, val lit: Int,
+    val surface: Int, val surfaceEdge: Int, val soil: Int, val strata1: Int, val strata2: Int, val rock: Int,
+) {
+    companion object {
+        val all = listOf(
+            // Toronto: maple red and white, teal glass, autumn orange
+            CityIdentity(0xFF4FA8F7.toInt(), 0xFFDFF2FF.toInt(), 0xFF8FC1E3.toInt(),
+                0xFFF6F1EA.toInt(), 0xFFD9CFC2.toInt(), 0xFF3A1D2A.toInt(),
+                0xFFE0313F.toInt(), 0xFFA81E2E.toInt(), 0xFF29C2B4.toInt(), 0xFFF28C28.toInt(),
+                0xFF2A3F5F.toInt(), 0xFFFFE08A.toInt(),
+                0xFF6CC24A.toInt(), 0xFF3F8F33.toInt(), 0xFF8B5A3C.toInt(), 0xFF6E4630.toInt(), 0xFF5A3A28.toInt(), 0xFF9A8F88.toInt()),
+            // Sydney: ocean blue, sandstone gold, white sails
+            CityIdentity(0xFF1592E6.toInt(), 0xFFB9F0FF.toInt(), 0xFF6FB6E0.toInt(),
+                0xFFF4CF86.toInt(), 0xFFD9A85B.toInt(), 0xFF1D2F4A.toInt(),
+                0xFF1E73D8.toInt(), 0xFF1456A6.toInt(), 0xFFFFFFFF.toInt(), 0xFFFFC23B.toInt(),
+                0xFF1D3B66.toInt(), 0xFFFFF1B0.toInt(),
+                0xFFF2D58F.toInt(), 0xFFD9B46A.toInt(), 0xFFE3BE78.toInt(), 0xFFCFA35E.toInt(), 0xFFB98A48.toInt(), 0xFFC9B79A.toInt()),
+            // Istanbul: turquoise domes, terracotta, gold, sunset purple
+            CityIdentity(0xFF3E2466.toInt(), 0xFFFF9A5C.toInt(), 0xFF7A3F6E.toInt(),
+                0xFFF0C9A0.toInt(), 0xFFD29E72.toInt(), 0xFF35172F.toInt(),
+                0xFF19B3A6.toInt(), 0xFF0F7F78.toInt(), 0xFFF2B630.toInt(), 0xFFC4452F.toInt(),
+                0xFF3B1F4A.toInt(), 0xFFFFD27A.toInt(),
+                0xFFC97B52.toInt(), 0xFF9E5638.toInt(), 0xFF8A5A44.toInt(), 0xFF6F4637.toInt(), 0xFF5A372C.toInt(), 0xFFA08A7A.toInt()),
+            // Zurich: alpine white, Swiss red, slate blue, spire green
+            CityIdentity(0xFF8EC0F0.toInt(), 0xFFFFEDEA.toInt(), 0xFFC9D8EE.toInt(),
+                0xFFFBF8F2.toInt(), 0xFFDCD6CC.toInt(), 0xFF262B38.toInt(),
+                0xFF3E5F96.toInt(), 0xFF2B4570.toInt(), 0xFFE5333B.toInt(), 0xFF4C9A6E.toInt(),
+                0xFF26344F.toInt(), 0xFFFFF0B8.toInt(),
+                0xFF9FD07A.toInt(), 0xFF5E9E4A.toInt(), 0xFF7A6A5A.toInt(), 0xFF68707C.toInt(), 0xFF545B66.toInt(), 0xFFB0B6C0.toInt()),
+            // San Francisco: international orange, painted-lady pastels, lavender fog
+            CityIdentity(0xFF7E6CCB.toInt(), 0xFFFFC7A1.toInt(), 0xFFA790C8.toInt(),
+                0xFFFBD9CE.toInt(), 0xFFE6B3A6.toInt(), 0xFF3A2142.toInt(),
+                0xFFF0532F.toInt(), 0xFFB83A21.toInt(), 0xFF9BE3C3.toInt(), 0xFFFFE08A.toInt(),
+                0xFF3A2A50.toInt(), 0xFFFFE6B0.toInt(),
+                0xFF8A8796.toInt(), 0xFF5E5B6A.toInt(), 0xFF8C6E62.toInt(), 0xFF74584F.toInt(), 0xFF5F463F.toInt(), 0xFFB4A2A0.toInt()),
+        )
+
+        fun of(city: Int) = all[city.coerceIn(0, all.size - 1)]
+    }
+}
+
 /**
- * One continuous pixel-art panorama of all campaign cities, side by side on the same perfectly
- * horizontal ground. Each city is composed like a toy castle: its landmark "gate" is the central keep,
- * flanked by inner and outer towers joined by crenellated walls. Walls, sky and ground blend across the
- * seams so neighbouring cities merge into each other.
+ * One continuous pixel-art panorama of all campaign cities. Each city is a cartoon toy castle whose
+ * silhouette is roughly a half circle, built from its landmarks in its own colour identity. Below the
+ * shared horizontal ground is a detailed cross-section of each city's underground. Sky and soil blend
+ * across the seams so neighbouring cities merge into each other.
  */
 class CityPanorama(val w: Int, val h: Int, val count: Int) {
-    /** Screen y of the ground line (identical for every city). */
-    val ground = h - 150
+    /** Screen y of the ground surface (identical for every city). */
+    val ground = h - 210
     private val pw = w * count
     private val farMargin = w / 2
+    private val ids = CityIdentity.all
 
     private val sky: Bitmap
     private val far: Bitmap
     private val main: Bitmap
     private val clouds: List<FloatArray>
 
-    // Per-city palettes, blended across seams.
-    private val skyTop = intArrayOf(0xFF5BB8F0.toInt(), 0xFF3FA9F0.toInt(), 0xFF5B3F8C.toInt(), 0xFF7DBBE6.toInt(), 0xFFFF8E6B.toInt())
-    private val skyBottom = intArrayOf(0xFFD4F0FF.toInt(), 0xFFC5ECFF.toInt(), 0xFFF7A55A.toInt(), 0xFFEAF6FF.toInt(), 0xFFFFDDB0.toInt())
-    private val wallColor = intArrayOf(0xFFE5DAC0.toInt(), 0xFFD9C29A.toInt(), 0xFFC9A27E.toInt(), 0xFFCFC3A8.toInt(), 0xFFD4D0C8.toInt())
-    private val groundColor = intArrayOf(0xFFC9C2B5.toInt(), 0xFFE3C58F.toInt(), 0xFFB08D6E.toInt(), 0xFFA9A49A.toInt(), 0xFF8E8A90.toInt())
-    private val farColor = intArrayOf(0xFF9DB8D2.toInt(), 0xFF8FB0D2.toInt(), 0xFF8E5F86.toInt(), 0xFF8A9BB8.toInt(), 0xFFA88AA0.toInt())
+    /** An underground tunnel with an animated train running through it (global coordinates). */
+    private class Tunnel(val x0: Float, val x1: Float, val y: Float, val h: Float, val body: Int, val stripe: Int, val outline: Int, val speed: Float)
+
+    private val tunnels = ArrayList<Tunnel>()
 
     init {
         val s = P(pw, h)
         val f = P(pw + farMargin * 2, h)
         val m = P(pw, h)
-        val rnd = Random(4242)
+        val rnd = Random(777)
         paintSky(s)
-        paintFar(f, rnd)
-        paintWallsAndGround(m)
+        paintFar(f)
+        paintGround(m, rnd)
         for (i in 0 until count) {
-            val ox = i * w
-            when (i) {
-                0 -> toronto(m, ox, rnd)
-                1 -> sydney(m, ox, rnd)
-                2 -> istanbul(m, ox, rnd)
-                3 -> zurich(m, ox, rnd)
-                else -> sanFrancisco(m, ox, rnd)
-            }
+            val cx = i * w + w / 2
+            paintUnderground(m, i, cx, rnd)
+            deepDetails(m, i, cx, rnd)
+            paintCastle(m, i, cx, rnd)
         }
         sky = s.bitmap(); far = f.bitmap(); main = m.bitmap()
-        clouds = List(14) { floatArrayOf(rnd.nextFloat() * pw, 56f + rnd.nextFloat() * 120f, 0.4f + rnd.nextFloat() * 0.6f) }
+        clouds = List(16) { floatArrayOf(rnd.nextFloat() * pw, 60f + rnd.nextFloat() * 110f, 0.4f + rnd.nextFloat() * 0.6f) }
     }
 
-    /**
-     * Draws the panorama so that city [pos] (fractional during transitions) is centred on screen.
-     */
+    // ------------------------------------------------------------------ drawing
+
+    /** Draws the panorama so that city [pos] (fractional during transitions) is centred on screen. */
     fun draw(c: Canvas, pos: Float, time: Float) {
         val x = -pos * w
         Draw.bitmap(c, sky, x, 0f)
         for (cl in clouds) {
-            val cw = 20f + cl[2] * 26f
+            val cw = 22f + cl[2] * 26f
             val cx = x * 0.85f + (cl[0] + time * 4f * cl[2]) % pw
             if (cx + cw < -10 || cx > w + 10) continue
-            val col = Pal.alpha(0xFFFFFFFF.toInt(), 0.75f + cl[2] * 0.2f)
-            Draw.rect(c, cx, cl[1], cw, 5f, col)
-            Draw.rect(c, cx + cw * 0.2f, cl[1] - 3, cw * 0.45f, 3f, col)
+            val col = Pal.alpha(0xFFFFFFFF.toInt(), 0.8f)
+            Draw.rect(c, cx, cl[1], cw, 6f, col)
+            Draw.rect(c, cx + cw * 0.15f, cl[1] - 4, cw * 0.5f, 4f, col)
+            Draw.rect(c, cx + 2, cl[1] + 6, cw - 4, 1f, Pal.alpha(0xFF8899BB.toInt(), 0.3f))
         }
         Draw.bitmap(c, far, x * 0.7f - farMargin + w * 0.15f, 0f)
         Draw.bitmap(c, main, x, 0f)
-        // Bay fog drifting over San Francisco
+        // Underground trains
+        for (t in tunnels) {
+            val x0 = t.x0 + x; val x1 = t.x1 + x
+            if (x1 < 0 || x0 > w) continue
+            val len = x1 - x0
+            val trainLen = 64f
+            val tx = x0 - trainLen + ((time * t.speed) % (len + trainLen))
+            c.save()
+            c.clipRect(x0, t.y, x1, t.y + t.h)
+            val ty = t.y + 3
+            val th = t.h - 6
+            Draw.rect(c, tx - 1, ty - 1, trainLen + 2, th + 2, t.outline)
+            Draw.rect(c, tx, ty, trainLen, th, t.body)
+            Draw.rect(c, tx, ty + th - 4, trainLen, 2f, t.stripe)
+            var wx = tx + 4
+            while (wx < tx + trainLen - 6) { Draw.rect(c, wx, ty + 3, 6f, 4f, 0xFFFFF4C8.toInt()); wx += 10 }
+            Draw.rect(c, tx + trainLen - 3, ty + 3, 2f, 3f, 0xFFFFFFA0.toInt())
+            c.restore()
+        }
+        // Fog rolling over San Francisco
         val sf = 4 * w + x
-        if (sf < w && sf > -w) {
+        if (count > 4 && sf < w && sf > -w) {
             for (i in 0 until 3) {
-                val fy = ground - 110f + i * 30f
+                val fy = ground - 120f + i * 32f
                 var bx = -80f + (time * (6f + i * 3f)) % 80f
                 while (bx < w) {
-                    Draw.rect(c, sf + bx, fy, 52f, 6f, 0x33FFFFFF)
-                    Draw.rect(c, sf + bx + 10, fy - 3, 30f, 3f, 0x26FFFFFF)
+                    Draw.rect(c, sf + bx, fy, 52f, 6f, 0x30FFFFFF)
+                    Draw.rect(c, sf + bx + 10, fy - 3, 30f, 3f, 0x24FFFFFF)
                     bx += 80f
                 }
             }
@@ -90,536 +150,620 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
 
     // ------------------------------------------------------------------ blending
 
-    /** Colour for global x, pure in each city's middle and smoothly blended across seams. */
-    private fun blend(colors: IntArray, gx: Int): Int {
-        val p = gx.toFloat() / w - 0.5f // 0 at the centre of city 0
-        val i = kotlin.math.floor(p).toInt().coerceIn(0, count - 1)
+    /** Weight of city i+1 versus city i at global x: pure in each city's middle, smooth across seams. */
+    private fun mixAt(gx: Int): Triple<Int, Int, Float> {
+        val p = gx.toFloat() / w - 0.5f
+        val i = floor(p).toInt().coerceIn(0, count - 1)
         val j = (i + 1).coerceAtMost(count - 1)
         val t = (p - i).coerceIn(0f, 1f)
-        // Hold the city's own colour for most of its width, blend in the middle 50% around the seam.
-        val u = ((t - 0.25f) / 0.5f).coerceIn(0f, 1f)
-        val smooth = u * u * (3 - 2 * u)
-        return Pal.mix(colors[i], colors[j], smooth)
+        val u = ((t - 0.3f) / 0.4f).coerceIn(0f, 1f)
+        return Triple(i, j, u * u * (3 - 2 * u))
     }
+
+    private inline fun blend(gx: Int, pick: (CityIdentity) -> Int): Int {
+        val (i, j, t) = mixAt(gx)
+        return Pal.mix(pick(ids[i]), pick(ids[j]), t)
+    }
+
+    // ------------------------------------------------------------------ sky & far
 
     private fun paintSky(s: P) {
         for (x in 0 until pw) {
-            val top = blend(skyTop, x)
-            val bottom = blend(skyBottom, x)
-            for (y in 0 until h) s.px[y * pw + x] = Pal.mix(top, bottom, y / (h - 1f))
+            val top = blend(x) { it.skyTop }
+            val bottom = blend(x) { it.skyBottom }
+            for (y in 0 until h) s.px[y * pw + x] = Pal.mix(top, bottom, (y / (ground + 20f)).coerceIn(0f, 1f))
         }
-        // Sun or moon for each city
-        val suns = listOf(0.8f to 70, 0.2f to 64, 0.25f to ground - 150, 0.78f to 60, 0.72f to ground - 180)
-        suns.forEachIndexed { i, (fx, y) ->
+        val suns = listOf(0.82f to 76, 0.18f to 70, 0.2f to ground - 170, 0.8f to 66, 0.78f to ground - 200)
+        for ((i, pair) in suns.withIndex()) {
+            if (i >= count) break
+            val (fx, y) = pair
             val x = (i * w + fx * w).toInt()
-            val col = if (i == 2) 0xFFFFD27A.toInt() else 0xFFFFF4C8.toInt()
-            s.circle(x, y, 15, Pal.alpha(col, 0.25f))
-            s.circle(x, y, 11, col)
+            val col = if (i == 2) 0xFFFFD27A.toInt() else 0xFFFFF6CC.toInt()
+            s.circle(x, y, 16, Pal.alpha(col, 0.22f))
+            s.circle(x, y, 12, col)
+            s.circle(x - 4, y - 4, 3, Pal.alpha(0xFFFFFFFF.toInt(), 0.6f))
         }
     }
 
-    private fun paintFar(f: P, rnd: Random) {
-        val gy = ground - 30
-        // Alps behind Zurich
-        val zx = farMargin + 3 * w
-        for ((px, ph) in listOf(0.0f to 120, 0.2f to 160, 0.45f to 140, 0.7f to 175, 0.95f to 130)) {
-            val x = zx + (px * w).toInt()
-            val top = gy - 40 - ph
-            f.tri(x - 70, gy, x + 70, gy, x, top, 0xFF8A9BB8.toInt())
-            f.tri(x, gy, x + 70, gy, x, top, 0xFF6F809E.toInt())
-            f.tri(x - 20, top + 28, x + 20, top + 28, x, top, 0xFFF4F8FF.toInt())
-            f.tri(x, top + 28, x + 20, top + 28, x, top, 0xFFD5DEEC.toInt())
-        }
-        // Hills behind Istanbul and San Francisco
+    private fun paintFar(f: P) {
         for (x in 0 until f.w) {
-            val gx = x - farMargin
-            val cityI = (gx / w).coerceIn(0, count - 1)
-            if (cityI == 2 || cityI == 4) {
-                val local = gx - cityI * w
-                val edge = min(local, w - local).coerceAtLeast(0) / (w * 0.25f)
-                val amp = edge.coerceAtMost(1f)
-                val hy = gy - ((22 + sin(x / 30f) * 10 + sin(x / 11f) * 4) * amp).toInt()
-                f.rect(x, hy, 1, gy - hy, Pal.shade(blend(farColor, gx.coerceIn(0, pw - 1)), 0.85f))
-            }
-        }
-        // Continuous skyline behind the walls
-        var x = 0
-        while (x < f.w) {
-            val bw = 12 + rnd.nextInt(16)
             val gx = (x - farMargin).coerceIn(0, pw - 1)
-            val bh = 30 + rnd.nextInt(100)
-            val col = Pal.shade(blend(farColor, gx), 0.92f + rnd.nextFloat() * 0.12f)
-            f.building(x, gy, bw, bh, col, Pal.tint(col, 0.55f), rnd, rnd.nextInt(3))
-            x += bw + rnd.nextInt(3)
+            val hill = blend(gx) { it.hill }
+            val y1 = ground - 26 - (sin(x / 37f) * 12 + sin(x / 13f) * 4).toInt()
+            f.rect(x, y1, 1, ground - y1, hill)
+            f.set(x, y1, Pal.tint(hill, 0.25f))
+        }
+        // Snowy Alps behind Zurich
+        if (count > 3) {
+            val zx = farMargin + 3 * w
+            for ((px, ph) in listOf(0.05f to 120, 0.25f to 155, 0.75f to 165, 0.95f to 125)) {
+                val x = zx + (px * w).toInt()
+                val base = ground - 20
+                val top = base - ph
+                f.tri(x - 62, base, x + 62, base, x, top, 0xFFA9B9D6.toInt())
+                f.tri(x, base, x + 62, base, x, top, 0xFF8C9DBD.toInt())
+                f.tri(x - 22, top + 32, x + 22, top + 32, x, top, 0xFFFFFFFF.toInt())
+                f.tri(x, top + 32, x + 22, top + 32, x, top, 0xFFDCE6F4.toInt())
+            }
         }
     }
 
-    /** The shared crenellated wall and the flat ground run the full width of the panorama. */
-    private fun paintWallsAndGround(m: P) {
-        val wallTop = ground - WALL_H
+    // ------------------------------------------------------------------ ground cross-section
+
+    private fun paintGround(m: P, rnd: Random) {
+        val g = ground
         for (gx in 0 until pw) {
-            val col = blend(wallColor, gx)
-            for (y in wallTop until ground) {
-                val row = (y - wallTop) / 6
-                val joint = (gx + if (row % 2 == 0) 0 else 6) % 12 == 0
-                val mortar = (y - wallTop) % 6 == 5
-                m.px[y * pw + gx] = when {
-                    mortar || joint -> Pal.shade(col, 0.82f)
-                    else -> col
+            val surface = blend(gx) { it.surface }
+            val edge = blend(gx) { it.surfaceEdge }
+            val soil = blend(gx) { it.soil }
+            val s1 = blend(gx) { it.strata1 }
+            val s2 = blend(gx) { it.strata2 }
+            val b1 = g + 18 + (sin(gx / 23f) * 3 + sin(gx / 7f)).toInt()
+            val b2 = g + 52 + (sin(gx / 31f + 1f) * 5 + sin(gx / 9f) * 2).toInt()
+            val b3 = g + 100 + (sin(gx / 41f + 2f) * 6).toInt()
+            for (y in g until h) {
+                val c = when {
+                    y < g + 2 -> Pal.tint(surface, 0.3f)
+                    y < g + 7 -> surface
+                    y < g + 9 -> edge
+                    y < b1 -> soil
+                    y == b1 -> Pal.shade(soil, 0.75f)
+                    y < b2 -> s1
+                    y == b2 -> Pal.shade(s1, 0.7f)
+                    y < b3 -> s2
+                    else -> Pal.shade(s2, 0.82f)
                 }
-            }
-            m.px[wallTop * pw + gx] = Pal.tint(col, 0.3f)
-            // Merlons aligned to the global grid so the battlements continue across seams.
-            if ((gx / 6) % 2 == 0) for (y in wallTop - 6 until wallTop) m.px[y * pw + gx] = if (gx % 6 == 5) Pal.shade(col, 0.85f) else col
-        }
-        // Ground: perfectly horizontal for the whole panorama
-        for (gx in 0 until pw) {
-            val col = blend(groundColor, gx)
-            m.px[ground * pw + gx] = Pal.tint(col, 0.35f)
-            for (y in ground + 1 until h) {
-                val d = (y - ground).toFloat() / (h - ground)
-                var c = Pal.shade(col, 1f - d * 0.3f)
-                if ((y - ground) % 9 == 0 || (gx + (y - ground) / 9 * 7) % 22 == 0) c = Pal.shade(c, 0.88f)
                 m.px[y * pw + gx] = c
             }
+            // Speckles and pebbles in the soil layers
+            if (gx % 3 == 0) {
+                val yy = g + 10 + ((gx * 37) % (h - g - 12))
+                m.set(gx, yy, Pal.tint(m.px[yy * pw + gx], 0.15f))
+            }
+        }
+        // Grass tufts, pebbles and rocks
+        for (i in 0 until pw / 6) {
+            val x = rnd.nextInt(pw)
+            m.set(x, g - 1, blend(x) { it.surfaceEdge })
+            m.set(x + 1, g - 2, blend(x) { it.surfaceEdge })
+        }
+        for (i in 0 until pw / 14) {
+            val x = rnd.nextInt(pw)
+            val y = g + 22 + rnd.nextInt(h - g - 24)
+            val r = 2 + rnd.nextInt(4)
+            val rock = blend(x) { it.rock }
+            m.ellipse(x, y, r + 1, r, Pal.shade(rock, 0.6f))
+            m.ellipse(x, y, r, r - 1, rock)
+            m.set(x - r / 2, y - r / 2, Pal.tint(rock, 0.4f))
         }
     }
 
-    // ------------------------------------------------------------------ shared castle parts
+    /** Fossils, crystals and old pipes scattered through the deep strata. */
+    private fun deepDetails(m: P, city: Int, cx: Int, rnd: Random) {
+        val id = ids[city]
+        val g = ground
+        val gem = when (city) { 0 -> 0xFFE0313F.toInt(); 1 -> 0xFF3FA2E8.toInt(); 2 -> 0xFF19B3A6.toInt(); 3 -> 0xFFFFFFFF.toInt(); else -> 0xFFF2C230.toInt() }
+        repeat(6) {
+            val x = cx - 115 + rnd.nextInt(230)
+            val y = g + 86 + rnd.nextInt((h - g - 92).coerceAtLeast(1))
+            when (rnd.nextInt(3)) {
+                0 -> { // bone
+                    m.rect(x - 4, y, 9, 2, Pal.tint(id.rock, 0.5f))
+                    m.rect(x - 5, y - 1, 2, 4, Pal.tint(id.rock, 0.5f)); m.rect(x + 4, y - 1, 2, 4, Pal.tint(id.rock, 0.5f))
+                }
+                1 -> { // crystal cluster
+                    m.tri(x - 3, y + 4, x, y + 4, x - 1, y - 4, id.outline); m.tri(x - 2, y + 3, x, y + 3, x - 1, y - 2, gem)
+                    m.tri(x, y + 4, x + 4, y + 4, x + 2, y - 2, id.outline); m.tri(x + 1, y + 3, x + 3, y + 3, x + 2, y, Pal.tint(gem, 0.3f))
+                }
+                else -> { // ammonite fossil
+                    m.circle(x, y, 4, Pal.shade(id.rock, 0.7f)); m.circle(x, y, 3, id.rock); m.circle(x + 1, y, 1, Pal.shade(id.rock, 0.7f))
+                }
+            }
+        }
+    }
 
-    /** A square castle tower from the ground with merlons on top. */
-    private fun tower(m: P, x: Int, tw: Int, th: Int, body: Int, rnd: Random, windows: Int = 0, merlons: Boolean = true) {
-        val top = ground - th
-        m.rect(x, top, tw, th, body)
-        m.rect(x + tw - 3, top, 3, th, Pal.shade(body, 0.8f))
-        m.rect(x, top, tw, 1, Pal.tint(body, 0.3f))
+    private fun tunnel(m: P, x0: Int, x1: Int, y: Int, th: Int, id: CityIdentity, body: Int, stripe: Int, speed: Float) {
+        m.rect(x0 - 2, y - 2, x1 - x0 + 4, th + 4, id.outline)
+        m.rect(x0, y, x1 - x0, th, Pal.shade(id.strata2, 0.45f))
+        m.rect(x0, y + th - 2, x1 - x0, 2, Pal.shade(id.rock, 0.7f))
+        for (x in x0 until x1 step 6) m.rect(x, y + th - 1, 3, 1, Pal.shade(id.rock, 0.5f))
+        // Rounded ends
+        m.ellipse(x0, y + th / 2, 4, th / 2 + 2, id.outline); m.ellipse(x1, y + th / 2, 4, th / 2 + 2, id.outline)
+        tunnels += Tunnel(x0.toFloat(), x1.toFloat(), y.toFloat(), th.toFloat(), body, stripe, id.outline, speed)
+    }
+
+    private fun paintUnderground(m: P, city: Int, cx: Int, rnd: Random) {
+        val id = ids[city]
+        val g = ground
+        when (city) {
+            0 -> { // Toronto: subway, utility pipes and maple roots
+                tunnel(m, cx - 110, cx + 110, g + 40, 18, id, 0xFFE0313F.toInt(), 0xFFFFFFFF.toInt(), 46f)
+                m.rect(cx - 96, g + 9, 5, 31, id.outline); m.rect(cx - 95, g + 9, 3, 31, 0xFF3D7CC9.toInt())
+                m.rect(cx - 120, g + 22, 240, 5, id.outline); m.rect(cx - 120, g + 23, 240, 3, 0xFFF2C230.toInt())
+                for (x in cx - 120 until cx + 120 step 24) m.rect(x, g + 21, 3, 7, id.outline)
+                for (tx in listOf(cx - 116, cx + 116)) roots(m, tx, g + 9, id)
+                m.rect(cx + 60, g + 9, 14, 6, id.outline); m.rect(cx + 61, g + 10, 12, 4, 0xFF5D6670.toInt()) // manhole shaft
+            }
+            1 -> { // Sydney: sand strata, shells, a buried treasure chest and a stormwater drain
+                for (i in 0 until 14) shell(m, cx - 120 + rnd.nextInt(240), g + 12 + rnd.nextInt(70), rnd.nextBoolean())
+                val dx = cx - 100; val dy = g + 46
+                m.rect(dx - 2, dy - 2, 124, 18, id.outline)
+                m.rect(dx, dy, 120, 14, 0xFF2D5D8C.toInt())
+                m.rect(dx, dy + 6, 120, 8, 0xFF3FA2E8.toInt())
+                for (x in dx until dx + 120 step 7) m.rect(x, dy + 7, 4, 1, 0x88FFFFFF.toInt())
+                // Treasure chest
+                val tx = cx + 64; val ty = g + 30
+                m.rect(tx - 1, ty - 1, 26, 18, id.outline)
+                m.rect(tx, ty, 24, 16, 0xFF9C5B2E.toInt())
+                m.rect(tx, ty, 24, 6, 0xFFB86E3A.toInt())
+                m.rect(tx, ty + 6, 24, 2, 0xFFFFC23B.toInt())
+                m.rect(tx + 10, ty + 5, 4, 5, 0xFFFFC23B.toInt())
+                m.rect(tx + 4, ty - 3, 3, 2, 0xFFFFE07A.toInt()); m.rect(tx + 15, ty - 2, 3, 2, 0xFFFFE07A.toInt())
+                // Starfish fossil
+                star(m, cx - 30, g + 30, 0xFFF08A5D.toInt(), id.outline)
+            }
+            2 -> { // Istanbul: the Basilica Cistern with columns, arches, water and lanterns
+                val x0 = cx - 104; val x1 = cx + 104
+                val top = g + 14; val bot = g + 74
+                m.rect(x0 - 2, top - 2, x1 - x0 + 4, bot - top + 4, id.outline)
+                m.rect(x0, top, x1 - x0, bot - top, 0xFF2A1630.toInt())
+                for (c in 0..8) {
+                    val colX = x0 + 6 + c * 24
+                    for (a in 0 until 12) { // brick arch between columns
+                        val ax = colX + a * 2
+                        val ay = top + 4 + (abs(a - 6) * abs(a - 6)) / 6
+                        if (c < 8) m.rect(ax, ay, 2, 3, 0xFFB5583C.toInt())
+                    }
+                    m.rect(colX - 2, top + 8, 5, bot - top - 20, 0xFFC9A784.toInt())
+                    m.rect(colX + 1, top + 8, 1, bot - top - 20, 0xFF9E7E60.toInt())
+                    m.rect(colX - 3, top + 7, 7, 2, 0xFFE0C29E.toInt())
+                    if (c % 2 == 1) { m.rect(colX + 10, top + 14, 3, 4, 0xFFFFD27A.toInt()); m.rect(colX + 11, top + 10, 1, 4, 0xFF8E6C59.toInt()) }
+                }
+                // Water with reflections
+                m.rect(x0, bot - 12, x1 - x0, 12, 0xFF1F5E6E.toInt())
+                for (c in 0..8) m.rect(x0 + 5 + c * 24, bot - 11, 3, 8, 0x55C9A784)
+                for (x in x0 until x1 step 9) m.rect(x, bot - 6, 4, 1, 0x66FFFFFF)
+                // Medusa head stone at a column base
+                m.rect(x0 + 75, bot - 18, 8, 6, 0xFF8FA39A.toInt()); m.rect(x0 + 77, bot - 16, 1, 1, id.outline); m.rect(x0 + 80, bot - 16, 1, 1, id.outline)
+            }
+            3 -> { // Zurich: a Swiss bank vault full of gold, deep in granite
+                val x0 = cx - 92; val x1 = cx + 92
+                val top = g + 16; val bot = g + 72
+                m.rect(x0 - 3, top - 3, x1 - x0 + 6, bot - top + 6, id.outline)
+                m.rect(x0 - 1, top - 1, x1 - x0 + 2, bot - top + 2, 0xFF9AA3AE.toInt())
+                m.rect(x0 + 2, top + 2, x1 - x0 - 4, bot - top - 4, 0xFF4A505C.toInt())
+                for (y in top + 8 until bot - 2 step 8) m.rect(x0 + 2, y, x1 - x0 - 4, 1, 0xFF3C414B.toInt())
+                // Vault door
+                val vx = x0 + 30; val vy = (top + bot) / 2
+                m.circle(vx, vy, 23, id.outline); m.circle(vx, vy, 21, 0xFFB9C2CC.toInt()); m.circle(vx, vy, 16, 0xFF8E98A4.toInt())
+                for (k in 0 until 8) {
+                    val a = k * Math.PI / 4
+                    m.line(vx, vy, vx + (cos(a) * 13).roundToInt(), vy + (sin(a) * 13).roundToInt(), 0xFFDCE2E8.toInt(), 2)
+                }
+                m.circle(vx, vy, 4, 0xFFFFC23B.toInt())
+                // Gold bar stacks
+                var stackX = x0 + 64
+                for (k in 0 until 4) {
+                    val rows = 3 + (k % 2)
+                    for (r in 0 until rows) for (b in 0 until (rows - r)) {
+                        val bx = stackX + b * 9 + r * 4
+                        val by = bot - 8 - r * 6
+                        m.rect(bx - 1, by - 1, 10, 7, id.outline)
+                        m.rect(bx, by, 8, 5, 0xFFF2C230.toInt())
+                        m.rect(bx + 1, by, 6, 1, 0xFFFFF0A0.toInt())
+                    }
+                    stackX += 28
+                }
+                // Swiss cross plaque
+                m.rect(x1 - 18, top + 6, 12, 12, id.accent)
+                m.rect(x1 - 13, top + 8, 2, 8, 0xFFFFFFFF.toInt()); m.rect(x1 - 16, top + 11, 8, 2, 0xFFFFFFFF.toInt())
+            }
+            else -> { // San Francisco: BART tube, cable car cable slot, the fault line and gold nuggets
+                m.rect(cx - 120, g + 10, 240, 3, id.outline)
+                m.rect(cx - 120, g + 11, 240, 1, 0xFFB0A8B8.toInt())
+                for (px in listOf(cx - 80, cx + 40)) { m.circle(px, g + 16, 4, id.outline); m.circle(px, g + 16, 3, 0xFF9C9AA6.toInt()) }
+                tunnel(m, cx - 115, cx + 115, g + 50, 18, id, 0xFFD8DCE4.toInt(), 0xFF2F7FD0.toInt(), 58f)
+                // Fault line
+                var fx = cx + 30; var fy = g + 9
+                while (fy < h) {
+                    val nx = fx + (if ((fy / 6) % 2 == 0) 5 else -3)
+                    m.line(fx, fy, nx, fy + 6, Pal.shade(id.strata2, 0.4f), 2)
+                    fx = nx; fy += 6
+                }
+                for ((nx, ny) in listOf(cx - 60 to g + 32, cx - 20 to g + 38, cx + 74 to g + 28, cx + 96 to g + 40)) {
+                    m.ellipse(nx, ny, 4, 3, id.outline); m.ellipse(nx, ny, 3, 2, 0xFFF2C230.toInt()); m.set(nx - 1, ny - 1, 0xFFFFF6B0.toInt())
+                }
+            }
+        }
+    }
+
+    private fun roots(m: P, x: Int, y: Int, id: CityIdentity) {
+        val col = Pal.shade(id.soil, 0.6f)
+        m.line(x, y, x - 6, y + 10, col); m.line(x, y, x + 5, y + 12, col); m.line(x, y, x, y + 14, col)
+        m.line(x - 6, y + 10, x - 10, y + 13, col); m.line(x + 5, y + 12, x + 9, y + 14, col)
+    }
+
+    private fun shell(m: P, x: Int, y: Int, pink: Boolean) {
+        val c = if (pink) 0xFFF7C6D0.toInt() else 0xFFFFF6E8.toInt()
+        m.ellipse(x, y, 3, 2, 0xFF8E6C59.toInt(), topHalfOnly = true)
+        m.ellipse(x, y, 2, 2, c, topHalfOnly = true)
+        m.rect(x - 2, y, 5, 1, 0xFF8E6C59.toInt())
+    }
+
+    private fun star(m: P, x: Int, y: Int, c: Int, outline: Int) {
+        for (k in 0 until 5) {
+            val a = -Math.PI / 2 + k * 2 * Math.PI / 5
+            m.line(x, y, x + (cos(a) * 6).roundToInt(), y + (sin(a) * 6).roundToInt(), outline, 3)
+        }
+        for (k in 0 until 5) {
+            val a = -Math.PI / 2 + k * 2 * Math.PI / 5
+            m.line(x, y, x + (cos(a) * 5).roundToInt(), y + (sin(a) * 5).roundToInt(), c, 1)
+        }
+    }
+
+    // ------------------------------------------------------------------ toy castle parts (all outlined)
+
+    private fun box(m: P, x: Int, y: Int, bw: Int, bh: Int, fill: Int, shade: Int, outline: Int) {
+        m.rect(x - 1, y - 1, bw + 2, bh + 2, outline)
+        m.rect(x, y, bw, bh, fill)
+        m.rect(x + bw - 3, y, 3, bh, shade)
+        m.rect(x, y, 2, bh, Pal.tint(fill, 0.35f))
+    }
+
+    /** Castle tower from the ground up to [top], with optional merlons. */
+    private fun tower(m: P, cx: Int, tw: Int, top: Int, id: CityIdentity, fill: Int = id.wall, merlons: Boolean = true, windows: Int = 2) {
+        val x = cx - tw / 2
+        val shade = Pal.shade(fill, 0.82f)
+        box(m, x, top, tw, ground - top, fill, shade, id.outline)
         if (merlons) {
-            var mx = x
+            var mx = x - 1
             while (mx < x + tw) {
-                m.rect(mx, top - 5, min(4, x + tw - mx), 5, body)
+                m.rect(mx - 1, top - 6, 6, 6, id.outline)
+                m.rect(mx, top - 5, 4, 5, fill)
                 mx += 7
             }
+            m.rect(x - 2, top - 1, tw + 4, 3, id.outline)
+            m.rect(x - 1, top, tw + 2, 1, Pal.tint(fill, 0.3f))
         }
-        if (windows != 0) m.windows(x + 3, top + 8, tw - 7, th - 20, windows, Pal.shade(body, 0.7f), rnd, 6, 9, 3, 4, 0.6f)
+        var wy = top + 10
+        repeat(windows) {
+            if (wy + 10 < ground - 14) window(m, cx, wy, id)
+            wy += 22
+        }
     }
 
-    private fun tree(m: P, cx: Int, r: Int, leaf: Int) {
-        m.rect(cx - 1, ground - r - 4, 3, r + 4, 0xFF5A3A28.toInt())
-        m.circle(cx, ground - r * 2, r, leaf)
-        m.circle(cx - r / 2, ground - r * 2 - r / 3, r / 2, Pal.tint(leaf, 0.2f))
+    private fun window(m: P, cx: Int, y: Int, id: CityIdentity) {
+        m.rect(cx - 3, y - 1, 7, 10, id.outline)
+        m.rect(cx - 2, y + 1, 5, 7, id.lit)
+        m.rect(cx - 1, y, 3, 1, id.lit)
+        m.rect(cx, y + 1, 1, 7, Pal.shade(id.lit, 0.8f))
     }
 
-    // Symmetric layout offsets from the city centre (fractions of the screen width).
-    private val outer get() = (w * 0.38f).toInt()
-    private val inner get() = (w * 0.22f).toInt()
+    private fun cone(m: P, cx: Int, base: Int, halfW: Int, height: Int, id: CityIdentity, color: Int = id.roof) {
+        m.tri(cx - halfW - 2, base + 1, cx + halfW + 2, base + 1, cx, base - height - 2, id.outline)
+        m.tri(cx - halfW, base, cx + halfW, base, cx, base - height, color)
+        m.tri(cx, base, cx + halfW, base, cx, base - height, Pal.shade(color, 0.78f))
+        m.rect(cx - halfW, base - 1, halfW * 2 + 1, 2, Pal.shade(color, 0.65f))
+    }
 
-    // ------------------------------------------------------------------ Toronto
+    private fun dome(m: P, cx: Int, base: Int, rx: Int, ry: Int, id: CityIdentity, color: Int = id.roof, finial: Int = id.accent) {
+        m.ellipse(cx, base, rx + 1, ry + 1, id.outline, topHalfOnly = true)
+        m.ellipse(cx, base, rx, ry, color, topHalfOnly = true)
+        m.ellipse(cx + rx / 3, base, rx * 2 / 3, ry, Pal.shade(color, 0.85f), topHalfOnly = true)
+        m.ellipse(cx - rx / 3, base - ry / 2, rx / 4, ry / 5, Pal.tint(color, 0.45f))
+        m.rect(cx - rx - 1, base, rx * 2 + 3, 2, id.outline)
+        m.rect(cx, base - ry - 6, 1, 6, id.outline)
+        m.rect(cx - 1, base - ry - 8, 3, 3, finial)
+    }
 
-    private fun toronto(m: P, ox: Int, rnd: Random) {
-        val cx = ox + w / 2
-        val g = ground
-        // CN Tower rising behind the keep as its spire
-        val towerTop = g - 330
-        for (y in towerTop + 70 until g) {
-            val t = (y - towerTop - 70f) / (g - towerTop - 70f)
-            val half = (2 + t * 6).roundToInt()
-            m.rect(cx - half, y, half * 2 + 1, 1, 0xFFC9CFD6.toInt())
-            m.rect(cx + half - 1, y, 1, 1, 0xFF9BA3AD.toInt())
+    private fun flag(m: P, x: Int, top: Int, color: Int, id: CityIdentity, emblem: Int = 0) {
+        m.rect(x, top - 14, 1, 14, id.outline)
+        m.rect(x + 1, top - 14, 10, 7, id.outline)
+        m.rect(x + 1, top - 13, 9, 5, color)
+        if (emblem != 0) { m.rect(x + 4, top - 12, 3, 3, emblem) }
+    }
+
+    private fun door(m: P, cx: Int, halfW: Int, height: Int, id: CityIdentity) {
+        m.arch(cx, ground, halfW + 1, height + 1, id.outline)
+        m.arch(cx, ground, halfW, height, Pal.shade(id.window, 0.8f))
+        m.rect(cx, ground - height + halfW, 1, height - halfW, Pal.shade(id.window, 0.6f))
+    }
+
+    /** The common half-circle body every city castle is built on. */
+    private fun body(m: P, cx: Int, r: Int, ry: Int, id: CityIdentity) {
+        m.ellipse(cx, ground, r + 1, ry + 1, id.outline, topHalfOnly = true)
+        m.ellipse(cx, ground, r, ry, id.wall, topHalfOnly = true)
+        // Brick texture and shading on the right side
+        for (y in ground - ry until ground) for (x in cx - r until cx + r) {
+            val dx = (x - cx).toFloat() / r; val dy = (ground - y).toFloat() / ry
+            if (dx * dx + dy * dy > 1f) continue
+            val row = (ground - y) / 5
+            if ((ground - y) % 5 == 0 || (x + if (row % 2 == 0) 0 else 5) % 10 == 0) m.set(x, y, id.wallShade)
+            if (dx > 0.55f) m.set(x, y, Pal.alpha(id.outline, 0.12f))
         }
-        m.ellipse(cx, towerTop + 120, 14, 7, 0xFF6E7884.toInt())
-        m.rect(cx - 13, towerTop + 119, 27, 2, 0xFFFFE7A0.toInt())
-        m.ellipse(cx, towerTop + 82, 5, 3, 0xFF6E7884.toInt())
-        m.rect(cx, towerTop, 1, 72, 0xFFB0B6BE.toInt())
-        m.rect(cx, towerTop - 2, 1, 3, 0xFFE8484F.toInt())
+        // Merlons along the arc
+        var a = 0.12
+        while (a < Math.PI - 0.1) {
+            val x = cx + (cos(a) * r).roundToInt()
+            val y = ground - (sin(a) * ry).roundToInt()
+            m.rect(x - 3, y - 6, 7, 6, id.outline)
+            m.rect(x - 2, y - 5, 5, 5, id.wall)
+            a += 0.17
+        }
+    }
 
-        // Outer towers: glass condos
-        for (side in listOf(-1, 1)) tower(m, cx + side * outer - 12, 24, 120, 0xFF3FA7B8.toInt(), rnd, 0xFFBFF3F7.toInt())
-        // Inner towers: City Hall's curved towers, mirrored
-        val ch = 0xFFD8DCE2.toInt()
-        for (side in listOf(-1, 1)) {
-            val bx = cx + side * inner - 15
-            val bh = 175
-            for (x in 0 until 30) {
-                val k = if (side < 0) x else 29 - x
-                val curve = (sqrt(1f - (k / 30f) * (k / 30f)) * 18).toInt()
-                m.rect(bx + x, g - bh + (18 - curve), 1, bh - (18 - curve), if (x % 3 == 0) Pal.shade(ch, 0.82f) else ch)
+    // ------------------------------------------------------------------ cities
+
+    private fun paintCastle(m: P, city: Int, cx: Int, rnd: Random) {
+        val id = ids[city]
+        val r = (w * 0.44f).toInt()           // half width of the dome silhouette
+        val R = (r * 1.15f).toInt()           // silhouette height scale
+        fun hAt(fr: Float) = (sqrt((1f - fr * fr).coerceAtLeast(0f)) * R).toInt()
+        val outerX = (r * 0.86f).toInt(); val midX = (r * 0.62f).toInt(); val innerX = (r * 0.36f).toInt()
+        val outerTop = ground - hAt(0.86f); val midTop = ground - hAt(0.62f); val innerTop = ground - hAt(0.36f)
+        val keepTop = ground - (R * 0.9f).toInt()
+        body(m, cx, r, (R * 0.8f).toInt(), id)
+        when (city) {
+            0 -> toronto(m, cx, id, outerX, midX, innerX, outerTop, midTop, innerTop, keepTop)
+            1 -> sydney(m, cx, id, outerX, midX, innerX, outerTop, midTop, innerTop, keepTop)
+            2 -> istanbul(m, cx, id, outerX, midX, innerX, outerTop, midTop, innerTop, keepTop)
+            3 -> zurich(m, cx, id, outerX, midX, innerX, outerTop, midTop, innerTop, keepTop)
+            else -> sanFrancisco(m, cx, id, outerX, midX, innerX, outerTop, midTop, innerTop, keepTop)
+        }
+        // Little trees / decor at the castle's feet
+        val leaf = when (city) { 0 -> id.accent2; 1 -> 0xFF3FAE5A.toInt(); 2 -> 0xFF4E8F4A.toInt(); 3 -> 0xFF2F7A4E.toInt(); else -> 0xFF6BBF7A.toInt() }
+        for (tx in listOf(cx - r - 10, cx + r + 10)) {
+            if (city == 1) palm(m, tx, id) else if (city == 3) pine(m, tx, id) else {
+                m.rect(tx - 2, ground - 12, 5, 12, id.outline); m.rect(tx - 1, ground - 12, 3, 12, 0xFF6B4226.toInt())
+                m.circle(tx, ground - 18, 9, id.outline); m.circle(tx, ground - 18, 8, leaf)
+                m.circle(tx - 3, ground - 21, 3, Pal.tint(leaf, 0.3f))
             }
         }
-        // Keep: Princes' Gates arch
-        val gw = 100
-        val gh = 130
-        val stone = 0xFFEADFC6.toInt()
-        val shadow = 0xFFBFAF8E.toInt()
-        val left = cx - gw / 2
-        m.rect(left, g - gh, gw, gh, stone)
-        m.rect(left - 4, g - gh, gw + 8, 7, Pal.shade(stone, 0.9f))
-        m.rect(left - 4, g - gh + 7, gw + 8, 2, shadow)
-        m.arch(cx, g, 20, 92, 0xFF2D3A4A.toInt())
-        m.arch(left + 14, g, 7, 50, 0xFF2D3A4A.toInt())
-        m.arch(left + gw - 14, g, 7, 50, 0xFF2D3A4A.toInt())
-        for (colX in listOf(left + 3, left + 25, cx - 27, cx + 24, left + gw - 28, left + gw - 6)) {
-            m.rect(colX, g - gh + 10, 3, gh - 10, Pal.tint(stone, 0.35f))
-            m.rect(colX + 2, g - gh + 10, 1, gh - 10, shadow)
-        }
-        m.rect(cx - 24, g - gh - 18, 48, 18, stone)
-        m.rect(cx - 24, g - gh - 18, 48, 3, Pal.shade(stone, 0.9f))
-        val leaf = 0xFFE8303A.toInt()
-        val ly = g - gh - 40
-        m.tri(cx, ly - 12, cx - 5, ly + 5, cx + 5, ly + 5, leaf)
-        m.tri(cx - 14, ly - 2, cx - 2, ly + 9, cx - 4, ly - 2, leaf)
-        m.tri(cx + 14, ly - 2, cx + 2, ly + 9, cx + 4, ly - 2, leaf)
-        m.tri(cx - 10, ly + 9, cx, ly + 3, cx + 10, ly + 9, leaf)
-        m.rect(cx, ly + 9, 1, 8, leaf)
-        for (x in listOf(cx - 78, cx + 78)) tree(m, x, 8, if (x < cx) 0xFFE0532D.toInt() else 0xFFF08A24.toInt())
     }
 
-    // ------------------------------------------------------------------ Sydney
+    private fun palm(m: P, x: Int, id: CityIdentity) {
+        for (y in ground - 30 until ground) m.rect(x - 1 + ((ground - y) / 10), y, 3, 1, if (y % 3 == 0) 0xFF8E5A33.toInt() else 0xFFB07A48.toInt())
+        val top = ground - 30
+        for ((dx, dy) in listOf(-12 to 4, 12 to 4, -9 to -4, 9 to -4, 0 to -8)) m.line(x + 3, top, x + 3 + dx, top + dy, 0xFF2E9E4F.toInt(), 3)
+    }
 
-    private fun sydney(m: P, ox: Int, rnd: Random) {
-        val cx = ox + w / 2
-        val g = ground
-        val pylon = (w * 0.30f).toInt()
-        // Sydney Tower as the keep's spire
-        m.rect(cx - 1, g - 320, 3, 200, 0xFFB8C2CC.toInt())
-        m.ellipse(cx, g - 300, 8, 10, 0xFFE7B53C.toInt())
-        m.rect(cx - 8, g - 300, 17, 2, 0xFF9C7A2C.toInt())
-        m.rect(cx, g - 336, 1, 16, 0xFFB8C2CC.toInt())
+    private fun pine(m: P, x: Int, id: CityIdentity) {
+        m.rect(x - 1, ground - 6, 3, 6, 0xFF6B4226.toInt())
+        for (k in 0 until 3) {
+            val base = ground - 4 - k * 8
+            m.tri(x - 10 + k * 2, base + 1, x + 10 - k * 2, base + 1, x, base - 12, id.outline)
+            m.tri(x - 9 + k * 2, base, x + 9 - k * 2, base, x, base - 11, 0xFF2F7A4E.toInt())
+        }
+        m.rect(x - 1, ground - 30, 3, 2, 0xFFFFFFFF.toInt())
+    }
 
-        // Outer towers: Opera House sails on sandstone podiums
-        val shell = 0xFFF6F2E9.toInt()
-        val shellShade = 0xFFCFC8BA.toInt()
-        for (side in listOf(-1, 1)) {
-            val bx = cx + side * (w * 0.43f).toInt()
-            m.rect(bx - 22, g - 30, 44, 30, 0xFFD9C29A.toInt())
-            m.rect(bx - 22, g - 30, 44, 2, 0xFFEAD8B5.toInt())
-            for ((dx, sh) in listOf(-18 to 46, -6 to 70, 6 to 54)) {
-                val sx = bx + side * dx
-                m.tri(sx - 10, g - 30, sx + 10, g - 30, sx + side * 6, g - 30 - sh, shell)
-                m.tri(sx, g - 30, sx + 10, g - 30, sx + side * 6, g - 30 - sh, shellShade)
+    private fun toronto(m: P, cx: Int, id: CityIdentity, oX: Int, mX: Int, iX: Int, oT: Int, mT: Int, iT: Int, kT: Int) {
+        // CN Tower rising from behind the keep
+        val towerTop = kT - 120
+        for (y in towerTop + 46 until kT + 10) {
+            val t = (y - towerTop - 46f) / (kT + 10 - towerTop - 46f)
+            val half = (2 + t * 5).roundToInt()
+            m.rect(cx - half - 1, y, half * 2 + 3, 1, id.outline)
+            m.rect(cx - half, y, half * 2 + 1, 1, 0xFFE9EDF2.toInt())
+            m.rect(cx + half - 1, y, 1, 1, 0xFFB8C0CA.toInt())
+        }
+        m.ellipse(cx, towerTop + 72, 13, 7, id.outline); m.ellipse(cx, towerTop + 72, 12, 6, 0xFF8E98A6.toInt())
+        m.rect(cx - 11, towerTop + 71, 23, 2, id.lit)
+        m.ellipse(cx, towerTop + 48, 5, 3, id.outline)
+        m.rect(cx, towerTop, 1, 46, id.outline)
+        m.rect(cx, towerTop - 2, 1, 3, id.roof)
+        // Outer: red-roofed turrets with maple flags
+        for (s in listOf(-1, 1)) {
+            tower(m, cx + s * oX, 18, oT, id, windows = 1, merlons = false)
+            cone(m, cx + s * oX, oT, 11, 20, id)
+            flag(m, cx + s * oX, oT - 21, id.roof, id, 0xFFFFFFFF.toInt())
+        }
+        // Mid: teal glass towers
+        for (s in listOf(-1, 1)) {
+            tower(m, cx + s * mX, 22, mT, id, fill = id.accent, windows = 0)
+            for (y in mT + 6 until ground - 8 step 6) for (x in cx + s * mX - 8 until cx + s * mX + 8 step 5) m.rect(x, y, 3, 3, Pal.tint(id.accent, 0.55f))
+        }
+        // Inner: City Hall's curved towers
+        for (s in listOf(-1, 1)) {
+            val bx = cx + s * iX - 13
+            for (x in 0 until 26) {
+                val k = if (s < 0) x else 25 - x
+                val curve = (sqrt(1f - (k / 26f) * (k / 26f)) * 16).toInt()
+                val top = iT + (16 - curve)
+                m.rect(bx + x, top - 1, 1, ground - top + 1, id.outline)
+                if (x in 1..24) m.rect(bx + x, top, 1, ground - top, if (x % 4 == 0) id.wallShade else id.wall)
             }
         }
-        // Inner towers: granite bridge pylons
-        val granite = 0xFFD1BE9D.toInt()
-        for (side in listOf(-1, 1)) {
-            val px = cx + side * pylon - 14
-            m.rect(px, g - 170, 28, 170, granite)
-            m.rect(px + 22, g - 170, 6, 170, Pal.shade(granite, 0.8f))
-            m.rect(px - 2, g - 175, 32, 6, Pal.shade(granite, 0.9f))
-            m.rect(px + 9, g - 160, 10, 24, Pal.shade(granite, 0.72f))
-            var mx = px
-            while (mx < px + 28) { m.rect(mx, g - 181, 4, 6, granite); mx += 7 }
+        // Keep: Princes' Gates
+        tower(m, cx, 50, kT, id, windows = 0)
+        for (colX in listOf(cx - 20, cx - 10, cx + 9, cx + 19)) { m.rect(colX, kT + 8, 3, ground - kT - 8, Pal.tint(id.wall, 0.4f)); m.rect(colX + 2, kT + 8, 1, ground - kT - 8, id.wallShade) }
+        m.rect(cx - 25, kT + 6, 50, 3, id.roof)
+        door(m, cx, 9, 40, id)
+        // Maple leaf crest
+        val ly = kT + 24
+        m.tri(cx, ly - 9, cx - 4, ly + 4, cx + 4, ly + 4, id.roof)
+        m.tri(cx - 9, ly - 1, cx - 1, ly + 6, cx - 3, ly - 1, id.roof)
+        m.tri(cx + 9, ly - 1, cx + 1, ly + 6, cx + 3, ly - 1, id.roof)
+    }
+
+    private fun sydney(m: P, cx: Int, id: CityIdentity, oX: Int, mX: Int, iX: Int, oT: Int, mT: Int, iT: Int, kT: Int) {
+        // Sydney Tower spire behind the keep
+        m.rect(cx - 2, kT - 110, 5, 110, id.outline); m.rect(cx - 1, kT - 110, 3, 110, 0xFFDDE4EC.toInt())
+        m.ellipse(cx, kT - 92, 9, 11, id.outline); m.ellipse(cx, kT - 92, 8, 10, id.accent2)
+        m.rect(cx - 8, kT - 92, 17, 2, Pal.shade(id.accent2, 0.6f))
+        m.rect(cx, kT - 126, 1, 16, id.outline)
+        // Outer: blue cone turrets
+        for (s in listOf(-1, 1)) {
+            tower(m, cx + s * oX, 18, oT, id, windows = 1, merlons = false)
+            cone(m, cx + s * oX, oT, 11, 18, id)
         }
-        // Keep: the Harbour Bridge arch spanning between the pylons
-        val steel = 0xFF6F7F8E.toInt()
-        val span = pylon - 14
-        val deckY = g - 72
-        val rise = 78
+        // Mid: towers crowned with Opera House sails
+        for (s in listOf(-1, 1)) {
+            val tx = cx + s * mX
+            tower(m, tx, 24, mT + 14, id, windows = 1, merlons = false)
+            for ((dx, sh) in listOf(-8 to 16, 0 to 26, 8 to 20)) {
+                val sx = tx + s * dx
+                m.tri(sx - 7, mT + 15, sx + 7, mT + 15, sx + s * 5, mT + 15 - sh, id.outline)
+                m.tri(sx - 6, mT + 14, sx + 6, mT + 14, sx + s * 5, mT + 14 - sh + 1, id.accent)
+                m.tri(sx, mT + 14, sx + 6, mT + 14, sx + s * 5, mT + 14 - sh + 1, 0xFFDCE3EA.toInt())
+            }
+        }
+        // Inner: granite pylons with blue flags
+        for (s in listOf(-1, 1)) {
+            tower(m, cx + s * iX, 22, iT, id, fill = 0xFFE7D3B0.toInt(), windows = 1)
+            flag(m, cx + s * iX, iT - 6, id.roof, id, 0xFFFFFFFF.toInt())
+        }
+        // Keep: Harbour Bridge arch spanning the pylons over a sandstone gate
+        val span = iX - 12
+        val deckY = kT + 34
+        val rise = 44
         for (x in -span..span) {
             val t = x.toFloat() / span
-            val yTop = deckY - 18 - (rise * (1 - t * t)).toInt()
-            val yBot = yTop + 10 + (abs(t) * 14).toInt()
-            m.rect(cx + x, yTop, 1, 3, steel)
-            m.rect(cx + x, yBot, 1, 2, steel)
-            if ((x + span) % 8 == 0) m.line(cx + x, yTop, cx + x, yBot, steel)
-            if ((x + span) % 8 == 4) m.line(cx + x - 4, yTop + 2, cx + x + 4, yBot, Pal.alpha(steel, 0.8f))
-            if ((x + span) % 16 == 0 && abs(t) < 0.9f) m.rect(cx + x, yBot, 1, deckY - yBot, Pal.alpha(steel, 0.75f))
+            val yTop = deckY - 10 - (rise * (1 - t * t)).toInt()
+            m.rect(cx + x, yTop - 1, 1, 5, id.outline)
+            m.rect(cx + x, yTop, 1, 3, 0xFF5E7894.toInt())
+            if ((x + span) % 7 == 0) m.rect(cx + x, yTop + 3, 1, deckY - yTop - 3, id.outline)
         }
-        m.rect(cx - pylon, deckY, pylon * 2, 5, 0xFF56636F.toInt())
-        m.rect(cx - pylon, deckY + 5, pylon * 2, 2, 0xFF3D4650.toInt())
-        // Sandstone gateway under the deck
-        m.rect(cx - span, deckY + 7, span * 2, g - deckY - 7, 0xFFD9C29A.toInt())
-        m.arch(cx, g, 20, 56, 0xFF2D3A4A.toInt())
-        for (x in listOf(cx - 52, cx + 52)) tree(m, x, 7, 0xFF3E9E57.toInt())
+        tower(m, cx, 46, deckY, id, windows = 0, merlons = false)
+        m.rect(cx - span - 2, deckY - 2, span * 2 + 5, 5, id.outline)
+        m.rect(cx - span - 1, deckY - 1, span * 2 + 3, 3, 0xFF5E7894.toInt())
+        door(m, cx, 10, 34, id)
     }
 
-    // ------------------------------------------------------------------ Istanbul
-
-    private fun istanbul(m: P, ox: Int, rnd: Random) {
-        val cx = ox + w / 2
-        val g = ground
-        // Red brick stripes in the Theodosian-style walls
-        for (x in ox until ox + w) {
-            for (y in listOf(g - WALL_H + 14, g - WALL_H + 28)) m.rect(x, y, 1, 2, Pal.alpha(0xFF9C3B2E.toInt(), 0.35f))
+    private fun istanbul(m: P, cx: Int, id: CityIdentity, oX: Int, mX: Int, iX: Int, oT: Int, mT: Int, iT: Int, kT: Int) {
+        // Outer: terracotta Galata-style towers with cone roofs
+        for (s in listOf(-1, 1)) {
+            tower(m, cx + s * oX, 20, oT, id, fill = id.accent2, windows = 1, merlons = false)
+            cone(m, cx + s * oX, oT, 12, 22, id, color = 0xFF4A3B5C.toInt())
         }
-        // Outer towers: round Galata-style towers with conical roofs
-        for (side in listOf(-1, 1)) {
-            val tx = cx + side * outer
-            m.rect(tx - 12, g - 130, 25, 130, 0xFFB08A72.toInt())
-            m.rect(tx + 6, g - 130, 7, 130, 0xFF8E6C59.toInt())
-            m.rect(tx - 14, g - 133, 29, 4, 0xFF8E6C59.toInt())
-            m.tri(tx - 14, g - 133, tx + 14, g - 133, tx, g - 170, 0xFF4A3B4C.toInt())
-            for (i in 0..2) m.rect(tx - 7 + i * 6, g - 120, 2, 6, 0xFFFFD9A0.toInt())
+        // Mid: small turquoise domes
+        for (s in listOf(-1, 1)) {
+            tower(m, cx + s * mX, 26, mT + 10, id, windows = 1, merlons = false)
+            dome(m, cx + s * mX, mT + 10, 13, 12, id)
         }
-        // Keep: mosque with central dome over a tiled portal
-        val stone = 0xFFCBB79E.toInt()
-        val dome = 0xFF9EA7B3.toInt()
-        m.rect(cx - 58, g - 120, 116, 120, stone)
-        m.ellipse(cx, g - 150, 46, 40, dome, topHalfOnly = true)
-        m.rect(cx - 46, g - 150, 93, 30, stone)
-        for (i in -3..3) m.rect(cx + i * 12, g - 140, 3, 8, 0xFF5A4636.toInt())
-        m.rect(cx, g - 196, 1, 8, 0xFFE7B53C.toInt())
-        for (side in listOf(-1, 1)) m.ellipse(cx + side * 50, g - 120, 22, 18, dome, topHalfOnly = true)
-        // Inner towers: minarets
-        for (side in listOf(-1, 1)) {
-            val mx = cx + side * inner
-            val top = g - 250
-            m.rect(mx - 4, top, 9, g - top, 0xFFE2D5C2.toInt())
-            m.rect(mx + 2, top, 3, g - top, 0xFFB9A88F.toInt())
-            for (b in listOf(top + 30, top + 90)) m.rect(mx - 6, b, 13, 3, 0xFFB9A88F.toInt())
-            m.tri(mx - 4, top, mx + 4, top, mx, top - 26, 0xFF6F7E91.toInt())
+        // Inner: slender minarets reaching above the dome line
+        for (s in listOf(-1, 1)) {
+            val mx = cx + s * iX
+            val top = iT - 40
+            box(m, mx - 4, top, 9, ground - top, 0xFFFFF4E6.toInt(), 0xFFE0D2BE.toInt(), id.outline)
+            for (b in listOf(top + 22, top + 64)) { m.rect(mx - 7, b - 1, 15, 4, id.outline); m.rect(mx - 6, b, 13, 2, id.accent) }
+            cone(m, mx, top, 4, 22, id)
+            m.rect(mx, top - 28, 1, 4, id.accent)
         }
-        // Tiled portal
-        val pw = 72
-        val ph = 104
-        val pl = cx - pw / 2
-        m.rect(pl, g - ph, pw, ph, 0xFFE4D3B8.toInt())
-        for (y in g - ph + 4 until g step 4) for (x in pl + 4 until pl + pw - 4 step 4) {
-            val inBorder = x < pl + 14 || x >= pl + pw - 14 || y < g - ph + 14
-            if (inBorder) m.rect(x, y, 3, 3, if (((x + y) / 4) % 2 == 0) 0xFF2BA3A6.toInt() else 0xFF1E5F9E.toInt())
+        // Keep: great dome over an Iznik-tiled portal
+        tower(m, cx, 56, kT + 26, id, windows = 0, merlons = false)
+        dome(m, cx, kT + 26, 30, 30, id)
+        for (i in -2..2) m.rect(cx + i * 10, kT + 30, 3, 6, id.outline)
+        val pl = cx - 16; val pt = ground - 52
+        m.rect(pl - 1, pt - 1, 34, 53, id.outline)
+        for (y in pt until ground) for (x in pl until pl + 32) {
+            m.set(x, y, if (((x + y) / 3) % 2 == 0) id.roof else 0xFF1E5F9E.toInt())
         }
-        m.pointedArch(cx, g, 18, 80, 0xFF2B1B3A.toInt())
-        m.pointedArch(cx, g, 15, 75, 0xFF3D2850.toInt())
-        m.rect(cx - 2, g - 56, 5, 6, 0xFFFFC94D.toInt())
-        for (x in pl until pl + pw step 8) m.rect(x, g - ph - 6, 5, 6, 0xFFE4D3B8.toInt())
-        for ((sx, sy) in listOf(cx - 70 to g - 250, cx - 50 to g - 236, cx + 64 to g - 270)) {
-            m.line(sx - 4, sy - 2, sx, sy, 0xFF3A2A40.toInt()); m.line(sx, sy, sx + 4, sy - 2, 0xFF3A2A40.toInt())
-        }
+        m.pointedArch(cx, ground, 10, 42, id.outline)
+        m.pointedArch(cx, ground, 9, 40, id.window)
+        m.rect(cx - 1, ground - 26, 3, 4, id.lit)
     }
 
-    // ------------------------------------------------------------------ Zurich
-
-    private fun zurich(m: P, ox: Int, rnd: Random) {
-        val cx = ox + w / 2
-        val g = ground
-        val facades = listOf(0xFFEADBB4.toInt(), 0xFFCFE0CF.toInt(), 0xFFF0C9B0.toInt(), 0xFFD9CFE8.toInt())
-        // Outer towers: tall old-town houses with steep roofs
-        for ((k, side) in listOf(-1, 1).withIndex()) {
-            val bx = cx + side * outer - 13
-            val col = facades[k * 2]
-            m.rect(bx, g - 110, 26, 110, col)
-            m.rect(bx + 22, g - 110, 4, 110, Pal.shade(col, 0.85f))
-            m.tri(bx - 2, g - 110, bx + 27, g - 110, bx + 13, g - 140, 0xFF8C3B2E.toInt())
-            m.windows(bx + 4, g - 102, 18, 90, 0xFF6F8FB0.toInt(), 0xFF4E6C8C.toInt(), rnd, 6, 10, 3, 5, 0.6f)
+    private fun zurich(m: P, cx: Int, id: CityIdentity, oX: Int, mX: Int, iX: Int, oT: Int, mT: Int, iT: Int, kT: Int) {
+        // Outer: turrets with Swiss flags
+        for (s in listOf(-1, 1)) {
+            tower(m, cx + s * oX, 18, oT, id, windows = 1)
+            flag(m, cx + s * oX - 4, oT - 6, id.accent, id, 0xFFFFFFFF.toInt())
         }
-        // Inner towers: St. Peter-style clock towers with green spires
-        for (side in listOf(-1, 1)) {
-            val ct = cx + side * inner
-            m.rect(ct - 11, g - 175, 23, 175, 0xFFE3D6BC.toInt())
-            m.rect(ct + 7, g - 175, 5, 175, 0xFFC4B597.toInt())
-            m.tri(ct - 13, g - 175, ct + 13, g - 175, ct, g - 222, 0xFF4F8A6E.toInt())
-            m.circle(ct, g - 155, 8, 0xFF2E2A28.toInt())
-            m.circle(ct, g - 155, 6, 0xFF3A3532.toInt())
-            for (i in 0 until 12) {
-                val a = i * Math.PI / 6
-                m.set(ct + (cos(a) * 6).roundToInt(), g - 155 + (sin(a) * 6).roundToInt(), 0xFFE7B53C.toInt())
+        // Mid: chalet towers with steep slate roofs and red shutters
+        for (s in listOf(-1, 1)) {
+            val tx = cx + s * mX
+            tower(m, tx, 24, mT + 16, id, windows = 0, merlons = false)
+            cone(m, tx, mT + 16, 15, 24, id)
+            for (wy in listOf(mT + 26, mT + 50)) {
+                window(m, tx, wy, id)
+                m.rect(tx - 7, wy, 3, 8, id.accent); m.rect(tx + 5, wy, 3, 8, id.accent)
             }
-            m.line(ct, g - 155, ct, g - 160, 0xFFE7B53C.toInt()); m.line(ct, g - 155, ct + 3, g - 155, 0xFFE7B53C.toInt())
         }
-        // Keep: Grossmünster twin towers with an arched portal
-        val sand = 0xFFDCC9A2.toInt()
-        val sandDark = 0xFFB9A57F.toInt()
-        m.rect(cx - 40, g - 110, 80, 110, sand)
-        m.tri(cx - 40, g - 110, cx + 40, g - 110, cx, g - 136, 0xFF7E4A3A.toInt())
-        for (tx in listOf(cx - 28, cx + 28)) {
-            m.rect(tx - 13, g - 230, 26, 230, sand)
-            m.rect(tx + 8, g - 230, 5, 230, sandDark)
-            for (wy in listOf(g - 210, g - 180, g - 150)) {
-                m.arch(tx - 4, wy + 14, 3, 14, 0xFF4A3B33.toInt())
-                m.arch(tx + 4, wy + 14, 3, 14, 0xFF4A3B33.toInt())
-            }
-            m.rect(tx - 15, g - 234, 30, 5, sandDark)
-            m.rect(tx - 10, g - 252, 20, 18, sand)
-            m.ellipse(tx, g - 252, 10, 13, 0xFF3B4250.toInt(), topHalfOnly = true)
-            m.rect(tx, g - 276, 1, 12, 0xFF3B4250.toInt())
+        // Inner: clock towers with green spires
+        for (s in listOf(-1, 1)) {
+            val tx = cx + s * iX
+            tower(m, tx, 22, iT + 20, id, windows = 0, merlons = false)
+            cone(m, tx, iT + 20, 12, 32, id, color = id.accent2)
+            m.circle(tx, iT + 34, 7, id.outline); m.circle(tx, iT + 34, 6, 0xFFFFFFFF.toInt())
+            m.rect(tx, iT + 30, 1, 4, id.outline); m.rect(tx, iT + 34, 3, 1, id.outline)
         }
-        m.arch(cx, g, 16, 70, 0xFF3A2E28.toInt())
-        m.arch(cx, g, 12, 64, 0xFF4E3E34.toInt())
-        m.circle(cx, g - 90, 8, 0xFF6F8FB0.toInt())
-        m.circle(cx, g - 90, 6, 0xFF9CB8D4.toInt())
-        // Swiss flags on the outer towers
-        for (side in listOf(-1, 1)) {
-            val fx = cx + side * outer
-            m.rect(fx, g - 165, 1, 26, 0xFF8E8E8E.toInt())
-            m.rect(fx + 1, g - 165, 11, 11, 0xFFE03A3E.toInt())
-            m.rect(fx + 5, g - 163, 3, 7, 0xFFFFFFFF.toInt()); m.rect(fx + 3, g - 161, 7, 3, 0xFFFFFFFF.toInt())
+        // Keep: Grossmünster twin towers
+        tower(m, cx, 52, kT + 40, id, windows = 0, merlons = false)
+        cone(m, cx, kT + 40, 27, 14, id, color = id.accent)
+        for (tx in listOf(cx - 15, cx + 15)) {
+            tower(m, tx, 18, kT, id, windows = 2, merlons = false)
+            dome(m, tx, kT, 9, 12, id, finial = id.accent2)
         }
+        m.circle(cx, kT + 64, 7, id.outline); m.circle(cx, kT + 64, 6, 0xFF9CC4E8.toInt()); m.rect(cx, kT + 58, 1, 12, id.outline)
+        door(m, cx, 9, 34, id)
     }
 
-    // ------------------------------------------------------------------ San Francisco
-
-    private fun sanFrancisco(m: P, ox: Int, rnd: Random) {
-        val cx = ox + w / 2
-        val g = ground
-        val red = 0xFFC8372D.toInt()
-        val redDark = 0xFF8F2620.toInt()
-        val top = g - 300
-        val legs = listOf(cx - 24, cx + 12)
-        // Cables sweeping from the keep down to the outer towers
-        for (side in listOf(-1, 1)) {
-            val tx = if (side < 0) legs[0] + 6 else legs[1] + 6
-            val endX = cx + side * outer
-            val endY = g - 130
-            var prevX = tx; var prevY = top + 6
-            val n = abs(endX - tx)
+    private fun sanFrancisco(m: P, cx: Int, id: CityIdentity, oX: Int, mX: Int, iX: Int, oT: Int, mT: Int, iT: Int, kT: Int) {
+        val top = kT - 70
+        val legs = listOf(cx - 18, cx + 10)
+        // Cables from the Golden Gate tower to the mid towers
+        for (s in listOf(-1, 1)) {
+            val tx = if (s < 0) legs[0] + 4 else legs[1] + 4
+            val ex = cx + s * mX; val ey = mT + 4
+            var px = tx; var py = top + 4
+            val n = abs(ex - tx)
             for (i in 0..n) {
-                val x = tx + side * i
+                val x = tx + s * i
                 val t = i / n.toFloat()
-                val y = (top + 6 + (endY - top - 6) * (1 - (1 - t) * (1 - t))).toInt()
-                m.line(prevX, prevY, x, y, red, 2)
-                if (i % 7 == 0 && i > 4) m.rect(x, y, 1, g - WALL_H - y, Pal.alpha(red, 0.6f))
-                prevX = x; prevY = y
+                val y = (top + 4 + (ey - top - 4) * (1 - (1 - t) * (1 - t))).toInt()
+                m.line(px, py, x, y, id.roof, 2)
+                px = x; py = y
             }
         }
-        // Outer towers: Painted Lady turrets
-        val colors = listOf(0xFFF7C6D9.toInt(), 0xFFB9E3D3.toInt())
-        for ((k, side) in listOf(-1, 1).withIndex()) {
-            val bx = cx + side * outer - 14
-            val col = colors[k]
-            m.rect(bx, g - 120, 28, 120, col)
-            m.rect(bx + 24, g - 120, 4, 120, Pal.shade(col, 0.85f))
-            m.tri(bx - 2, g - 120, bx + 29, g - 120, bx + 14, g - 150, Pal.shade(col, 0.75f))
-            m.rect(bx + 4, g - 112, 20, 2, 0xFFFFFFFF.toInt())
-            m.windows(bx + 5, g - 104, 18, 90, 0xFFFFE6B0.toInt(), 0xFF5A4A5A.toInt(), rnd, 7, 12, 4, 7, 0.7f)
+        // Outer: orange cone turrets
+        for (s in listOf(-1, 1)) {
+            tower(m, cx + s * oX, 18, oT, id, windows = 1, merlons = false)
+            cone(m, cx + s * oX, oT, 11, 18, id)
         }
-        // Inner towers: fluted Coit-style towers
-        for (side in listOf(-1, 1)) {
-            val tx = cx + side * inner
-            m.rect(tx - 10, g - 165, 21, 165, 0xFFE8E2D6.toInt())
-            for (fx in tx - 8..tx + 8 step 4) m.rect(fx, g - 160, 1, 150, 0xFFC9C0AE.toInt())
-            m.rect(tx - 12, g - 170, 25, 6, 0xFFD4CCBC.toInt())
-            var mx = tx - 12
-            while (mx < tx + 13) { m.rect(mx, g - 176, 3, 6, 0xFFD4CCBC.toInt()); mx += 6 }
+        // Mid: fluted Coit towers
+        for (s in listOf(-1, 1)) {
+            val tx = cx + s * mX
+            tower(m, tx, 20, mT, id, fill = 0xFFF5EEDF.toInt(), windows = 0)
+            for (fx in tx - 6..tx + 6 step 4) m.rect(fx, mT + 4, 1, ground - mT - 8, 0xFFD9CCB4.toInt())
         }
-        // Keep: Golden Gate tower
-        for (lx in legs) {
-            m.rect(lx, top, 12, g - top, red)
-            m.rect(lx + 9, top, 3, g - top, redDark)
-            for (step in listOf(top + 40, top + 100, top + 160)) m.rect(lx - 1, step, 14, 3, redDark)
+        // Inner: Painted Lady turrets in mint and cream
+        for ((k, s) in listOf(-1, 1).withIndex()) {
+            val tx = cx + s * iX
+            val col = if (k == 0) id.accent else id.accent2
+            tower(m, tx, 24, iT + 14, id, fill = col, windows = 2, merlons = false)
+            cone(m, tx, iT + 14, 13, 20, id, color = 0xFFB98ADB.toInt())
+            m.rect(tx - 10, iT + 18, 21, 2, 0xFFFFFFFF.toInt())
         }
-        for ((py, ph) in listOf(top to 12, top + 50 to 14, top + 110 to 14, top + 170 to 14)) {
-            m.rect(legs[0], py, legs[1] - legs[0] + 12, ph, red)
-            for (k in 0 until 2) m.rect(legs[0] + 14 + k * 8, py + 3, 4, ph - 6, redDark)
-        }
-        // Bridge deck forms the gate's lintel
-        m.rect(cx - inner + 10, g - 70, (inner - 10) * 2, 6, red)
-        m.rect(cx - inner + 10, g - 64, (inner - 10) * 2, 3, redDark)
-        // Cable car parked in the gateway
-        val cc = cx - 26
-        val cy = g - 24
-        m.rect(cc, cy, 52, 22, 0xFFC0392B.toInt())
-        m.rect(cc, cy, 52, 3, 0xFFF4E2A0.toInt())
-        for (i in 0 until 4) m.rect(cc + 4 + i * 12, cy + 6, 8, 8, 0xFFFFE6B0.toInt())
-        m.rect(cc + 2, cy + 16, 48, 3, 0xFFF4E2A0.toInt())
-        m.line(cc + 26, cy, cc + 26, cy - 10, 0xFF22252A.toInt())
+        // Keep: Golden Gate tower over a pink gatehouse
+        tower(m, cx, 50, kT + 40, id, windows = 0)
+        for (lx in legs) box(m, lx, top, 9, kT + 40 - top, id.roof, id.roofShade, id.outline)
+        for (py in listOf(top, top + 26, top + 54)) box(m, legs[0], py, legs[1] - legs[0] + 9, 7, id.roof, id.roofShade, id.outline)
+        door(m, cx, 10, 34, id)
+        // Cable car parked by the gate
+        val cc = cx + 22; val cy = ground - 18
+        box(m, cc, cy, 26, 17, 0xFFC0392B.toInt(), 0xFF8F2620.toInt(), id.outline)
+        m.rect(cc, cy, 26, 2, id.accent2)
+        for (i in 0 until 3) m.rect(cc + 3 + i * 7, cy + 5, 5, 5, id.lit)
     }
-
-    companion object {
-        /** Height of the shared castle wall that runs through every city. */
-        const val WALL_H = 46
-    }
-}
-
-/** Tiny software painter on an ARGB buffer with alpha blending. */
-internal class P(val w: Int, val h: Int) {
-    val px = IntArray(w * h)
-
-    fun set(x: Int, y: Int, c: Int) {
-        if (x !in 0 until w || y !in 0 until h) return
-        val a = c ushr 24
-        if (a == 255) { px[y * w + x] = c; return }
-        if (a == 0) return
-        val d = px[y * w + x]
-        val da = d ushr 24
-        if (da == 0) { px[y * w + x] = c; return }
-        val inv = 255 - a
-        val r = (((c shr 16) and 0xFF) * a + ((d shr 16) and 0xFF) * inv) / 255
-        val g = (((c shr 8) and 0xFF) * a + ((d shr 8) and 0xFF) * inv) / 255
-        val b = ((c and 0xFF) * a + (d and 0xFF) * inv) / 255
-        px[y * w + x] = (max(a, da) shl 24) or (r shl 16) or (g shl 8) or b
-    }
-
-    fun rect(x: Int, y: Int, rw: Int, rh: Int, c: Int) {
-        for (yy in max(0, y) until min(h, y + rh)) for (xx in max(0, x) until min(w, x + rw)) set(xx, yy, c)
-    }
-
-    fun ellipse(cx: Int, cy: Int, rx: Int, ry: Int, c: Int, topHalfOnly: Boolean = false) {
-        for (dy in -ry..(if (topHalfOnly) 0 else ry)) for (dx in -rx..rx) {
-            val v = (dx * dx).toFloat() / (rx * rx).coerceAtLeast(1) + (dy * dy).toFloat() / (ry * ry).coerceAtLeast(1)
-            if (v <= 1f) set(cx + dx, cy + dy, c)
-        }
-    }
-
-    fun circle(cx: Int, cy: Int, r: Int, c: Int) = ellipse(cx, cy, r, r, c)
-
-    fun tri(x0: Int, y0: Int, x1: Int, y1: Int, x2: Int, y2: Int, c: Int) {
-        val minX = min(x0, min(x1, x2)); val maxX = max(x0, max(x1, x2))
-        val minY = min(y0, min(y1, y2)); val maxY = max(y0, max(y1, y2))
-        fun edge(ax: Int, ay: Int, bx: Int, by: Int, px: Int, py: Int) = (bx - ax) * (py - ay) - (by - ay) * (px - ax)
-        val area = edge(x0, y0, x1, y1, x2, y2)
-        if (area == 0) return
-        for (y in minY..maxY) for (x in minX..maxX) {
-            val w0 = edge(x1, y1, x2, y2, x, y); val w1 = edge(x2, y2, x0, y0, x, y); val w2 = edge(x0, y0, x1, y1, x, y)
-            if ((area > 0 && w0 >= 0 && w1 >= 0 && w2 >= 0) || (area < 0 && w0 <= 0 && w1 <= 0 && w2 <= 0)) set(x, y, c)
-        }
-    }
-
-    fun line(x0: Int, y0: Int, x1: Int, y1: Int, c: Int, thick: Int = 1) {
-        var x = x0; var y = y0
-        val dx = abs(x1 - x0); val dy = -abs(y1 - y0)
-        val sx = if (x0 < x1) 1 else -1; val sy = if (y0 < y1) 1 else -1
-        var err = dx + dy
-        while (true) {
-            rect(x - thick / 2, y - thick / 2, thick, thick, c)
-            if (x == x1 && y == y1) break
-            val e2 = 2 * err
-            if (e2 >= dy) { err += dy; x += sx }
-            if (e2 <= dx) { err += dx; y += sy }
-        }
-    }
-
-    /** Round-topped arch opening: rectangle + half ellipse on top. */
-    fun arch(cx: Int, base: Int, halfW: Int, height: Int, c: Int) {
-        val spring = base - height + halfW
-        rect(cx - halfW, spring, halfW * 2 + 1, base - spring, c)
-        ellipse(cx, spring, halfW, halfW, c, topHalfOnly = true)
-    }
-
-    /** Pointed (gothic / ottoman) arch opening. */
-    fun pointedArch(cx: Int, base: Int, halfW: Int, height: Int, c: Int) {
-        val spring = base - (height - halfW * 1.2f).toInt()
-        rect(cx - halfW, spring, halfW * 2 + 1, base - spring, c)
-        val r = halfW * 2
-        for (y in spring - (halfW * 1.7f).toInt()..spring) for (x in cx - halfW..cx + halfW) {
-            val dl = sqrt(((x - (cx + halfW)).toFloat()).let { it * it } + ((y - spring).toFloat()).let { it * it })
-            val dr = sqrt(((x - (cx - halfW)).toFloat()).let { it * it } + ((y - spring).toFloat()).let { it * it })
-            if (dl <= r && dr <= r) set(x, y, c)
-        }
-    }
-
-    fun windows(x: Int, y: Int, rw: Int, rh: Int, lit: Int, dark: Int, rnd: Random, stepX: Int = 5, stepY: Int = 6, ww: Int = 2, wh: Int = 3, chance: Float = 0.45f) {
-        var wy = y
-        while (wy + wh <= y + rh) {
-            var wx = x
-            while (wx + ww <= x + rw) {
-                rect(wx, wy, ww, wh, if (rnd.nextFloat() < chance) lit else dark)
-                wx += stepX
-            }
-            wy += stepY
-        }
-    }
-
-    /** Generic tower block with windows and an optional rooftop detail. */
-    fun building(x: Int, ground: Int, bw: Int, bh: Int, body: Int, window: Int, rnd: Random, roof: Int = 0) {
-        val top = ground - bh
-        rect(x, top, bw, bh, body)
-        rect(x + bw - 2, top, 2, bh, Pal.shade(body, 0.8f))
-        rect(x, top, bw, 1, Pal.tint(body, 0.25f))
-        windows(x + 2, top + 4, bw - 5, bh - 8, window, Pal.shade(body, 0.75f), rnd)
-        when (roof) {
-            1 -> rect(x + bw / 2, top - 8, 1, 8, body)
-            2 -> rect(x + 2, top - 3, bw - 4, 3, Pal.shade(body, 0.9f))
-        }
-    }
-
-    fun bitmap(): Bitmap = Bitmap.createBitmap(px, w, h, Bitmap.Config.ARGB_8888)
 }
