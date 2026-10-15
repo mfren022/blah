@@ -14,11 +14,11 @@ object Campaign {
     const val LEVELS_PER_CITY = 30
 
     val cities = listOf(
-        City(0, "Maple Hollow", "Where every crew starts out"),
-        City(1, "Rustport", "Brick warehouses by the bay"),
-        City(2, "Neon Bay", "Steel towers that never sleep"),
-        City(3, "Dune City", "Sun-baked high-rises"),
-        City(4, "Sky Capital", "The tallest towers on Earth"),
+        City(0, "Toronto", "Where every crew starts out"),
+        City(1, "Sydney", "Sandstone and harbour steel"),
+        City(2, "Istanbul", "Domes, towers and ancient stone"),
+        City(3, "Zurich", "Precision-built old town"),
+        City(4, "San Francisco", "The final job by the bay"),
     )
 
     val cityCount get() = cities.size

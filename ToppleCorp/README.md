@@ -35,7 +35,7 @@ Hammer (unlimited, 1 damage), Drill (3 damage), Dynamite (2 damage to the target
 Laser (1 damage down a column), Wrecking Ball (2 damage across a row).
 
 ### Campaign
-There are 5 cities with 30 levels each: Maple Hollow, Rustport, Neon Bay, Dune City and Sky Capital.
+There are 5 cities with 30 levels each: Toronto, Sydney, Istanbul, Zurich and San Francisco.
 Towers get taller and wider as you progress, and each new tool and block type gets an intro level with a
 foreman tip. Clear all 30 levels in a city to unlock the next one.
 
