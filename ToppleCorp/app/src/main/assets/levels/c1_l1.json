@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "city": 0,
+  "index": 0,
+  "name": "1-1",
+  "width": 5,
+  "height": 4,
+  "seed": 100000,
+  "hint": "Tap the Hammer, then tap a block. Destroy every block before you run out of turns!",
+  "turns": {"three": 8, "two": 9, "max": 12},
+  "tools": {"HAMMER": -1},
+  "pieces": [
+    {"id": 1, "material": "WOOD", "cells": [[1,0],[2,0],[1,1],[2,1]]},
+    {"id": 2, "material": "WOOD", "cells": [[3,0],[3,1],[4,1],[4,2]]},
+    {"id": 3, "material": "WOOD", "cells": [[2,2],[3,2],[2,3]]},
+    {"id": 4, "material": "WOOD", "cells": [[0,1],[0,2],[1,2]]}
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "city": 0,
+  "index": 4,
+  "name": "1-5",
+  "width": 5,
+  "height": 6,
+  "seed": 104000,
+  "turns": {"three": 10, "two": 12, "max": 16},
+  "tools": {"HAMMER": -1},
+  "pieces": [
+    {"id": 1, "material": "WOOD", "cells": [[2,0],[3,0],[4,0],[3,1]]},
+    {"id": 2, "material": "WOOD", "cells": [[0,0],[1,0],[0,1],[1,1]]},
+    {"id": 3, "material": "WOOD", "cells": [[2,1],[2,2],[3,2]]},
+    {"id": 4, "material": "WOOD", "cells": [[0,2],[1,2],[0,3],[1,3]]},
+    {"id": 5, "material": "GOLD", "cells": [[4,1]]},
+    {"id": 6, "material": "GLASS", "cells": [[2,3],[3,3],[3,4]]},
+    {"id": 7, "material": "GLASS", "cells": [[4,2],[4,3],[4,4],[4,5]]}
+  ]
+}

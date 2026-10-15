@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "city": 1,
+  "index": 17,
+  "name": "2-18",
+  "width": 6,
+  "height": 12,
+  "seed": 217003,
+  "turns": {"three": 12, "two": 15, "max": 21},
+  "tools": {"HAMMER": -1, "DRILL": 2, "DYNAMITE": 1},
+  "pieces": [
+    {"id": 1, "material": "GLASS", "cells": [[2,0],[3,0],[2,1]]},
+    {"id": 2, "material": "WOOD", "cells": [[0,0],[0,1],[0,2],[0,3]]},
+    {"id": 3, "material": "BRICK", "cells": [[4,0],[5,0],[4,1],[5,1]]},
+    {"id": 4, "material": "BRICK", "cells": [[1,0],[1,1],[1,2],[2,2]]},
+    {"id": 5, "material": "STONE", "cells": [[3,1],[3,2],[4,2],[4,3]]},
+    {"id": 6, "material": "BRICK", "cells": [[5,2],[5,3]]},
+    {"id": 7, "material": "STONE", "cells": [[1,3],[2,3],[3,3]]},
+    {"id": 8, "material": "BRICK", "cells": [[4,4],[3,5],[4,5],[3,6]]},
+    {"id": 9, "material": "STONE", "cells": [[1,4],[2,4],[1,5]]},
+    {"id": 10, "material": "BRICK", "cells": [[5,4],[5,5],[4,6],[5,6]]},
+    {"id": 11, "material": "BRICK", "cells": [[0,4],[0,5],[0,6],[1,6]]},
+    {"id": 12, "material": "BRICK", "cells": [[2,5],[2,6],[1,7],[2,7]]},
+    {"id": 13, "material": "STONE", "cells": [[4,7],[5,7],[5,8],[5,9]]},
+    {"id": 14, "material": "PLASTIC", "cells": [[3,7],[3,8],[3,9],[3,10]]},
+    {"id": 15, "material": "STONE", "cells": [[0,7],[0,8],[1,8],[0,9]]},
+    {"id": 16, "material": "GOLD", "cells": [[4,8]]},
+    {"id": 17, "material": "STONE", "cells": [[2,8],[1,9],[2,9],[2,10]]},
+    {"id": 18, "material": "BRICK", "cells": [[4,9],[4,10]]},
+    {"id": 19, "material": "GLASS", "cells": [[0,10],[1,10],[1,11],[2,11]]},
+    {"id": 20, "material": "BRICK", "cells": [[5,10],[5,11]]}
+  ]
+}
