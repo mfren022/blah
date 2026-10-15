@@ -144,6 +144,35 @@ object Draw {
         rect(c, x0 + 2, y0 + hh - 2, ww - 4, 1f, Pal.shade(face, 0.85f))
     }
 
+    /**
+     * Chunky square block used for buttons: thick outline, deep 3D lip under the face, and
+     * two-pixel bevels. [depth] is the visible lip height (shrinks when the button is pressed).
+     */
+    fun block(c: Canvas, x: Float, y: Float, w: Float, h: Float, face: Int, depth: Float = 6f) {
+        val x0 = x.toInt().toFloat(); val y0 = y.toInt().toFloat()
+        val ww = w.toInt().toFloat(); val hh = h.toInt().toFloat()
+        val d = depth.toInt().coerceAtLeast(0).toFloat()
+        // Outline around face + lip
+        rect(c, x0, y0, ww, hh + d, Pal.INK)
+        // Lip (the block's front side)
+        if (d > 0) {
+            rect(c, x0 + 2, y0 + hh - 2, ww - 4, d, Pal.shade(face, 0.55f))
+            rect(c, x0 + 2, y0 + hh - 2, ww - 4, 1f, Pal.shade(face, 0.4f))
+            // Vertical seams on the lip sell the "block" look
+            rect(c, x0 + 2, y0 + hh - 1, 2f, d - 1, Pal.shade(face, 0.68f))
+        }
+        // Face
+        rect(c, x0 + 2, y0 + 2, ww - 4, hh - 4, face)
+        // Bevels
+        rect(c, x0 + 2, y0 + 2, ww - 4, 2f, Pal.tint(face, 0.4f))
+        rect(c, x0 + 2, y0 + 4, 2f, hh - 8, Pal.tint(face, 0.2f))
+        rect(c, x0 + ww - 4, y0 + 4, 2f, hh - 8, Pal.shade(face, 0.85f))
+        rect(c, x0 + 2, y0 + hh - 4, ww - 4, 2f, Pal.shade(face, 0.78f))
+        // Corner pixels on the face for a chiselled look
+        rect(c, x0 + 2, y0 + 2, 1f, 1f, Pal.INK)
+        rect(c, x0 + ww - 3, y0 + 2, 1f, 1f, Pal.INK)
+    }
+
     /** Vertical gradient using horizontal bands (dithered look). */
     fun gradient(c: Canvas, x: Float, y: Float, w: Float, h: Float, top: Int, bottom: Int, bands: Int = 24) {
         val bh = h / bands

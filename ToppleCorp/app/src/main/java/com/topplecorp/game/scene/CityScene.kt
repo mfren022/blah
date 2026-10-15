@@ -45,12 +45,12 @@ class CityScene(game: Game) : Scene(game) {
     override fun layout() {
         buttons.clear()
         cardW = (w - 56f).coerceAtMost(240f)
-        cardH = (h - 110f).coerceAtMost(380f)
-        cardY = 40f + ((h - 110f) - cardH) / 2f
+        cardH = (h - 120f).coerceAtMost(380f)
+        cardY = 50f + ((h - 120f) - cardH) / 2f
         backdrops = (0 until count).map { Backdrop(Themes.of(it), cardW.toInt(), 50 + it) }
-        buttons += Button(6f, 6f, 26f, 18f, icon = Sprites.back, color = Pal.PANEL_LIGHT, sound = Sound.BACK) { onBack() }
-        buttons += Button(4f, cardY + cardH / 2 - 12, 18f, 24f, "<", color = Pal.PANEL_LIGHT) { snapTo(target.roundToInt() - 1) }
-        buttons += Button(w - 22f, cardY + cardH / 2 - 12, 18f, 24f, ">", color = Pal.PANEL_LIGHT) { snapTo(target.roundToInt() + 1) }
+        buttons += UiKit.backButton { onBack() }
+        buttons += Button(2f, cardY + cardH / 2 - 20, 24f, 36f, "<", color = Pal.PANEL_LIGHT, textScale = 2) { snapTo(target.roundToInt() - 1) }
+        buttons += Button(w - 26f, cardY + cardH / 2 - 20, 24f, 36f, ">", color = Pal.PANEL_LIGHT, textScale = 2) { snapTo(target.roundToInt() + 1) }
     }
 
     override fun onBack() = game.goTo { MenuScene(game) }
@@ -123,7 +123,7 @@ class CityScene(game: Game) : Scene(game) {
         bg.draw(c, h, h, 0f)
         Draw.dim(c, w, h, 0.55f)
         UiKit.header(c, w, "CITIES")
-        UiKit.goldPill(c, w - 6, 8f, game.save.gold)
+        UiKit.goldPill(c, w - 6, 12f, game.save.gold)
 
         val pageW = cardW + 24f
         // Draw far cards first so the centred one is on top.
@@ -209,10 +209,10 @@ class CityScene(game: Game) : Scene(game) {
 
         if (unlocked) {
             val bob = if (abs(off) < 0.1f) kotlin.math.sin(time * 4f) * 1.5f else 0f
-            val by = cardY + cardH - 34f + bob
-            Draw.panel(c, centerX - 40, by, 80f, 22f, Pal.ORANGE, 3f)
-            Draw.bitmap(c, Sprites.play, centerX - 24, by + 7)
-            PixelFont.drawShadow(c, "PLAY", centerX + 4, by + 7, Pal.WHITE, align = 1, shadow = Pal.ORANGE_DARK)
+            val by = cardY + cardH - 46f + bob
+            Draw.block(c, centerX - 56, by, 112f, 32f, Pal.ORANGE, 6f)
+            Draw.bitmap(c, Sprites.play, centerX - 38, by + 9, 2f)
+            PixelFont.drawShadow(c, "PLAY", centerX + 8, by + 9, Pal.WHITE, 2, align = 1, shadow = Pal.ORANGE_DARK)
         } else {
             Draw.rect(c, left, cardY, cardW, cardH, Pal.alpha(Pal.INK, 0.6f))
             Draw.bitmap(c, Sprites.lock, centerX - 8, cardY + cardH * 0.3f, 2f)

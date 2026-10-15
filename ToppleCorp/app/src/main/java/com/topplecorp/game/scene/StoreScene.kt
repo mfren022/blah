@@ -25,7 +25,7 @@ class StoreScene(game: Game) : Scene(game) {
     private var tabAnim = 0f
     private var cardW = 110f
     private var cardH = 110f
-    private var gridY = 72f
+    private var gridY = 90f
     private var pressed = -1
     private var toast = ""
     private var toastTime = 0f
@@ -33,10 +33,11 @@ class StoreScene(game: Game) : Scene(game) {
 
     override fun layout() {
         buttons.clear()
-        buttons += Button(6f, 6f, 26f, 18f, icon = Sprites.back, color = Pal.PANEL_LIGHT, sound = Sound.BACK) { onBack() }
+        buttons += UiKit.backButton { onBack() }
         val tw = (w - 24f) / 2f
-        buttons += Button(8f, 40f, tw, 20f, "TILESETS", color = Pal.BLUE, sound = Sound.SELECT) { setCategory(StoreItem.Category.TILESETS) }
-        buttons += Button(16f + tw, 40f, tw, 20f, "CREW SKINS", color = Pal.BLUE, sound = Sound.SELECT) { setCategory(StoreItem.Category.CREW) }
+        val ts = if (PixelFont.width("CREW SKINS", 2) + 12 <= tw) 2 else 1
+        buttons += Button(8f, 48f, tw, 30f, "TILESETS", color = Pal.BLUE, textScale = ts, sound = Sound.SELECT) { setCategory(StoreItem.Category.TILESETS) }
+        buttons += Button(16f + tw, 48f, tw, 30f, "CREW SKINS", color = Pal.BLUE, textScale = ts, sound = Sound.SELECT) { setCategory(StoreItem.Category.CREW) }
         cardW = (w - 24f) / 2f
         cardH = ((h - gridY - 40f) / 3f - 8f).coerceAtMost(130f)
         refreshTabs()
@@ -105,7 +106,7 @@ class StoreScene(game: Game) : Scene(game) {
         backdrop.draw(c, h, h * 0.85f, 0f)
         Draw.dim(c, w, h, 0.55f)
         UiKit.header(c, w, "STORE")
-        UiKit.goldPill(c, w - 6, 8f, game.save.gold)
+        UiKit.goldPill(c, w - 6, 12f, game.save.gold)
         val items = StoreCatalog.of(category)
         items.forEachIndexed { i, item ->
             val p = cardPos(i)

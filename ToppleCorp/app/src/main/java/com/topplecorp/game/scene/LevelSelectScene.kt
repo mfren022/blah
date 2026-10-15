@@ -32,13 +32,13 @@ class LevelSelectScene(game: Game, private val city: Int) : Scene(game) {
 
     override fun layout() {
         buttons.clear()
-        buttons += Button(6f, 6f, 26f, 18f, icon = Sprites.back, color = Pal.PANEL_LIGHT, sound = Sound.BACK) { onBack() }
+        buttons += UiKit.backButton { onBack() }
         val availH = h - 80f
         tile = ((w - 24f - gap * (cols - 1)) / cols).coerceAtMost((availH - gap * (rows - 1)) / rows - 10f).coerceAtMost(48f)
         val gridW = cols * tile + (cols - 1) * gap
         val gridH = rows * (tile + 10f) + (rows - 1) * gap
         gridX = (w - gridW) / 2f
-        gridY = 44f + ((availH - gridH) / 2f).coerceAtLeast(0f)
+        gridY = 52f + ((availH - gridH) / 2f).coerceAtLeast(0f)
     }
 
     override fun onBack() = game.goTo { CityScene(game) }
@@ -87,7 +87,7 @@ class LevelSelectScene(game: Game, private val city: Int) : Scene(game) {
         backdrop.drawGround(c, h * 0.8f, h)
         Draw.dim(c, w, h, 0.35f)
         UiKit.header(c, w, Campaign.cities[city].name.uppercase())
-        UiKit.goldPill(c, w - 6, 8f, game.save.gold)
+        UiKit.goldPill(c, w - 6, 12f, game.save.gold)
 
         val save = game.save
         var nextFound = false
@@ -111,7 +111,7 @@ class LevelSelectScene(game: Game, private val city: Int) : Scene(game) {
                 stars == 3 -> Pal.GOLD_DARK
                 else -> theme.accent
             }
-            Draw.panel(c, r[0], r[1], tile, tile, face, 4f)
+            Draw.block(c, r[0], r[1], tile, tile, face, 6f)
             if (unlocked) {
                 PixelFont.drawShadow(c, "${i + 1}", cx, r[1] + tile / 2 - 9, Pal.WHITE, 2, align = 1, shadow = Pal.shade(face, 0.4f))
                 UiKit.stars(c, cx, r[1] + tile - 13, stars, 1f, 0f)

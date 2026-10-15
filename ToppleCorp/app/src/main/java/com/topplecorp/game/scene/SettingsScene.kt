@@ -27,10 +27,10 @@ class SettingsScene(game: Game) : Scene(game) {
     override fun layout() {
         buttons.clear()
         toggles.clear()
-        buttons += Button(6f, 6f, 26f, 18f, icon = Sprites.back, color = Pal.PANEL_LIGHT, sound = Sound.BACK) { onBack() }
+        buttons += UiKit.backButton { onBack() }
         rowX = 20f
-        rowY = 56f
-        val tx = w - 20f - 30f
+        rowY = 66f
+        val tx = w - 22f - 40f
         val save = game.save
         toggles += "SOUND EFFECTS" to Toggle(tx, rowY + 8, save.soundOn) { on ->
             save.soundOn = on; game.sfx.enabled = on
@@ -44,22 +44,22 @@ class SettingsScene(game: Game) : Scene(game) {
         toggles += "TUTORIAL HINTS" to Toggle(tx, rowY + 112, save.showHints) { on -> save.showHints = on }
 
         val bw = w - 40f
-        buttons += Button(20f, rowY + 160, bw, 22f, "LEVEL EDITOR - COMING SOON", color = Pal.PANEL_LIGHT) {}.apply {
+        buttons += Button(20f, rowY + 156, bw, 32f, "LEVEL EDITOR - COMING SOON", color = Pal.PANEL_LIGHT) {}.apply {
             enabled = false
         }
-        buttons += Button(20f, rowY + 192, bw, 22f, "RESET PROGRESS", color = Pal.RED) { reset() }
+        buttons += Button(20f, rowY + 202, bw, 32f, "RESET PROGRESS", color = Pal.RED, textScale = 2) { reset() }
     }
 
     private fun reset() {
         if (confirmReset > 0f) {
             game.save.resetProgress()
             confirmReset = 0f
-            buttons[2].label = "PROGRESS RESET"
+            buttons[2].label = "RESET DONE"
             game.play(Sound.EXPLOSION, 0.6f)
             game.vibrate(80, 200)
         } else {
             confirmReset = 3f
-            buttons[2].label = "TAP AGAIN TO CONFIRM"
+            buttons[2].label = "TAP TO CONFIRM"
         }
     }
 

@@ -53,8 +53,8 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
     private var renderer = TowerRenderer(20)
     private var originX = 0f
     private var groundY = 0f
-    private val hudH = 34f
-    private val toolbarH = 62f
+    private val hudH = 40f
+    private val toolbarH = 74f
 
     // Camera
     private var cam = 0f
@@ -127,7 +127,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         maxCam = (towerPx - (groundY - hudH)).coerceAtLeast(0f)
         particles.groundY = groundY + 20f
 
-        buttons += Button(6f, 7f, 22f, 20f, icon = Sprites.pause, color = Pal.PANEL_LIGHT) { setPaused(true) }
+        buttons += Button(5f, 5f, 30f, 26f, icon = Sprites.pause, color = Pal.PANEL_LIGHT) { setPaused(true) }.apply { iconScale = 2f }
 
         // Tool bar
         toolButtons.clear()
@@ -137,7 +137,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         val total = n * slotW + (n - 1) * 6f
         var x = (w - total) / 2f
         for (t in tools) {
-            val b = Button(x, h - 46f, slotW, 36f, icon = Sprites.tools[t], color = Pal.PANEL_LIGHT, sound = Sound.SELECT) {
+            val b = Button(x, h - 58f, slotW, 44f, icon = Sprites.tools[t], color = Pal.PANEL_LIGHT, sound = Sound.SELECT) {
                 selectTool(t)
             }
             b.iconScale = if (slotW >= 30f) 2f else 1f
@@ -149,14 +149,15 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
 
         // Pause menu
         pauseButtons.clear()
-        val pw = 140f
+        val pw = 176f
         val px = (w - pw) / 2f
-        val py = h / 2f - 50f
-        pauseButtons += Button(px, py, pw, 24f, "RESUME", Sprites.play, Pal.GREEN) { setPaused(false) }
-        pauseButtons += Button(px, py + 32, pw, 24f, "RESTART", Sprites.retry, Pal.ORANGE) { restart() }
-        pauseButtons += Button(px, py + 64, pw, 24f, "LEVELS", Sprites.list, Pal.BLUE) { toLevels() }
-        pauseButtons += Button(px, py + 96, pw, 24f, if (game.save.soundOn) "SOUND ON" else "SOUND OFF",
-            if (game.save.soundOn) Sprites.sound else Sprites.mute, Pal.PURPLE) { toggleSound() }
+        val py = h / 2f - 68f
+        pauseButtons += Button(px, py, pw, 32f, "RESUME", Sprites.play, Pal.GREEN, textScale = 2) { setPaused(false) }
+        pauseButtons += Button(px, py + 44, pw, 32f, "RESTART", Sprites.retry, Pal.ORANGE, textScale = 2) { restart() }
+        pauseButtons += Button(px, py + 88, pw, 32f, "LEVELS", Sprites.list, Pal.BLUE, textScale = 2) { toLevels() }
+        pauseButtons += Button(px, py + 132, pw, 32f, if (game.save.soundOn) "SOUND ON" else "SOUND OFF",
+            if (game.save.soundOn) Sprites.sound else Sprites.mute, Pal.PURPLE, textScale = 2) { toggleSound() }
+        pauseButtons.forEach { it.iconScale = 2f }
     }
 
     override fun enter() {
@@ -512,21 +513,23 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         resultButtons.clear()
         val pw = 200f
         val px = (w - pw) / 2f
-        val by = h / 2f + 58f
+        val by = h / 2f + 64f
         if (state == State.WON) {
             reward = game.save.completeLevel(city, index, board.starsEarned, board.goldCollected, board.bonusGold)
             game.play(Sound.WIN)
             val hasNext = index + 1 < Campaign.LEVELS_PER_CITY
-            resultButtons += Button(px, by, 56f, 26f, icon = Sprites.list, color = Pal.BLUE) { toLevels() }
-            resultButtons += Button(px + 62, by, 56f, 26f, icon = Sprites.retry, color = Pal.PURPLE) { restart() }
-            resultButtons += Button(px + 124, by, 76f, 26f, if (hasNext) "NEXT" else "CITIES", Sprites.play, Pal.GREEN) {
+            resultButtons += Button(px, by, 56f, 34f, icon = Sprites.list, color = Pal.BLUE) { toLevels() }
+            resultButtons += Button(px + 62, by, 56f, 34f, icon = Sprites.retry, color = Pal.PURPLE) { restart() }
+            resultButtons += Button(px + 124, by, 96f, 34f, if (hasNext) "NEXT" else "CITIES", Sprites.play, Pal.GREEN,
+                textScale = if (hasNext) 2 else 1) {
                 if (hasNext) game.goTo { GameScene(game, city, index + 1) } else game.goTo { CityScene(game) }
             }
         } else {
             game.play(Sound.LOSE)
-            resultButtons += Button(px, by, 80f, 26f, "LEVELS", Sprites.list, Pal.BLUE) { toLevels() }
-            resultButtons += Button(px + 88, by, 112f, 26f, "RETRY", Sprites.retry, Pal.ORANGE) { restart() }
+            resultButtons += Button(px, by, 104f, 34f, "LEVELS", Sprites.list, Pal.BLUE, textScale = 2) { toLevels() }
+            resultButtons += Button(px + 112, by, 108f, 34f, "RETRY", Sprites.retry, Pal.ORANGE, textScale = 2) { restart() }
         }
+        resultButtons.forEach { it.iconScale = 2f }
     }
 
     // ------------------------------------------------------------------ update
@@ -822,32 +825,32 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         Draw.rect(c, 0f, hudH, w, 1f, Pal.alpha(Pal.WHITE, 0.12f))
         drawButtons(c)
 
-        PixelFont.drawShadow(c, "${city + 1}-${index + 1}", 34f, 8f, Pal.CREAM)
+        PixelFont.drawShadow(c, "${city + 1}-${index + 1}", 42f, 10f, Pal.CREAM)
         val cityName = Campaign.cities[city].name.uppercase()
-        if (34f + PixelFont.width(cityName) < w / 2f - 22f) PixelFont.drawShadow(c, cityName, 34f, 19f, Pal.alpha(Pal.WHITE, 0.6f))
+        if (42f + PixelFont.width(cityName) < w / 2f - 22f) PixelFont.drawShadow(c, cityName, 42f, 21f, Pal.alpha(Pal.WHITE, 0.6f))
 
         // Turns left
         val left = board.turnsLeft
         val urgent = left <= 2 && state != State.WON
         val turnColor = if (urgent && (time % 0.6f) < 0.3f) Pal.RED else Pal.WHITE
         val cx = w / 2f + 6f
-        Draw.panel(c, cx - 26, 4f, 52f, 25f, Pal.PANEL, 2f)
-        PixelFont.drawShadow(c, "$left", cx, 7f, turnColor, 2, align = 1)
-        PixelFont.draw(c, "TURNS", cx - PixelFont.width("TURNS") / 2f, 21f, Pal.alpha(Pal.CREAM, 0.8f))
+        Draw.panel(c, cx - 26, 5f, 52f, 28f, Pal.PANEL, 2f)
+        PixelFont.drawShadow(c, "$left", cx, 9f, turnColor, 2, align = 1)
+        PixelFont.draw(c, "TURNS", cx - PixelFont.width("TURNS") / 2f, 24f, Pal.alpha(Pal.CREAM, 0.8f))
 
         // Star outlook: which rating the player is still on track for.
         val used = board.turnsUsed
         val potential = level.turns.starsFor(used).coerceAtLeast(if (used <= level.turns.max) 1 else 0)
         val sx = cx + 32
-        UiKit.stars(c, sx + 15, 6f, potential, 1f, 0f)
+        UiKit.stars(c, sx + 15, 8f, potential, 1f, 0f)
         val nextLimit = when (potential) { 3 -> level.turns.three; 2 -> level.turns.two; else -> level.turns.max }
         val remain = (nextLimit - used).coerceAtLeast(0)
-        PixelFont.draw(c, if (remain == 1) "1 TURN" else "$remain TURNS", sx, 20f, Pal.alpha(Pal.CREAM, 0.7f))
+        PixelFont.draw(c, if (remain == 1) "1 TURN" else "$remain TURNS", sx, 23f, Pal.alpha(Pal.CREAM, 0.7f))
 
         // Gold block status
         if (hasGold) {
             val gx = w - 22f
-            val gy = 10f
+            val gy = 14f
             when {
                 goldCollected -> Draw.bitmap(c, Sprites.goldBar, gx, gy + sin(time * 5f))
                 goldLost -> {
@@ -866,7 +869,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         Draw.rect(c, 0f, top + 1, w, 1f, Pal.alpha(Pal.WHITE, 0.08f))
         val tipColor = if (tipFlash > 0f && (time % 0.2f) < 0.1f) Pal.GOLD else Pal.CREAM
         val lines = PixelFont.wrap(tip, w - 12f)
-        PixelFont.drawShadow(c, lines.firstOrNull() ?: "", w / 2f, top + 4, tipColor, align = 1)
+        PixelFont.drawShadow(c, lines.firstOrNull() ?: "", w / 2f, top + 5, tipColor, align = 1)
         for (b in toolButtons.values) b.draw(c)
         for ((t, b) in toolButtons) {
             if (board.charges[t] == -1) {
@@ -916,10 +919,10 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         val off = (1f - Ease.outBack(pauseAnim)) * 40f
         c.save()
         c.translate(0f, off)
-        val px = (w - 170f) / 2f
-        val py = h / 2f - 86f
-        Draw.panel(c, px, py, 170f, 220f, Pal.PANEL, 4f)
-        PixelFont.drawShadow(c, "PAUSED", w / 2f, py + 12, Pal.CREAM, 2, align = 1)
+        val px = (w - 200f) / 2f
+        val py = h / 2f - 108f
+        Draw.panel(c, px, py, 200f, 222f, Pal.PANEL, 5f)
+        PixelFont.drawShadow(c, "PAUSED", w / 2f, py + 13, Pal.CREAM, 2, align = 1)
         pauseButtons.forEach { it.draw(c) }
         c.restore()
     }
@@ -929,7 +932,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         Draw.dim(c, w, h, (t * 2f).coerceAtMost(0.65f))
         val appear = Ease.outBack((t / 0.45f).coerceIn(0f, 1f))
         val pw = 220f
-        val ph = 190f
+        val ph = 214f
         val px = (w - pw) / 2f
         val py = h / 2f - 110f - (1f - appear) * h * 0.6f
         val won = state == State.WON

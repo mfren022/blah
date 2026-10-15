@@ -57,7 +57,11 @@ class Button(
     var iconScale = 1f
     var textColor = Pal.WHITE
 
-    fun contains(px: Float, py: Float) = px >= x && px <= x + w && py >= y - 2 && py <= y + h + 4
+    companion object {
+        const val DEPTH = 6f
+    }
+
+    fun contains(px: Float, py: Float) = px >= x - 2 && px <= x + w + 2 && py >= y - 4 && py <= y + h + DEPTH + 2
 
     /** Returns true if the touch was consumed. */
     fun touch(t: Touch, play: (Sound) -> Unit): Boolean {
@@ -84,16 +88,17 @@ class Button(
 
     fun draw(c: Canvas, alpha: Float = 1f) {
         if (!visible) return
-        val depth = 4f
-        val sink = press * (depth - 1) - hover * 2f
+        val depth = DEPTH
+        val lift = hover * 2f
+        val sink = press * (depth - 2) - lift
         val face = when {
             !enabled -> Pal.GRAY_DARK
-            selected -> Pal.tint(color, 0.25f)
+            selected -> Pal.tint(color, 0.2f)
             else -> color
         }
         // Drop shadow on the floor
-        Draw.rect(c, x + 2, y + h + depth - 1, w - 2, 2f, Pal.alpha(Pal.INK, 0.25f * alpha))
-        Draw.panel(c, x, y + sink, w, h, face, depth - press * (depth - 1) + hover * 2f)
+        Draw.rect(c, x + 3, y + h + depth, w - 2, 3f, Pal.alpha(Pal.INK, 0.3f * alpha))
+        Draw.block(c, x, y + sink, w, h, face, depth - press * (depth - 2) + lift)
         val cy = y + sink
         var contentW = 0f
         val ic = icon
@@ -107,20 +112,20 @@ class Button(
         }
         if (label.isNotEmpty()) {
             val tc = if (enabled) textColor else Pal.GRAY
-            PixelFont.drawShadow(c, label, cx, cy + (h - PixelFont.height(textScale)) / 2f, tc, textScale,
-                shadow = Pal.shade(face, 0.45f))
+            PixelFont.drawShadow(c, label, cx, (cy + (h - PixelFont.height(textScale)) / 2f).toInt().toFloat(), tc, textScale,
+                shadow = Pal.shade(face, 0.4f))
         }
         badge?.let {
-            val bw = PixelFont.width(it) + 6
-            Draw.panel(c, x + w - bw + 3, cy - 5, bw, 11f, Pal.RED, 1f)
-            PixelFont.draw(c, it, x + w - bw + 6, cy - 3, Pal.WHITE)
+            val bw = PixelFont.width(it) + 8
+            Draw.block(c, x + w - bw + 4, cy - 6, bw, 13f, Pal.RED, 2f)
+            PixelFont.draw(c, it, x + w - bw + 8, cy - 3, Pal.WHITE)
         }
     }
 }
 
 /** Simple on/off toggle switch. */
 class Toggle(var x: Float, var y: Float, var on: Boolean, val onChange: (Boolean) -> Unit) {
-    val w = 30f; val h = 14f
+    val w = 40f; val h = 20f
     private var knob = if (on) 1f else 0f
 
     fun touch(t: Touch, play: (Sound) -> Unit): Boolean {
@@ -133,9 +138,9 @@ class Toggle(var x: Float, var y: Float, var on: Boolean, val onChange: (Boolean
     fun update(dt: Float) { knob = Ease.approach(knob, if (on) 1f else 0f, 18f, dt) }
 
     fun draw(c: Canvas) {
-        Draw.panel(c, x, y, w, h, Pal.mix(Pal.GRAY_DARK, Pal.GREEN, knob), 1f)
-        val kx = x + 2 + knob * (w - h)
-        Draw.panel(c, kx, y + 1, h - 3, h - 3, Pal.CREAM, 1f)
+        Draw.block(c, x, y, w, h, Pal.mix(Pal.GRAY_DARK, Pal.GREEN, knob), 3f)
+        val kx = x + 3 + knob * (w - h)
+        Draw.block(c, kx, y + 1, h - 6, h - 6, Pal.CREAM, 2f)
     }
 }
 
@@ -158,8 +163,8 @@ class Slider(var x: Float, var y: Float, var w: Float, var value: Float, val onC
     }
 
     fun draw(c: Canvas) {
-        Draw.rect(c, x, y + 2, w, 4f, Pal.INK)
-        Draw.rect(c, x + 1, y + 3, (w - 2) * value, 2f, Pal.GOLD)
-        Draw.panel(c, x + w * value - 4, y - 2, 9f, 10f, Pal.CREAM, 2f)
+        Draw.rect(c, x, y + 1, w, 6f, Pal.INK)
+        Draw.rect(c, x + 2, y + 3, (w - 4) * value, 2f, Pal.GOLD)
+        Draw.block(c, x + w * value - 6, y - 4, 12f, 13f, Pal.CREAM, 3f)
     }
 }
