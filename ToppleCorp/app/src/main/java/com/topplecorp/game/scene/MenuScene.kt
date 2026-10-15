@@ -9,17 +9,15 @@ import com.topplecorp.game.audio.Sound
 import com.topplecorp.game.gfx.Backdrop
 import com.topplecorp.game.gfx.CrewMood
 import com.topplecorp.game.gfx.CrewRenderer
-import com.topplecorp.game.gfx.Draw
-import com.topplecorp.game.gfx.Pal
-import com.topplecorp.game.gfx.PixelFont
-import com.topplecorp.game.gfx.Sprites
 import com.topplecorp.game.gfx.Themes
 import com.topplecorp.game.gfx.TowerRenderer
 import com.topplecorp.game.gfx.VisualPiece
 import com.topplecorp.game.ui.Button
 import com.topplecorp.game.ui.Ease
+import com.topplecorp.game.ui.Icon
 import com.topplecorp.game.ui.Touch
 import com.topplecorp.game.ui.TouchAction
+import com.topplecorp.game.ui.Ui
 import com.topplecorp.game.ui.UiKit
 import kotlin.math.sin
 
@@ -56,19 +54,19 @@ class MenuScene(game: Game) : Scene(game) {
     override fun layout() {
         buttons.clear()
         backdrop = Backdrop(theme, game.vw, 11 + game.save.lastCity)
-        val bw = (w - 40f).coerceAtMost(220f)
+        val bw = (w - 48f).coerceAtMost(220f)
         val bx = (w - bw) / 2f
-        val by = h * 0.68f
-        buttons += Button(bx, by, bw, 46f, "CAMPAIGN", Sprites.play, Pal.ORANGE, textScale = 2) {
+        val by = h * 0.69f
+        buttons += Button(bx, by, bw, 44f, "Campaign", Icon.PLAY, Ui.ACCENT, textSize = 15f) {
             game.goTo { CityScene(game) }
-        }.apply { iconScale = 2f }
-        val gearW = 50f
-        buttons += Button(bx, by + 60, bw - gearW - 8, 40f, "STORE", Sprites.cart, Pal.BLUE, textScale = 2) {
+        }.apply { primary = true; radius = 12f; iconSize = 16f }
+        val gearW = 44f
+        buttons += Button(bx, by + 54, bw - gearW - 10, 40f, "Store", Icon.CART, Ui.BLUE, textSize = 13f) {
             game.goTo { StoreScene(game) }
-        }.apply { iconScale = 2f }
-        buttons += Button(bx + bw - gearW, by + 60, gearW, 40f, icon = Sprites.gear, color = Pal.PURPLE) {
+        }.apply { radius = 12f; iconSize = 16f }
+        buttons += Button(bx + bw - gearW, by + 54, gearW, 40f, icon = Icon.GEAR, color = Ui.TEXT) {
             game.goTo { SettingsScene(game) }
-        }.apply { iconScale = 2f }
+        }.apply { radius = 12f; iconSize = 20f }
     }
 
     override fun enter() {
@@ -111,7 +109,7 @@ class MenuScene(game: Game) : Scene(game) {
     }
 
     override fun draw(c: Canvas) {
-        val groundY = h * 0.68f - 60f
+        val groundY = h * 0.69f - 56f
         backdrop.draw(c, h, groundY, 0f)
         backdrop.drawGround(c, groundY, h)
         val towerW = 5 * renderer.cell
@@ -119,25 +117,27 @@ class MenuScene(game: Game) : Scene(game) {
         renderer.drawShadow(c, tower, ox, groundY)
         renderer.draw(c, tower, ox, groundY, time)
         crew.draw(c, w * 0.5f - 56f, groundY + 40f, time, 2f)
+    }
 
-        // Title
+    override fun drawUi(c: Canvas) {
+        // Title with a soft 3D extrusion
         val t = Ease.outBack((intro / 0.7f).coerceIn(0f, 1f))
-        val titleY = 34f + (1f - t) * -80f + sin(time * 1.6f) * 2f
-        PixelFont.draw3D(c, "TOPPLE", w / 2f, titleY, Pal.GOLD, Pal.ORANGE_DARK, 4, 4)
-        PixelFont.draw3D(c, "CORP", w / 2f, titleY + 36f, Pal.CREAM, Pal.GRAY_DARK, 4, 4)
-        PixelFont.drawShadow(c, "DEMOLITION CO. EST. 1989", w / 2f, titleY + 72f, Pal.WHITE, 1, align = 1)
+        val titleY = 70f + (1f - t) * -90f + sin(time * 1.6f) * 1.5f
+        for (d in 4 downTo 1) {
+            Ui.text(c, "TOPPLE", w / 2f + d * 0.5f, titleY + d * 0.8f, 40f, 0xFFC2551E.toInt(), Ui.Align.CENTER, Ui.Weight.BOLD, spacing = 0.04f)
+        }
+        Ui.text(c, "TOPPLE", w / 2f, titleY, 40f, Ui.GOLD, Ui.Align.CENTER, Ui.Weight.BOLD, spacing = 0.04f)
+        Ui.text(c, "CORP", w / 2f, titleY + 36f, 22f, Ui.TEXT, Ui.Align.CENTER, Ui.Weight.BOLD, spacing = 0.5f)
+        Ui.panel(c, w / 2f - 68f, titleY + 56f, 136f, 16f, 8f)
+        Ui.text(c, "Demolition Co. · Est. 1989", w / 2f, titleY + 64f, 7.5f, Ui.TEXT_DIM, Ui.Align.CENTER)
 
-        // Bottom panel behind buttons
-        val panelY = h * 0.68f - 16
-        Draw.rect(c, 0f, panelY, w, h - panelY, Pal.alpha(Pal.INK, 0.35f))
-        Draw.rect(c, 0f, panelY, w, 1f, Pal.alpha(Pal.WHITE, 0.15f))
         val bt = Ease.outCubic(((intro - 0.25f) / 0.5f).coerceIn(0f, 1f))
         c.save()
-        c.translate(0f, (1f - bt) * 120f)
+        c.translate(0f, (1f - bt) * 140f)
         drawButtons(c)
         c.restore()
 
-        UiKit.goldPill(c, w - 6, 8f, game.save.gold)
-        PixelFont.drawShadow(c, "V1.0", 6f, h - 12f, Pal.alpha(Pal.WHITE, 0.6f))
+        UiKit.goldPill(c, w - 10f, 20f, game.save.gold)
+        Ui.text(c, "v1.0", 10f, h - 10f, 7f, Ui.TEXT_FAINT)
     }
 }

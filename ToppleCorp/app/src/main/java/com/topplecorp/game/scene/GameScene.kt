@@ -20,7 +20,6 @@ import com.topplecorp.game.gfx.CrewRenderer
 import com.topplecorp.game.gfx.Draw
 import com.topplecorp.game.gfx.Pal
 import com.topplecorp.game.gfx.Particles
-import com.topplecorp.game.gfx.PixelFont
 import com.topplecorp.game.gfx.Sprites
 import com.topplecorp.game.gfx.Textures
 import com.topplecorp.game.gfx.Themes
@@ -28,8 +27,11 @@ import com.topplecorp.game.gfx.TowerRenderer
 import com.topplecorp.game.gfx.VisualPiece
 import com.topplecorp.game.ui.Button
 import com.topplecorp.game.ui.Ease
+import com.topplecorp.game.ui.Icon
+import com.topplecorp.game.ui.Icons
 import com.topplecorp.game.ui.Touch
 import com.topplecorp.game.ui.TouchAction
+import com.topplecorp.game.ui.Ui
 import com.topplecorp.game.ui.UiKit
 import kotlin.math.abs
 import kotlin.math.floor
@@ -53,7 +55,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
     private var renderer = TowerRenderer(20)
     private var originX = 0f
     private var groundY = 0f
-    private val hudH = 40f
+    private val hudH = 44f
     private val toolbarH = 74f
 
     // Camera
@@ -127,20 +129,20 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         maxCam = (towerPx - (groundY - hudH)).coerceAtLeast(0f)
         particles.groundY = groundY + 20f
 
-        buttons += Button(5f, 5f, 30f, 26f, icon = Sprites.pause, color = Pal.PANEL_LIGHT) { setPaused(true) }.apply { iconScale = 2f }
+        buttons += Button(10f, 8f, 28f, 28f, icon = Icon.PAUSE) { setPaused(true) }.apply { radius = 14f; iconSize = 14f }
 
         // Tool bar
         toolButtons.clear()
         val tools = level.tools.keys.toList()
         val n = tools.size.coerceAtLeast(1)
-        val slotW = ((w - 16f - (n - 1) * 6f) / n).coerceAtMost(52f)
+        val slotW = ((w - 20f - (n - 1) * 6f) / n).coerceAtMost(52f)
         val total = n * slotW + (n - 1) * 6f
         var x = (w - total) / 2f
         for (t in tools) {
-            val b = Button(x, h - 58f, slotW, 44f, icon = Sprites.tools[t], color = Pal.PANEL_LIGHT, sound = Sound.SELECT) {
-                selectTool(t)
-            }
-            b.iconScale = if (slotW >= 30f) 2f else 1f
+            val b = Button(x, h - 54f, slotW, 44f, color = Ui.ACCENT, sound = Sound.SELECT) { selectTool(t) }
+            b.sprite = Sprites.tools[t]
+            b.spriteScale = if (slotW >= 34f) 2f else 1f
+            b.radius = 12f
             toolButtons[t] = b
             buttons += b
             x += slotW + 6f
@@ -149,15 +151,16 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
 
         // Pause menu
         pauseButtons.clear()
-        val pw = 176f
+        val pw = 180f
         val px = (w - pw) / 2f
-        val py = h / 2f - 68f
-        pauseButtons += Button(px, py, pw, 32f, "RESUME", Sprites.play, Pal.GREEN, textScale = 2) { setPaused(false) }
-        pauseButtons += Button(px, py + 44, pw, 32f, "RESTART", Sprites.retry, Pal.ORANGE, textScale = 2) { restart() }
-        pauseButtons += Button(px, py + 88, pw, 32f, "LEVELS", Sprites.list, Pal.BLUE, textScale = 2) { toLevels() }
-        pauseButtons += Button(px, py + 132, pw, 32f, if (game.save.soundOn) "SOUND ON" else "SOUND OFF",
-            if (game.save.soundOn) Sprites.sound else Sprites.mute, Pal.PURPLE, textScale = 2) { toggleSound() }
-        pauseButtons.forEach { it.iconScale = 2f }
+        val py = h / 2f - 66f
+        pauseButtons += Button(px, py, pw, 34f, "Resume", Icon.PLAY, Ui.GREEN, textSize = 12f) { setPaused(false) }
+            .apply { primary = true }
+        pauseButtons += Button(px, py + 44, pw, 34f, "Restart", Icon.RETRY, textSize = 12f) { restart() }
+        pauseButtons += Button(px, py + 88, pw, 34f, "Levels", Icon.LIST, textSize = 12f) { toLevels() }
+        pauseButtons += Button(px, py + 132, pw, 34f, if (game.save.soundOn) "Sound on" else "Sound off",
+            if (game.save.soundOn) Icon.SOUND else Icon.MUTE, textSize = 12f) { toggleSound() }
+        pauseButtons.forEach { it.radius = 12f }
     }
 
     override fun enter() {
@@ -172,8 +175,8 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
     private fun toggleSound() {
         game.save.soundOn = !game.save.soundOn
         game.sfx.enabled = game.save.soundOn
-        pauseButtons[3].label = if (game.save.soundOn) "SOUND ON" else "SOUND OFF"
-        pauseButtons[3].icon = if (game.save.soundOn) Sprites.sound else Sprites.mute
+        pauseButtons[3].label = if (game.save.soundOn) "Sound on" else "Sound off"
+        pauseButtons[3].icon = if (game.save.soundOn) Icon.SOUND else Icon.MUTE
     }
 
     private fun setPaused(p: Boolean) {
@@ -219,7 +222,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
 
     private fun selectTool(t: ToolType) {
         if (state != State.PLAYING && state != State.INTRO) return
-        if (!board.canUse(t)) { game.play(Sound.DENY); tip = "No ${t.displayName}s left!"; tipFlash = 1f; return }
+        if (!board.canUse(t)) { game.play(Sound.DENY); tip = "No ${t.displayName.lowercase()}s left!"; tipFlash = 1f; return }
         selected = t
         aim = null
         aimCells = emptyList()
@@ -233,14 +236,13 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
             b.selected = t == selected
             b.enabled = c != 0
             b.badge = if (c < 0) null else "$c"
-            b.color = if (t == selected) Pal.ORANGE else Pal.PANEL_LIGHT
         }
     }
 
     private fun updateTip() {
         tip = when {
-            aim != null -> "TAP AGAIN TO STRIKE!"
-            else -> selected.displayName.uppercase() + ": " + selected.description
+            aim != null -> "Tap again to strike!"
+            else -> selected.displayName + " — " + selected.description
         }
     }
 
@@ -278,7 +280,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         aimCells = board.affectedCells(selected, target)
         game.play(Sound.AIM, 0.6f)
         if (selected == ToolType.HAMMER && board.pieceAt(target.x, target.y)?.material?.hammerImmune == true) {
-            tip = "HAMMERS CAN'T DENT THAT!"; tipFlash = 1f
+            tip = "Hammers can't dent that!"; tipFlash = 1f
         } else updateTip()
     }
 
@@ -346,7 +348,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
                 v.shake = 1f
                 val (cx, cy) = pieceCenter(v)
                 if (e.amount <= 0) {
-                    particles.floatText(cx, cy - 6, "CLANK!", Pal.GRAY)
+                    particles.floatText(cx, cy - 6, "Clank!", Pal.GRAY)
                     particles.sparks(cx, cy, Pal.WHITE, 6)
                     game.play(Sound.CLANK, 0.8f)
                 } else {
@@ -372,7 +374,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
                 if (e.material == Material.GOLD) {
                     goldLost = true
                     val (cx, cy) = e.cells.first().let { cellCenterX(it.x.toFloat()) to cellCenterY(it.y.toFloat()) }
-                    particles.floatText(cx, cy - 10, "GOLD LOST!", Pal.RED)
+                    particles.floatText(cx, cy - 10, "Gold lost!", Pal.RED)
                     game.play(Sound.DENY)
                 }
                 shake = maxOf(shake, 1.5f)
@@ -436,7 +438,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
             SpecialEffect.SHOCK -> {
                 game.play(Sound.SHOCK)
                 for (c in e.area) particles.sparks(cellCenterX(c.x.toFloat()), cellCenterY(c.y.toFloat()), 0xFFFFF27A.toInt(), 5, 90f)
-                particles.floatText(ox, oy - 8, "ZAP!", Pal.GOLD)
+                particles.floatText(ox, oy - 8, "Zap!", Pal.GOLD)
                 shake = maxOf(shake, 3f)
             }
             SpecialEffect.EXPLODE -> {
@@ -444,23 +446,23 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
                 particles.sparks(ox, oy, Pal.GOLD, 40, 260f)
                 particles.sparks(ox, oy, Pal.ORANGE, 30, 200f)
                 particles.debris(ox, oy, Pal.GRAY_DARK, 16, 1.5f)
-                particles.floatText(ox, oy - 8, "BOOM!", Pal.ORANGE)
+                particles.floatText(ox, oy - 8, "Boom!", Pal.ORANGE)
                 shake = maxOf(shake, 7f)
                 game.vibrate(80, 255)
             }
             SpecialEffect.FLOOD -> {
                 game.play(Sound.SPLASH)
                 for (c in e.area) particles.water(cellCenterX(c.x.toFloat()), cellCenterY(c.y.toFloat()), 4)
-                particles.floatText(ox, oy - 8, "SPLASH!", Pal.BLUE)
+                particles.floatText(ox, oy - 8, "Splash!", Pal.BLUE)
             }
             SpecialEffect.BONUS_TURN -> {
                 game.play(Sound.BONUS)
-                particles.floatText(ox, oy - 8, "+1 TURN!", Pal.TEAL)
+                particles.floatText(ox, oy - 8, "+1 turn", Pal.TEAL)
                 particles.sparks(ox, oy, 0xFFBFF6FF.toInt(), 16)
             }
             SpecialEffect.BONUS_GOLD -> {
                 game.play(Sound.COIN)
-                particles.floatText(ox, oy - 8, "+100 GOLD", Pal.GOLD)
+                particles.floatText(ox, oy - 8, "+100 gold", Pal.GOLD)
                 particles.sparks(ox, oy, Pal.GOLD, 24, 150f)
             }
             SpecialEffect.GOLD -> {
@@ -468,7 +470,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
                 // The crew grabs it: remove the gold block visual.
                 visuals.values.removeAll { v -> v.material == Material.GOLD && v.cells.any { it in e.origin } }
                 game.play(Sound.GOLD)
-                particles.floatText(ox, oy - 10, "GOLD BLOCK!", Pal.GOLD)
+                particles.floatText(ox, oy - 10, "Gold block!", Pal.GOLD)
                 particles.sparks(ox, oy, Pal.GOLD, 30, 180f)
                 crew.set(CrewMood.CHEER)
                 game.vibrate(40, 120)
@@ -494,7 +496,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
                 state = State.LOST
                 endDelay = 0.7f
                 crew.set(CrewMood.SAD)
-                lostReason = if (board.turnsLeft <= 0) "OUT OF TURNS!" else "NO TOOL CAN DAMAGE WHAT'S LEFT!"
+                lostReason = if (board.turnsLeft <= 0) "Out of turns" else "No tool can damage what's left"
             }
             Outcome.PLAYING -> {
                 state = State.PLAYING
@@ -511,25 +513,25 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
     private fun showResults() {
         resultTime = 0f
         resultButtons.clear()
-        val pw = 200f
+        val pw = 210f
         val px = (w - pw) / 2f
-        val by = h / 2f + 64f
+        val by = h / 2f + 60f
         if (state == State.WON) {
             reward = game.save.completeLevel(city, index, board.starsEarned, board.goldCollected, board.bonusGold)
             game.play(Sound.WIN)
             val hasNext = index + 1 < Campaign.LEVELS_PER_CITY
-            resultButtons += Button(px, by, 56f, 34f, icon = Sprites.list, color = Pal.BLUE) { toLevels() }
-            resultButtons += Button(px + 62, by, 56f, 34f, icon = Sprites.retry, color = Pal.PURPLE) { restart() }
-            resultButtons += Button(px + 124, by, 96f, 34f, if (hasNext) "NEXT" else "CITIES", Sprites.play, Pal.GREEN,
-                textScale = if (hasNext) 2 else 1) {
+            resultButtons += Button(px, by, 52f, 36f, icon = Icon.LIST) { toLevels() }
+            resultButtons += Button(px + 60, by, 52f, 36f, icon = Icon.RETRY) { restart() }
+            resultButtons += Button(px + 120, by, pw - 120, 36f, if (hasNext) "Next" else "Cities", Icon.PLAY, Ui.GREEN, textSize = 12f) {
                 if (hasNext) game.goTo { GameScene(game, city, index + 1) } else game.goTo { CityScene(game) }
-            }
+            }.apply { primary = true }
         } else {
             game.play(Sound.LOSE)
-            resultButtons += Button(px, by, 104f, 34f, "LEVELS", Sprites.list, Pal.BLUE, textScale = 2) { toLevels() }
-            resultButtons += Button(px + 112, by, 108f, 34f, "RETRY", Sprites.retry, Pal.ORANGE, textScale = 2) { restart() }
+            resultButtons += Button(px, by, pw / 2 - 4, 36f, "Levels", Icon.LIST, textSize = 12f) { toLevels() }
+            resultButtons += Button(px + pw / 2 + 4, by, pw / 2 - 4, 36f, "Retry", Icon.RETRY, Ui.ACCENT, textSize = 12f) { restart() }
+                .apply { primary = true }
         }
-        resultButtons.forEach { it.iconScale = 2f }
+        resultButtons.forEach { it.radius = 12f; it.iconSize = 14f }
     }
 
     // ------------------------------------------------------------------ update
@@ -679,7 +681,7 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         game.play(Sound.CLICK)
     }
 
-    // ------------------------------------------------------------------ draw
+    // ------------------------------------------------------------------ draw (world)
 
     override fun draw(c: Canvas) {
         val sx = if (shake > 0f) (rnd.nextFloat() - 0.5f) * shake * 2f else 0f
@@ -697,12 +699,6 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         crew.draw(c, w / 2f, groundY + 42f, time, 2f)
         c.restore()
         particles.draw(c, cam + sy)
-
-        drawHud(c)
-        drawToolbar(c)
-        if (hintAnim > 0.01f) drawHint(c)
-        if (pauseAnim > 0.01f) drawPause(c)
-        if (resultTime >= 0f) drawResults(c)
     }
 
     private fun drawAim(c: Canvas, before: Boolean) {
@@ -727,22 +723,6 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
             Draw.rect(c, x, y, cs, cs, Pal.alpha(Pal.GOLD, pulse * 0.6f))
             Draw.rect(c, x, y, cs, 1f, Pal.GOLD); Draw.rect(c, x, y + cs - 1, cs, 1f, Pal.GOLD)
             Draw.rect(c, x, y, 1f, cs, Pal.GOLD); Draw.rect(c, x + cs - 1, y, 1f, cs, Pal.GOLD)
-        }
-        // Projected damage labels
-        val ids = aimCells.mapNotNull { board.pieceAt(it.x, it.y) }.distinct()
-        for (p in ids) {
-            val v = visuals[p.id] ?: continue
-            val (cx, cy) = pieceCenter(v)
-            val dmg = selected.damageAgainst(p.material)
-            val kills = dmg >= p.hp
-            val label = if (kills) "X" else "-$dmg"
-            val col = when { dmg == 0 -> Pal.GRAY; kills -> Pal.RED; else -> Pal.CREAM }
-            Draw.panel(c, cx - 8, cy - 6, 16f, 11f, Pal.INK, 0f)
-            PixelFont.draw(c, label, cx - PixelFont.width(label) / 2f, cy - 4, col)
-            // HP pips
-            for (i in 0 until p.maxHp.coerceAtMost(8)) {
-                Draw.rect(c, cx - p.maxHp.coerceAtMost(8) * 1.5f + i * 3f, cy + 6, 2f, 2f, if (i < p.hp) Pal.GREEN else Pal.INK)
-            }
         }
         // Reticle on the exact target
         aim?.let { a ->
@@ -820,60 +800,108 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
         }
     }
 
-    private fun drawHud(c: Canvas) {
-        Draw.rect(c, 0f, 0f, w, hudH, Pal.alpha(Pal.INK, 0.62f))
-        Draw.rect(c, 0f, hudH, w, 1f, Pal.alpha(Pal.WHITE, 0.12f))
-        drawButtons(c)
+    // ------------------------------------------------------------------ draw (UI)
 
-        PixelFont.drawShadow(c, "${city + 1}-${index + 1}", 42f, 10f, Pal.CREAM)
-        val cityName = Campaign.cities[city].name.uppercase()
-        if (42f + PixelFont.width(cityName) < w / 2f - 22f) PixelFont.drawShadow(c, cityName, 42f, 21f, Pal.alpha(Pal.WHITE, 0.6f))
+    override fun drawUi(c: Canvas) {
+        // World-anchored labels
+        c.save()
+        c.translate(0f, cam)
+        drawAimLabels(c)
+        c.restore()
+        particles.drawText(c, cam)
+
+        drawHud(c)
+        drawToolbar(c)
+        if (hintAnim > 0.01f) drawHint(c)
+        if (pauseAnim > 0.01f) drawPause(c)
+        if (resultTime >= 0f) drawResults(c)
+    }
+
+    /** Projected damage on each block the current aim would hit. */
+    private fun drawAimLabels(c: Canvas) {
+        if (aimCells.isEmpty() || state != State.PLAYING) return
+        val ids = aimCells.mapNotNull { board.pieceAt(it.x, it.y) }.distinct()
+        for (p in ids) {
+            val v = visuals[p.id] ?: continue
+            val (cx, cy) = pieceCenter(v)
+            val dmg = selected.damageAgainst(p.material)
+            val kills = dmg >= p.hp
+            val label = if (kills) "Break" else "−$dmg"
+            val col = when { dmg == 0 -> Ui.TEXT_FAINT; kills -> Ui.RED; else -> Ui.TEXT }
+            val lw = Ui.width(label, 8f, Ui.Weight.BOLD) + 10f
+            Ui.roundRect(c, cx - lw / 2, cy - 9f, lw, 18f, 6f, Ui.BG_STRONG)
+            Ui.text(c, label, cx, cy - 3f, 8f, col, Ui.Align.CENTER, Ui.Weight.BOLD)
+            // HP bar
+            val bw = lw - 8f
+            Ui.roundRect(c, cx - bw / 2, cy + 4f, bw, 2.5f, 1.25f, 0x40FFFFFF)
+            Ui.roundRect(c, cx - bw / 2, cy + 4f, bw * p.hp / p.maxHp, 2.5f, 1.25f, Ui.GREEN)
+        }
+    }
+
+    private fun drawHud(c: Canvas) {
+        // Level chip
+        val cityName = Campaign.cities[city].name
+        val chipW = maxOf(Ui.width(cityName, 7.5f), Ui.width("Level ${city + 1}-${index + 1}", 9f, Ui.Weight.BOLD)) + 16f
+        val chipX = 44f
+        val showChip = chipX + chipW < w / 2f - 30f
+        if (showChip) {
+            Ui.panel(c, chipX, 8f, chipW, 28f, 10f)
+            Ui.text(c, "Level ${city + 1}-${index + 1}", chipX + 8, 16f, 9f, Ui.TEXT, weight = Ui.Weight.BOLD)
+            Ui.text(c, cityName, chipX + 8, 28f, 7.5f, Ui.TEXT_DIM)
+        }
+        drawButtons(c)
 
         // Turns left
         val left = board.turnsLeft
         val urgent = left <= 2 && state != State.WON
-        val turnColor = if (urgent && (time % 0.6f) < 0.3f) Pal.RED else Pal.WHITE
-        val cx = w / 2f + 6f
-        Draw.panel(c, cx - 26, 5f, 52f, 28f, Pal.PANEL, 2f)
-        PixelFont.drawShadow(c, "$left", cx, 9f, turnColor, 2, align = 1)
-        PixelFont.draw(c, "TURNS", cx - PixelFont.width("TURNS") / 2f, 24f, Pal.alpha(Pal.CREAM, 0.8f))
+        val turnColor = if (urgent && (time % 0.6f) < 0.3f) Ui.RED else Ui.TEXT
+        val cx = w / 2f
+        Ui.panel(c, cx - 26, 6f, 52f, 32f, 10f)
+        Ui.text(c, "$left", cx, 18f, 15f, turnColor, Ui.Align.CENTER, Ui.Weight.BOLD)
+        Ui.text(c, if (left == 1) "turn" else "turns", cx, 31f, 7f, Ui.TEXT_DIM, Ui.Align.CENTER)
 
         // Star outlook: which rating the player is still on track for.
         val used = board.turnsUsed
         val potential = level.turns.starsFor(used).coerceAtLeast(if (used <= level.turns.max) 1 else 0)
-        val sx = cx + 32
-        UiKit.stars(c, sx + 15, 8f, potential, 1f, 0f)
         val nextLimit = when (potential) { 3 -> level.turns.three; 2 -> level.turns.two; else -> level.turns.max }
         val remain = (nextLimit - used).coerceAtLeast(0)
-        PixelFont.draw(c, if (remain == 1) "1 TURN" else "$remain TURNS", sx, 23f, Pal.alpha(Pal.CREAM, 0.7f))
+        val sx = cx + 32
+        val gx = if (hasGold) w - 32f else w - 8f
+        val sw = (gx - 6f) - sx
+        if (sw > 40f) {
+            Ui.panel(c, sx, 8f, sw, 28f, 10f)
+            Ui.stars(c, sx + sw / 2, 16.5f, potential, 4.5f, 1.5f)
+            Ui.text(c, if (remain == 1) "1 turn left" else "$remain turns left", sx + sw / 2, 29f, 7.5f, Ui.TEXT_DIM, Ui.Align.CENTER)
+        }
 
         // Gold block status
         if (hasGold) {
-            val gx = w - 22f
-            val gy = 14f
-            when {
-                goldCollected -> Draw.bitmap(c, Sprites.goldBar, gx, gy + sin(time * 5f))
-                goldLost -> {
-                    Draw.bitmap(c, Sprites.goldBarGray, gx, gy, 1f, 140)
-                    PixelFont.draw(c, "×", gx + 3, gy, Pal.RED)
-                }
-                else -> Draw.bitmap(c, Sprites.goldBarGray, gx, gy)
+            val bx = w - 30f
+            Ui.panel(c, bx, 8f, 22f, 28f, 10f)
+            val col = when {
+                goldCollected -> Ui.GOLD
+                goldLost -> Ui.withAlpha(Ui.RED, 0.8f)
+                else -> 0x59FFFFFF
             }
+            val bob = if (goldCollected) sin(time * 5f) else 0f
+            Ui.roundRect(c, bx + 5, 17f + bob, 12f, 9f, 2f, col)
+            if (goldLost) Icons.draw(c, Icon.CLOSE, bx + 11, 21.5f, 10f, Ui.TEXT)
         }
     }
 
     private fun drawToolbar(c: Canvas) {
         val top = h - toolbarH
-        Draw.rect(c, 0f, top, w, toolbarH, Pal.PANEL_DARK)
-        Draw.rect(c, 0f, top, w, 1f, Pal.PANEL_LIGHT)
-        Draw.rect(c, 0f, top + 1, w, 1f, Pal.alpha(Pal.WHITE, 0.08f))
-        val tipColor = if (tipFlash > 0f && (time % 0.2f) < 0.1f) Pal.GOLD else Pal.CREAM
-        val lines = PixelFont.wrap(tip, w - 12f)
-        PixelFont.drawShadow(c, lines.firstOrNull() ?: "", w / 2f, top + 5, tipColor, align = 1)
+        Ui.roundRect(c, 0f, top, w, toolbarH + 20f, 0f, Ui.BG)
+        Ui.roundRect(c, 0f, top, w, 0.5f, 0f, Ui.BORDER)
+        val tipColor = if (tipFlash > 0f && (time % 0.2f) < 0.1f) Ui.ACCENT else Ui.TEXT_DIM
+        val lines = Ui.wrap(tip, w - 20f, 8f)
+        Ui.text(c, lines.firstOrNull() ?: "", w / 2f, top + 10f, 8f, tipColor, Ui.Align.CENTER)
         for (b in toolButtons.values) b.draw(c)
         for ((t, b) in toolButtons) {
             if (board.charges[t] == -1) {
-                PixelFont.drawShadow(c, "∞", b.x + b.w - 8, b.y - 2, Pal.CREAM, align = 1)
+                Ui.roundRect(c, b.x + b.w - 11, b.y - 4, 14f, 12f, 6f, Ui.withAlpha(0xFF000000.toInt(), 0.85f))
+                Ui.outline(c, b.x + b.w - 11, b.y - 4, 14f, 12f, 6f, Ui.withAlpha(Ui.ACCENT, 0.9f), 1f)
+                Ui.text(c, "∞", b.x + b.w - 4, b.y + 1.5f, 8f, Ui.TEXT, Ui.Align.CENTER, Ui.Weight.BOLD)
             }
         }
     }
@@ -881,109 +909,105 @@ class GameScene(game: Game, private val city: Int, private val index: Int) : Sce
     private fun drawHint(c: Canvas) {
         val hint = level.hint ?: return
         val a = hintAnim
-        Draw.dim(c, w, h, 0.5f * a)
-        val pw = w - 40f
-        val lines = PixelFont.wrap(hint, pw - 56f)
-        val ph = (40f + lines.size * 10f).coerceAtLeast(56f)
-        val px = 20f
-        val py = h * 0.36f - ph / 2 + (1f - Ease.outBack(a)) * 60f
-        Draw.panel(c, px, py, pw, ph, Pal.CREAM, 4f)
-        Draw.panel(c, px + 8, py - 8, 64f, 14f, Pal.ORANGE, 2f)
-        PixelFont.drawShadow(c, "FOREMAN", px + 40, py - 5, Pal.WHITE, align = 1, shadow = Pal.ORANGE_DARK)
-        // Show what is being introduced.
+        Ui.dim(c, w, h, 0.45f * a)
+        val pw = w - 32f
+        val px = 16f
+        val lines = Ui.wrap(hint, pw - 66f, 9.5f)
+        val ph = (48f + lines.size * 13f).coerceAtLeast(76f)
+        val py = h * 0.36f - ph / 2 + (1f - Ease.outBack(a)) * 50f
+        Ui.panel(c, px, py, pw, ph, 14f, Ui.withAlpha(Ui.BG_STRONG, a))
+        Ui.text(c, "Foreman", px + 56, py + 16, 8f, Ui.ACCENT, weight = Ui.Weight.BOLD, alpha = a)
+        // What is being introduced (pixel art preview on a rounded tile)
+        Ui.roundRect(c, px + 12, py + 12, 36f, 36f, 10f, Ui.withAlpha(0x1AFFFFFF, a))
         val g = Campaign.globalIndex(city, index)
         val newTool = Campaign.toolUnlock.entries.firstOrNull { it.value == g && g > 0 }?.key
         val newMat = Campaign.materialUnlock.entries.firstOrNull { it.value == g && g > 0 }?.key
-        val iconX = px + 12f
-        val iconY = py + 14f
+        val ix = px + 18f
+        val iy = py + 18f
         if (newTool != null) {
-            Draw.bitmap(c, Sprites.tools[newTool]!!, iconX, iconY, 2f)
+            Draw.bitmap(c, Sprites.tools[newTool]!!, ix, iy, 2f)
         } else if (newMat != null) {
-            val tex = renderer.textures.get(newMat)
-            Draw.bitmapRect(c, tex, iconX, iconY, 24f, 24f)
-            Sprites.specials[newMat]?.let { Draw.bitmap(c, it, iconX + 12 - it.width / 2f, iconY + 12 - it.height / 2f) }
+            Draw.bitmapRect(c, renderer.textures.get(newMat), ix, iy, 24f, 24f)
+            Sprites.specials[newMat]?.let { Draw.bitmap(c, it, ix + 12 - it.width / 2f, iy + 12 - it.height / 2f) }
         } else {
-            Draw.bitmap(c, Sprites.crew[0].body, iconX + 4, iconY - 2)
+            Draw.bitmap(c, Sprites.crew[0].body, ix + 5, iy + 2)
         }
-        var ty = py + 16f
+        var ty = py + 31f
         for (line in lines) {
-            PixelFont.draw(c, line, px + 44, ty, Pal.INK)
-            ty += 10f
+            Ui.text(c, line, px + 56, ty, 9.5f, Ui.TEXT, weight = Ui.Weight.REGULAR, alpha = a)
+            ty += 13f
         }
-        val blink = (time % 1f) < 0.6f
-        if (blink) PixelFont.draw(c, "TAP TO START", px + pw / 2 - PixelFont.width("TAP TO START") / 2, py + ph - 14, Pal.ORANGE_DARK)
+        val blink = 0.5f + 0.5f * sin(time * 4f)
+        Ui.text(c, "Tap to start", px + pw / 2, py + ph - 11, 8f, Ui.TEXT_DIM, Ui.Align.CENTER, alpha = a * blink)
     }
 
     private fun drawPause(c: Canvas) {
-        Draw.dim(c, w, h, 0.6f * pauseAnim)
+        Ui.dim(c, w, h, 0.55f * pauseAnim)
         val off = (1f - Ease.outBack(pauseAnim)) * 40f
         c.save()
         c.translate(0f, off)
-        val px = (w - 200f) / 2f
+        val px = (w - 204f) / 2f
         val py = h / 2f - 108f
-        Draw.panel(c, px, py, 200f, 222f, Pal.PANEL, 5f)
-        PixelFont.drawShadow(c, "PAUSED", w / 2f, py + 13, Pal.CREAM, 2, align = 1)
-        pauseButtons.forEach { it.draw(c) }
+        Ui.panel(c, px, py, 204f, 228f, 16f, Ui.withAlpha(Ui.BG_STRONG, pauseAnim))
+        Ui.text(c, "Paused", w / 2f, py + 22, 15f, Ui.TEXT, Ui.Align.CENTER, Ui.Weight.BOLD, alpha = pauseAnim)
+        pauseButtons.forEach { it.draw(c, pauseAnim) }
         c.restore()
     }
 
     private fun drawResults(c: Canvas) {
         val t = resultTime
-        Draw.dim(c, w, h, (t * 2f).coerceAtMost(0.65f))
+        Ui.dim(c, w, h, (t * 2f).coerceAtMost(0.6f))
         val appear = Ease.outBack((t / 0.45f).coerceIn(0f, 1f))
-        val pw = 220f
-        val ph = 214f
+        val pw = 230f
+        val ph = 222f
         val px = (w - pw) / 2f
-        val py = h / 2f - 110f - (1f - appear) * h * 0.6f
+        val basePy = h / 2f - 120f
         val won = state == State.WON
         c.save()
-        c.translate(0f, py - (h / 2f - 110f))
-        val basePy = h / 2f - 110f
-        Draw.panel(c, px, basePy, pw, ph, if (won) Pal.PANEL else Pal.PANEL, 5f)
-        val ribbon = if (won) Pal.GREEN else Pal.RED
-        Draw.panel(c, px - 8, basePy - 10, pw + 16, 24f, ribbon, 3f)
-        PixelFont.drawShadow(c, if (won) "TOWER DOWN!" else "TOWER STANDS", w / 2f, basePy - 5, Pal.WHITE, 2, align = 1,
-            shadow = Pal.shade(ribbon, 0.5f))
+        c.translate(0f, -(1f - appear) * h * 0.6f)
+        Ui.panel(c, px, basePy, pw, ph, 16f, Ui.BG_STRONG)
+        Ui.text(c, if (won) "Tower down!" else "Tower stands", w / 2f, basePy + 24, 17f,
+            if (won) Ui.TEXT else Ui.RED, Ui.Align.CENTER, Ui.Weight.BOLD)
         if (won) {
             val stars = board.starsEarned
             for (i in 0 until 3) {
-                val sx = w / 2f - 42f + i * 30f
+                val sx = w / 2f + (i - 1) * 34f
                 val pop = ((t - 0.45f - i * 0.32f) / 0.25f).coerceIn(0f, 1f)
                 val big = i < stars && pop > 0f
-                val sc = if (big) 2f + (1f - Ease.outElastic(pop)) * 1.5f else 2f
-                val bmp = if (big) Sprites.star else Sprites.starEmpty
-                val bw = bmp.width * sc
-                Draw.bitmap(c, bmp, sx + 9 - bw / 2, basePy + 34 - (bmp.height * sc - 20) / 2, sc)
+                val r = if (big) 12f * (1f + (1f - Ease.outElastic(pop)) * 0.6f) else 12f
+                Ui.star(c, sx, basePy + 56 - (if (i == 1) 4f else 0f), r, big)
             }
             val r = reward ?: return c.restore()
-            var ly = basePy + 66f
-            fun line(label: String, value: Int, color: Int) {
-                PixelFont.drawShadow(c, label, px + 16, ly, Pal.CREAM)
-                PixelFont.drawShadow(c, "+${UiKit.formatGold(value)}", px + pw - 16, ly, color, align = 2)
-                ly += 11f
+            var ly = basePy + 86f
+            Ui.text(c, "${board.turnsUsed} turns used", w / 2f, ly, 8.5f, Ui.TEXT_DIM, Ui.Align.CENTER)
+            ly += 18f
+            fun line(label: String, value: Int) {
+                Ui.text(c, label, px + 18, ly, 9f, Ui.TEXT)
+                Ui.text(c, "+${UiKit.formatGold(value)}", px + pw - 18, ly, 9f, Ui.GOLD, Ui.Align.RIGHT, Ui.Weight.BOLD)
+                ly += 15f
             }
-            PixelFont.drawShadow(c, "${board.turnsUsed} TURNS USED", w / 2f, ly, Pal.alpha(Pal.WHITE, 0.7f), align = 1)
-            ly += 13f
-            line(if (r.newBest) "${stars} STAR REWARD" else "STARS (ALREADY PAID)", r.starGold, Pal.GOLD)
+            line(if (r.newBest) "$stars-star reward" else "Stars (already paid)", r.starGold)
             if (hasGold) {
                 val label = when {
-                    r.firstGoldBlock -> "GOLD BLOCK"
-                    board.goldCollected -> "GOLD BLOCK (OWNED)"
-                    else -> "GOLD BLOCK LOST"
+                    r.firstGoldBlock -> "Gold block"
+                    board.goldCollected -> "Gold block (owned)"
+                    else -> "Gold block lost"
                 }
-                line(label, r.goldBlockGold, Pal.GOLD)
+                line(label, r.goldBlockGold)
             }
-            if (r.bonusGold > 0) line("VAULT BONUS", r.bonusGold, Pal.GOLD)
-            Draw.rect(c, px + 14, ly, pw - 28, 1f, Pal.alpha(Pal.WHITE, 0.2f))
-            ly += 4f
-            Draw.bitmap(c, Sprites.coin, w / 2f - 30, ly + 1)
-            PixelFont.drawShadow(c, UiKit.formatGold(shownGold.toInt()), w / 2f - 18, ly, Pal.GOLD, 2)
+            if (r.bonusGold > 0) line("Vault bonus", r.bonusGold)
+            Ui.roundRect(c, px + 18, ly - 4, pw - 36, 0.5f, 0f, 0x33FFFFFF)
+            ly += 10f
+            val total = UiKit.formatGold(shownGold.toInt())
+            val tw = Ui.width(total, 16f, Ui.Weight.BOLD)
+            Ui.coin(c, w / 2f - tw / 2 - 8, ly, 6f)
+            Ui.text(c, total, w / 2f - tw / 2 + 2, ly, 16f, Ui.GOLD, weight = Ui.Weight.BOLD)
         } else {
-            Draw.bitmap(c, Sprites.crew[0].body, w / 2f - 14, basePy + 28, 2f)
-            PixelFont.drawShadow(c, lostReason, w / 2f, basePy + 76, Pal.CREAM, align = 1)
-            PixelFont.drawShadow(c, "${board.pieces.size} BLOCKS LEFT STANDING", w / 2f, basePy + 92, Pal.alpha(Pal.WHITE, 0.7f), align = 1)
-            PixelFont.drawShadow(c, "TIP: BREAK THE BOTTOM - LET GRAVITY", w / 2f, basePy + 116, Pal.alpha(Pal.CREAM, 0.6f), align = 1)
-            PixelFont.drawShadow(c, "DO THE HEAVY LIFTING!", w / 2f, basePy + 126, Pal.alpha(Pal.CREAM, 0.6f), align = 1)
+            Draw.bitmap(c, Sprites.crew[0].body, w / 2f - 14, basePy + 42, 2f)
+            Ui.text(c, lostReason, w / 2f, basePy + 100, 10f, Ui.TEXT, Ui.Align.CENTER)
+            Ui.text(c, "${board.pieces.size} blocks left standing", w / 2f, basePy + 116, 8.5f, Ui.TEXT_DIM, Ui.Align.CENTER)
+            Ui.text(c, "Tip: break the bottom and let", w / 2f, basePy + 140, 8f, Ui.TEXT_FAINT, Ui.Align.CENTER)
+            Ui.text(c, "gravity do the heavy lifting.", w / 2f, basePy + 152, 8f, Ui.TEXT_FAINT, Ui.Align.CENTER)
         }
         if (t > 0.5f) resultButtons.forEach { it.draw(c) }
         c.restore()

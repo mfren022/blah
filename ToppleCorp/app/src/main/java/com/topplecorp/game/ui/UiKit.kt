@@ -1,28 +1,27 @@
 package com.topplecorp.game.ui
 
 import android.graphics.Canvas
-import com.topplecorp.game.gfx.Draw
-import com.topplecorp.game.gfx.Pal
-import com.topplecorp.game.gfx.PixelFont
-import com.topplecorp.game.gfx.Sprites
+import com.topplecorp.game.audio.Sound
 
-/** Reusable HUD pieces. */
+/** Reusable screen furniture built on [Ui]. */
 object UiKit {
-    const val HEADER_H = 40f
+    const val HEADER_H = 44f
 
-    /** Standard back button in the top-left corner of sub-screens. */
-    fun backButton(onClick: () -> Unit) = Button(5f, 5f, 38f, 26f, icon = Sprites.back, color = Pal.PANEL_LIGHT,
-        sound = com.topplecorp.game.audio.Sound.BACK, onClick = onClick).apply { iconScale = 2f }
+    /** Round back button in the top-left corner of sub-screens. */
+    fun backButton(onClick: () -> Unit) =
+        Button(10f, 10f, 26f, 26f, icon = Icon.BACK, sound = Sound.BACK, onClick = onClick).apply {
+            radius = 13f
+            iconSize = 14f
+        }
 
-    /** Gold counter pill, right-aligned at [right]. Returns its left x. */
-    fun goldPill(c: Canvas, right: Float, y: Float, gold: Int): Float {
+    /** Gold counter pill, right-aligned at [right], vertically centred on [cy]. */
+    fun goldPill(c: Canvas, right: Float, cy: Float, gold: Int) {
         val text = formatGold(gold)
-        val w = PixelFont.width(text) + 22
+        val w = Ui.width(text, 9f, Ui.Weight.BOLD) + 26f
         val x = right - w
-        Draw.panel(c, x, y, w, 15f, Pal.PANEL_DARK, 2f)
-        Draw.bitmap(c, Sprites.coin, x + 4, y + 3.5f)
-        PixelFont.drawShadow(c, text, x + 16, y + 4, Pal.GOLD)
-        return x
+        Ui.panel(c, x, cy - 10f, w, 20f, 10f)
+        Ui.coin(c, x + 10f, cy, 5f)
+        Ui.text(c, text, x + 19f, cy, 9f, Ui.TEXT, weight = Ui.Weight.BOLD)
     }
 
     fun formatGold(v: Int): String {
@@ -35,20 +34,9 @@ object UiKit {
         return sb.toString()
     }
 
-    /** Title bar used by sub-menus. */
+    /** Screen title shown next to the back button. */
     fun header(c: Canvas, w: Float, title: String) {
-        Draw.rect(c, 0f, 0f, w, HEADER_H, Pal.alpha(Pal.INK, 0.55f))
-        Draw.rect(c, 0f, HEADER_H, w, 1f, Pal.alpha(Pal.WHITE, 0.15f))
-        PixelFont.drawShadow(c, title, w / 2f, 13f, Pal.CREAM, 2, align = 1)
-    }
-
-    fun stars(c: Canvas, cx: Float, y: Float, count: Int, scale: Float = 1f, gap: Float = 1f) {
-        val sw = Sprites.star.width * scale
-        val total = sw * 3 + gap * 2
-        var x = cx - total / 2f
-        for (i in 0 until 3) {
-            Draw.bitmap(c, if (i < count) Sprites.star else Sprites.starEmpty, x.toInt().toFloat(), y, scale)
-            x += sw + gap
-        }
+        Ui.roundRect(c, -10f, -10f, w + 20f, HEADER_H + 10f, 0f, Ui.BG_SOFT)
+        Ui.text(c, title, w / 2f, 23f, 14f, Ui.TEXT, Ui.Align.CENTER, Ui.Weight.BOLD)
     }
 }

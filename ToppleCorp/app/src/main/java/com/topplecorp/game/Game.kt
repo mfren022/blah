@@ -9,12 +9,11 @@ import com.topplecorp.game.audio.Sfx
 import com.topplecorp.game.audio.Sound
 import com.topplecorp.game.data.LevelRepository
 import com.topplecorp.game.data.SaveData
-import com.topplecorp.game.gfx.Draw
-import com.topplecorp.game.gfx.Pal
 import com.topplecorp.game.scene.MenuScene
 import com.topplecorp.game.scene.Scene
 import com.topplecorp.game.ui.Ease
 import com.topplecorp.game.ui.Touch
+import com.topplecorp.game.ui.Ui
 
 /**
  * Root of the game: owns services (save, sound, levels), the active scene and scene transitions.
@@ -105,27 +104,18 @@ class Game(val context: Context) {
         scene?.update(dt)
     }
 
+    /** World pass into the low-res pixel buffer. */
     fun draw(c: Canvas) {
         scene?.draw(c)
-        if (transition > 0f) drawWipe(c)
     }
 
-    /** Diagonal block wipe: squares grow to cover the screen, then shrink away. */
-    private fun drawWipe(c: Canvas) {
-        val t = transition
-        val cover = if (t < 1f) Ease.inOutCubic(t) else 1f - Ease.inOutCubic(t - 1f)
-        val cell = 18f
-        val cols = (vw / cell).toInt() + 2
-        val rows = (vh / cell).toInt() + 2
-        val span = (cols + rows).toFloat()
-        for (r in 0 until rows) for (col in 0 until cols) {
-            val d = (col + r) / span
-            val local = ((cover * 1.6f) - d * 0.6f).coerceIn(0f, 1f)
-            if (local <= 0f) continue
-            val s = cell * local
-            val cx = col * cell + cell / 2
-            val cy = r * cell + cell / 2
-            Draw.rect(c, cx - s / 2 - 0.5f, cy - s / 2 - 0.5f, s + 1, s + 1, Pal.INK)
+    /** UI pass at screen resolution (canvas already scaled to virtual units). */
+    fun drawUi(c: Canvas) {
+        scene?.drawUi(c)
+        if (transition > 0f) {
+            val t = transition
+            val cover = if (t < 1f) Ease.inOutCubic(t) else 1f - Ease.inOutCubic(t - 1f)
+            Ui.dim(c, vw.toFloat() + 2f, vh.toFloat() + 2f, cover)
         }
     }
 
