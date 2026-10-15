@@ -5,6 +5,8 @@ import com.topplecorp.core.Campaign
 import com.topplecorp.game.Game
 import com.topplecorp.game.audio.Sound
 import com.topplecorp.game.gfx.CityPanorama
+import com.topplecorp.game.gfx.Draw
+import com.topplecorp.game.gfx.Pal
 import com.topplecorp.game.ui.Button
 import com.topplecorp.game.ui.Ease
 import com.topplecorp.game.ui.Icon
@@ -129,6 +131,13 @@ class CityScene(game: Game) : Scene(game) {
 
     override fun draw(c: Canvas) {
         panorama?.draw(c, pos, time)
+        // Gentle vignette framing the centrepiece
+        val bands = 18
+        for (i in 0 until bands) {
+            val a = 0.28f * (1f - i / bands.toFloat())
+            Draw.rect(c, i * 2f, 0f, 2f, h, Pal.alpha(Pal.INK, a))
+            Draw.rect(c, w - (i + 1) * 2f, 0f, 2f, h, Pal.alpha(Pal.INK, a))
+        }
     }
 
     // ------------------------------------------------------------------ UI pass
