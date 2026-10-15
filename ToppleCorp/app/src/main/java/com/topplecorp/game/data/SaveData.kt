@@ -38,6 +38,8 @@ class SaveData(context: Context) {
 
     fun cityStars(city: Int) = (0 until Campaign.LEVELS_PER_CITY).sumOf { stars(city, it) }
 
+    fun cityGoldBlocks(city: Int) = (0 until Campaign.LEVELS_PER_CITY).count { goldBlock(city, it) }
+
     fun cityCleared(city: Int) = (0 until Campaign.LEVELS_PER_CITY).count { stars(city, it) > 0 }
 
     fun isCityUnlocked(city: Int) = city == 0 || cityCleared(city - 1) == Campaign.LEVELS_PER_CITY

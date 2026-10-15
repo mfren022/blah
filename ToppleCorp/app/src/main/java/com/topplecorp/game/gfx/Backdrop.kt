@@ -21,21 +21,21 @@ data class CityTheme(
 
 object Themes {
     val cities = listOf(
-        // Maple Hollow: warm afternoon
-        CityTheme(0xFF7EC8F0.toInt(), 0xFFFFE2B0.toInt(), 0xFFA9C4D9.toInt(), 0xFF6C8FA8.toInt(), 0xFFFFE89C.toInt(),
-            0xFF6BBF59.toInt(), 0xFF3F8F3F.toInt(), 0xFFFF8A3D.toInt()),
-        // Rustport: sunset harbour
-        CityTheme(0xFF5E6CC9.toInt(), 0xFFFF9E6B.toInt(), 0xFFB07A7A.toInt(), 0xFF6B4A5A.toInt(), 0xFFFFC46B.toInt(),
-            0xFF8C6A55.toInt(), 0xFF5A4236.toInt(), 0xFFE8484F.toInt(), sun = 0xFFFFD27A.toInt()),
-        // Neon Bay: night
-        CityTheme(0xFF140F2E.toInt(), 0xFF4A2A78.toInt(), 0xFF2C2558.toInt(), 0xFF1D1840.toInt(), 0xFF5CF2FF.toInt(),
-            0xFF3A3552.toInt(), 0xFF231E33.toInt(), 0xFFFF4FD8.toInt(), night = true, sun = 0xFFF2F0FF.toInt()),
-        // Dune City: hot desert
-        CityTheme(0xFFFFB36B.toInt(), 0xFFFFE8B0.toInt(), 0xFFE0A877.toInt(), 0xFFB57B52.toInt(), 0xFFFFF4C2.toInt(),
-            0xFFE6C27A.toInt(), 0xFFB8925A.toInt(), 0xFFFFC93C.toInt(), sun = 0xFFFFFFFF.toInt()),
-        // Sky Capital: high altitude dawn
-        CityTheme(0xFF3B8FE0.toInt(), 0xFFDDF3FF.toInt(), 0xFFBCD6EE.toInt(), 0xFF8AA8C8.toInt(), 0xFFFFF7D6.toInt(),
-            0xFF9BA6B8.toInt(), 0xFF6A7488.toInt(), 0xFF8A5CF0.toInt()),
+        // Toronto: clear day
+        CityTheme(0xFF5BB8F0.toInt(), 0xFFD4F0FF.toInt(), 0xFF9DB8D2.toInt(), 0xFF6C8FA8.toInt(), 0xFFFFE89C.toInt(),
+            0xFFC9C2B5.toInt(), 0xFF8E867A.toInt(), 0xFFE8303A.toInt()),
+        // Sydney: bright harbour
+        CityTheme(0xFF3FA9F0.toInt(), 0xFFC5ECFF.toInt(), 0xFF8FB0D2.toInt(), 0xFF5D7FA3.toInt(), 0xFFE0F0FF.toInt(),
+            0xFFE3C58F.toInt(), 0xFFB89A66.toInt(), 0xFF2E8BD0.toInt()),
+        // Istanbul: sunset
+        CityTheme(0xFF5B3F8C.toInt(), 0xFFF7A55A.toInt(), 0xFF9C6E8F.toInt(), 0xFF6B4A6A.toInt(), 0xFFFFD9A0.toInt(),
+            0xFFB08D6E.toInt(), 0xFF7A5E48.toInt(), 0xFF2BA3A6.toInt(), sun = 0xFFFFD27A.toInt()),
+        // Zurich: alpine morning
+        CityTheme(0xFF7DBBE6.toInt(), 0xFFEAF6FF.toInt(), 0xFF8A9BB8.toInt(), 0xFF6F809E.toInt(), 0xFFFFF7D6.toInt(),
+            0xFFA9A49A.toInt(), 0xFF6E6A62.toInt(), 0xFFE03A3E.toInt(), sun = 0xFFFFFBE0.toInt()),
+        // San Francisco: golden hour
+        CityTheme(0xFFFF8E6B.toInt(), 0xFFFFDDB0.toInt(), 0xFFA88AA0.toInt(), 0xFF8C6E8E.toInt(), 0xFFFFE2B8.toInt(),
+            0xFF6E6A70.toInt(), 0xFF4A464C.toInt(), 0xFFC8372D.toInt(), sun = 0xFFFFF0C0.toInt()),
     )
 
     fun of(city: Int) = cities[city.coerceIn(0, cities.size - 1)]
