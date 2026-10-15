@@ -72,7 +72,6 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
     private val sky: Bitmap
     private val far: Bitmap
     private val main: Bitmap
-    private val clouds: List<FloatArray>
 
     /** An underground tunnel with an animated train running through it (global coordinates). */
     private class Tunnel(val x0: Float, val x1: Float, val y: Float, val h: Float, val body: Int, val stripe: Int, val outline: Int, val speed: Float)
@@ -94,7 +93,6 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
             paintCastle(m, i, cx, rnd)
         }
         sky = s.bitmap(); far = f.bitmap(); main = m.bitmap()
-        clouds = List(16) { floatArrayOf(rnd.nextFloat() * pw, 60f + rnd.nextFloat() * 110f, 0.4f + rnd.nextFloat() * 0.6f) }
     }
 
     // ------------------------------------------------------------------ drawing
@@ -103,15 +101,6 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
     fun draw(c: Canvas, pos: Float, time: Float) {
         val x = -pos * w
         Draw.bitmap(c, sky, x, 0f)
-        for (cl in clouds) {
-            val cw = 22f + cl[2] * 26f
-            val cx = x * 0.85f + (cl[0] + time * 4f * cl[2]) % pw
-            if (cx + cw < -10 || cx > w + 10) continue
-            val col = Pal.alpha(0xFFFFFFFF.toInt(), 0.8f)
-            Draw.rect(c, cx, cl[1], cw, 6f, col)
-            Draw.rect(c, cx + cw * 0.15f, cl[1] - 4, cw * 0.5f, 4f, col)
-            Draw.rect(c, cx + 2, cl[1] + 6, cw - 4, 1f, Pal.alpha(0xFF8899BB.toInt(), 0.3f))
-        }
         Draw.bitmap(c, far, x * 0.7f - farMargin + w * 0.15f, 0f)
         Draw.bitmap(c, main, x, 0f)
         // Underground trains
@@ -173,16 +162,33 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
             val bottom = blend(x) { it.skyBottom }
             for (y in 0 until h) s.px[y * pw + x] = Pal.mix(top, bottom, (y / (ground + 20f)).coerceIn(0f, 1f))
         }
-        val suns = listOf(0.82f to 76, 0.18f to 70, 0.2f to ground - 170, 0.8f to 66, 0.78f to ground - 200)
-        for ((i, pair) in suns.withIndex()) {
-            if (i >= count) break
-            val (fx, y) = pair
-            val x = (i * w + fx * w).toInt()
-            val col = if (i == 2) 0xFFFFD27A.toInt() else 0xFFFFF6CC.toInt()
-            s.circle(x, y, 16, Pal.alpha(col, 0.22f))
-            s.circle(x, y, 12, col)
-            s.circle(x - 4, y - 4, 3, Pal.alpha(0xFFFFFFFF.toInt(), 0.6f))
+        // A soft glow with light rays behind every castle makes it the centrepiece.
+        for (i in 0 until count) {
+            val id = ids[i]
+            val cx = i * w + w / 2
+            val cy = ground - (w * 0.34f).toInt()
+            val glow = Pal.mix(id.skyBottom, 0xFFFFFFFF.toInt(), 0.55f)
+            for (k in 0 until 12) {
+                val a0 = k * Math.PI / 6 + 0.1
+                val a1 = a0 + Math.PI / 14
+                val len = w * 0.9
+                s.tri(cx, cy, cx + (cos(a0) * len).toInt(), cy + (sin(a0) * len).toInt(),
+                    cx + (cos(a1) * len).toInt(), cy + (sin(a1) * len).toInt(), Pal.alpha(glow, 0.07f))
+            }
+            for (r in (w * 0.62f).toInt() downTo 8 step 4) s.circle(cx, cy, r, Pal.alpha(glow, 0.035f))
+            s.circle(cx, cy, 20, Pal.alpha(0xFFFFFFFF.toInt(), 0.35f))
+            // Fluffy clouds framing the scene
+            for ((fx, fy, sc) in listOf(Triple(0.1f, 0.24f, 1.0f), Triple(0.84f, 0.32f, 0.8f), Triple(0.68f, 0.14f, 0.6f))) {
+                cloud(s, (i * w + fx * w).toInt(), (fy * ground).toInt(), sc,
+                    Pal.mix(id.skyBottom, 0xFFFFFFFF.toInt(), 0.8f), Pal.mix(id.skyTop, id.skyBottom, 0.6f))
+            }
         }
+    }
+
+    private fun cloud(s: P, x: Int, y: Int, sc: Float, light: Int, shade: Int) {
+        val blobs = listOf(Triple(0, 0, 9), Triple(10, -5, 11), Triple(22, 0, 9), Triple(-9, 3, 6), Triple(31, 4, 6))
+        for ((dx, dy, r) in blobs) s.circle(x + (dx * sc).toInt(), y + (dy * sc).toInt() + 2, (r * sc).toInt() + 1, Pal.alpha(shade, 0.9f))
+        for ((dx, dy, r) in blobs) s.circle(x + (dx * sc).toInt(), y + (dy * sc).toInt(), (r * sc).toInt(), light)
     }
 
     private fun paintFar(f: P) {
@@ -427,7 +433,9 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
         m.rect(x - 1, y - 1, bw + 2, bh + 2, outline)
         m.rect(x, y, bw, bh, fill)
         m.rect(x + bw - 3, y, 3, bh, shade)
+        for (yy in y until y + bh) if (yy % 2 == 0) m.set(x + bw - 4, yy, shade)
         m.rect(x, y, 2, bh, Pal.tint(fill, 0.35f))
+        for (yy in y until y + bh) if (yy % 2 == 0) m.set(x + 2, yy, Pal.tint(fill, 0.18f))
     }
 
     /** Castle tower from the ground up to [top], with optional merlons. */
@@ -453,6 +461,7 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
     }
 
     private fun window(m: P, cx: Int, y: Int, id: CityIdentity) {
+        m.circle(cx, y + 4, 6, Pal.alpha(id.lit, 0.18f))
         m.rect(cx - 3, y - 1, 7, 10, id.outline)
         m.rect(cx - 2, y + 1, 5, 7, id.lit)
         m.rect(cx - 1, y, 3, 1, id.lit)
@@ -463,6 +472,12 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
         m.tri(cx - halfW - 2, base + 1, cx + halfW + 2, base + 1, cx, base - height - 2, id.outline)
         m.tri(cx - halfW, base, cx + halfW, base, cx, base - height, color)
         m.tri(cx, base, cx + halfW, base, cx, base - height, Pal.shade(color, 0.78f))
+        for (row in 1 until height / 4) {
+            val yy = base - row * 4
+            val half = halfW * (base - yy) / height
+            for (x in cx - halfW + half until cx + halfW - half) if ((x + row) % 3 == 0) m.set(x, yy, Pal.shade(color, 0.7f))
+        }
+        m.line(cx - 1, base - height + 2, cx - halfW / 2, base - 2, Pal.tint(color, 0.35f))
         m.rect(cx - halfW, base - 1, halfW * 2 + 1, 2, Pal.shade(color, 0.65f))
     }
 
@@ -499,7 +514,9 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
             if (dx * dx + dy * dy > 1f) continue
             val row = (ground - y) / 5
             if ((ground - y) % 5 == 0 || (x + if (row % 2 == 0) 0 else 5) % 10 == 0) m.set(x, y, id.wallShade)
-            if (dx > 0.55f) m.set(x, y, Pal.alpha(id.outline, 0.12f))
+            val d = dx * dx + dy * dy
+            if (dx > 0.35f && (dx > 0.6f || (x + y) % 2 == 0)) m.set(x, y, Pal.alpha(id.outline, 0.13f))
+            if (dx < -0.2f && d > 0.86f) m.set(x, y, Pal.tint(id.wall, 0.5f))
         }
         // Merlons along the arc
         var a = 0.12
@@ -522,6 +539,8 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
         val outerX = (r * 0.86f).toInt(); val midX = (r * 0.62f).toInt(); val innerX = (r * 0.36f).toInt()
         val outerTop = ground - hAt(0.86f); val midTop = ground - hAt(0.62f); val innerTop = ground - hAt(0.36f)
         val keepTop = ground - (R * 0.9f).toInt()
+        backCity(m, cx, (r * 1.18f).toInt(), (R * 1.05f).toInt(), id, rnd)
+        aoShadow(m, cx, r)
         body(m, cx, r, (R * 0.8f).toInt(), id)
         when (city) {
             0 -> toronto(m, cx, id, outerX, midX, innerX, outerTop, midTop, innerTop, keepTop)
@@ -530,6 +549,7 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
             3 -> zurich(m, cx, id, outerX, midX, innerX, outerTop, midTop, innerTop, keepTop)
             else -> sanFrancisco(m, cx, id, outerX, midX, innerX, outerTop, midTop, innerTop, keepTop)
         }
+        foreground(m, cx, r, (R * 0.62f).toInt(), id)
         // Little trees / decor at the castle's feet
         val leaf = when (city) { 0 -> id.accent2; 1 -> 0xFF3FAE5A.toInt(); 2 -> 0xFF4E8F4A.toInt(); 3 -> 0xFF2F7A4E.toInt(); else -> 0xFF6BBF7A.toInt() }
         for (tx in listOf(cx - r - 10, cx + r + 10)) {
@@ -538,6 +558,67 @@ class CityPanorama(val w: Int, val h: Int, val count: Int) {
                 m.circle(tx, ground - 18, 9, id.outline); m.circle(tx, ground - 18, 8, leaf)
                 m.circle(tx - 3, ground - 21, 3, Pal.tint(leaf, 0.3f))
             }
+        }
+    }
+
+    /** A paler half dome of distant buildings behind the castle for depth (atmospheric perspective). */
+    private fun backCity(m: P, cx: Int, r: Int, ry: Int, id: CityIdentity, rnd: Random) {
+        val col = Pal.mix(id.hill, id.skyBottom, 0.35f)
+        var x = cx - r
+        while (x < cx + r) {
+            val bw = 8 + rnd.nextInt(8)
+            val fr = ((x + bw / 2 - cx).toFloat() / r).coerceIn(-1f, 1f)
+            val bh = (sqrt(1f - fr * fr) * ry * (0.8f + rnd.nextFloat() * 0.25f)).toInt()
+            if (bh > 6) {
+                val shade = Pal.shade(col, 0.92f + rnd.nextFloat() * 0.1f)
+                m.rect(x, ground - bh, bw, bh, shade)
+                m.rect(x, ground - bh, bw, 1, Pal.tint(shade, 0.25f))
+                if (rnd.nextFloat() < 0.4f) m.tri(x - 1, ground - bh, x + bw, ground - bh, x + bw / 2, ground - bh - bw * 2 / 3, Pal.shade(shade, 0.9f))
+                for (wy in ground - bh + 4 until ground - 4 step 6) for (wx in x + 2 until x + bw - 2 step 4)
+                    if (rnd.nextFloat() < 0.35f) m.rect(wx, wy, 1, 2, Pal.alpha(id.lit, 0.6f))
+            }
+            x += bw
+        }
+    }
+
+    /** Soft ambient-occlusion shadow where the castle meets the ground. */
+    private fun aoShadow(m: P, cx: Int, r: Int) {
+        for (k in 0 until 4) m.ellipse(cx, ground + 3, r + 14 - k * 4, 4 - k / 2, Pal.alpha(0xFF000000.toInt(), 0.08f))
+    }
+
+    /** Path to the gate, lamp posts, bunting and flowers. */
+    private fun foreground(m: P, cx: Int, r: Int, buntingY: Int, id: CityIdentity) {
+        val g = ground
+        for (y in g until g + 8) {
+            val half = 9 + (y - g)
+            for (x in cx - half..cx + half) m.set(x, y, if ((x / 3 + y) % 2 == 0) Pal.tint(id.surface, 0.45f) else Pal.tint(id.surface, 0.3f))
+        }
+        for (s in listOf(-1, 1)) {
+            val lx = cx + s * 30
+            m.circle(lx, g - 22, 7, Pal.alpha(id.lit, 0.25f))
+            m.rect(lx - 1, g - 20, 3, 20, id.outline)
+            m.rect(lx - 3, g - 25, 7, 6, id.outline)
+            m.rect(lx - 2, g - 24, 5, 4, id.lit)
+        }
+        val y0 = g - buntingY
+        val colors = listOf(id.roof, id.accent, id.accent2, 0xFFFFFFFF.toInt())
+        for (s in listOf(-1, 1)) {
+            val x0 = cx + s * (r * 0.62f).toInt()
+            val n = abs(cx - x0)
+            for (i in 0..n) {
+                val x = x0 - s * i
+                val t = i / n.toFloat()
+                val y = y0 + 10 + (sin(t * Math.PI) * 8).toInt()
+                m.set(x, y, id.outline)
+                if (i % 7 == 3) m.tri(x - 2, y + 1, x + 2, y + 1, x, y + 5, colors[(i / 7) % colors.size])
+            }
+        }
+        val petal = listOf(0xFFFF6B8A.toInt(), 0xFFFFD34D.toInt(), 0xFFFFFFFF.toInt(), 0xFFB98ADB.toInt())
+        for (k in 0 until 14) {
+            val fx = cx - r - 4 + k * ((2 * r + 8) / 14)
+            if (abs(fx - cx) < 16) continue
+            m.set(fx, g - 1, id.surfaceEdge)
+            m.set(fx, g - 2, petal[k % petal.size])
         }
     }
 
