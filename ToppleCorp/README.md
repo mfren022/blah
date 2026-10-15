@@ -3,6 +3,20 @@
 A pixel-art demolition puzzle game for Android. Knock down towers of Tetris-like blocks with your
 three-person crew, using as few turns as possible.
 
+## Install on your phone
+
+1. Download `ToppleCorp.apk`:
+   - from **Actions** → the latest green *Build APK* run → **Artifacts** → `ToppleCorp-apk` (a zip containing the APK), or
+   - from **Releases**, once one has been published (see below).
+2. Open the APK on your phone. If Android asks, allow your browser or file manager to install unknown apps.
+3. Launch **Topple Corp**.
+
+To publish a release, go to **Releases → Draft a new release**, create a tag such as `v1.0.0` and publish it.
+The workflow builds the APK and attaches it to the release.
+
+Every build is signed with the same sideloading key (`app/signing/sideload.keystore`), so updates install
+over the previous version and keep your progress.
+
 ## Gameplay
 
 - Each level is a tower of polyomino blocks made of different materials. Scroll it vertically by dragging.
