@@ -302,14 +302,19 @@ object Sprites {
         "..KKKK..",
     )
     val gear by icon(
-        "...KK...",
-        ".K.WW.K.",
-        "..WWWW..",
-        "KWWKKWWK",
-        "KWWKKWWK",
-        "..WWWW..",
-        ".K.WW.K.",
-        "...KK...",
+        "....KKKKK....",
+        ".KK.KWWWK.KK.",
+        "KWWKKWWWKKWWK",
+        "KWWWWWWWWWWGK",
+        ".KWWWKKKWWGK.",
+        "KKWWKK.KKWGKK",
+        "KWWWK...KWGGK",
+        "KKWWKK.KKGGKK",
+        ".KWWGKKKGGGK.",
+        "KWWGGGGGGGGGK",
+        "KWGKKGGGKKGGK",
+        ".KK.KGGGK.KK.",
+        "....KKKKK....",
     )
     val cart by icon(
         "KK.......",

@@ -56,18 +56,19 @@ class MenuScene(game: Game) : Scene(game) {
     override fun layout() {
         buttons.clear()
         backdrop = Backdrop(theme, game.vw, 11 + game.save.lastCity)
-        val bw = 150f
+        val bw = (w - 40f).coerceAtMost(220f)
         val bx = (w - bw) / 2f
-        val by = h * 0.70f
-        buttons += Button(bx, by, bw, 30f, "CAMPAIGN", Sprites.play, Pal.ORANGE, textScale = 2) {
+        val by = h * 0.68f
+        buttons += Button(bx, by, bw, 46f, "CAMPAIGN", Sprites.play, Pal.ORANGE, textScale = 2) {
             game.goTo { CityScene(game) }
-        }
-        buttons += Button(bx, by + 42, bw / 2 - 4, 26f, "STORE", Sprites.cart, Pal.BLUE) {
+        }.apply { iconScale = 2f }
+        val gearW = 50f
+        buttons += Button(bx, by + 60, bw - gearW - 8, 40f, "STORE", Sprites.cart, Pal.BLUE, textScale = 2) {
             game.goTo { StoreScene(game) }
-        }
-        buttons += Button(bx + bw / 2 + 4, by + 42, bw / 2 - 4, 26f, "SETTINGS", Sprites.gear, Pal.PURPLE) {
+        }.apply { iconScale = 2f }
+        buttons += Button(bx + bw - gearW, by + 60, gearW, 40f, icon = Sprites.gear, color = Pal.PURPLE) {
             game.goTo { SettingsScene(game) }
-        }
+        }.apply { iconScale = 2f }
     }
 
     override fun enter() {
@@ -110,7 +111,7 @@ class MenuScene(game: Game) : Scene(game) {
     }
 
     override fun draw(c: Canvas) {
-        val groundY = h * 0.70f - 64f
+        val groundY = h * 0.68f - 60f
         backdrop.draw(c, h, groundY, 0f)
         backdrop.drawGround(c, groundY, h)
         val towerW = 5 * renderer.cell
@@ -127,7 +128,7 @@ class MenuScene(game: Game) : Scene(game) {
         PixelFont.drawShadow(c, "DEMOLITION CO. EST. 1989", w / 2f, titleY + 72f, Pal.WHITE, 1, align = 1)
 
         // Bottom panel behind buttons
-        val panelY = h * 0.70f - 14
+        val panelY = h * 0.68f - 16
         Draw.rect(c, 0f, panelY, w, h - panelY, Pal.alpha(Pal.INK, 0.35f))
         Draw.rect(c, 0f, panelY, w, 1f, Pal.alpha(Pal.WHITE, 0.15f))
         val bt = Ease.outCubic(((intro - 0.25f) / 0.5f).coerceIn(0f, 1f))
@@ -136,7 +137,7 @@ class MenuScene(game: Game) : Scene(game) {
         drawButtons(c)
         c.restore()
 
-        UiKit.goldPill(c, w - 6, 6f, game.save.gold)
+        UiKit.goldPill(c, w - 6, 8f, game.save.gold)
         PixelFont.drawShadow(c, "V1.0", 6f, h - 12f, Pal.alpha(Pal.WHITE, 0.6f))
     }
 }

@@ -8,6 +8,12 @@ import com.topplecorp.game.gfx.Sprites
 
 /** Reusable HUD pieces. */
 object UiKit {
+    const val HEADER_H = 40f
+
+    /** Standard back button in the top-left corner of sub-screens. */
+    fun backButton(onClick: () -> Unit) = Button(5f, 5f, 38f, 26f, icon = Sprites.back, color = Pal.PANEL_LIGHT,
+        sound = com.topplecorp.game.audio.Sound.BACK, onClick = onClick).apply { iconScale = 2f }
+
     /** Gold counter pill, right-aligned at [right]. Returns its left x. */
     fun goldPill(c: Canvas, right: Float, y: Float, gold: Int): Float {
         val text = formatGold(gold)
@@ -31,9 +37,9 @@ object UiKit {
 
     /** Title bar used by sub-menus. */
     fun header(c: Canvas, w: Float, title: String) {
-        Draw.rect(c, 0f, 0f, w, 30f, Pal.alpha(Pal.INK, 0.55f))
-        Draw.rect(c, 0f, 30f, w, 1f, Pal.alpha(Pal.WHITE, 0.15f))
-        PixelFont.drawShadow(c, title, w / 2f, 9f, Pal.CREAM, 2, align = 1)
+        Draw.rect(c, 0f, 0f, w, HEADER_H, Pal.alpha(Pal.INK, 0.55f))
+        Draw.rect(c, 0f, HEADER_H, w, 1f, Pal.alpha(Pal.WHITE, 0.15f))
+        PixelFont.drawShadow(c, title, w / 2f, 13f, Pal.CREAM, 2, align = 1)
     }
 
     fun stars(c: Canvas, cx: Float, y: Float, count: Int, scale: Float = 1f, gap: Float = 1f) {
