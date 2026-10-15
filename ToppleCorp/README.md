@@ -36,6 +36,8 @@ Laser (1 damage down a column), Wrecking Ball (2 damage across a row).
 
 ### Campaign
 There are 5 cities with 30 levels each: Toronto, Sydney, Istanbul, Zurich and San Francisco.
+The city screen is one continuous pixel-art panorama: each city is a toy-castle silhouette (its landmark
+as the central keep) on a shared horizontal ground, with walls, sky and ground blending into the next city.
 Towers get taller and wider as you progress, and each new tool and block type gets an intro level with a
 foreman tip. Clear all 30 levels in a city to unlock the next one.
 
