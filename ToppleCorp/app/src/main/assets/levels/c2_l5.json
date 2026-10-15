@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "city": 1,
+  "index": 4,
+  "name": "2-5",
+  "width": 6,
+  "height": 12,
+  "seed": 204000,
+  "turns": {"three": 8, "two": 10, "max": 14},
+  "tools": {"HAMMER": -1, "DRILL": 1, "DYNAMITE": 1},
+  "pieces": [
+    {"id": 1, "material": "WOOD", "cells": [[2,0],[2,1]]},
+    {"id": 2, "material": "BRICK", "cells": [[4,0],[5,0]]},
+    {"id": 3, "material": "WOOD", "cells": [[3,0],[3,1],[4,1],[4,2]]},
+    {"id": 4, "material": "PLASTIC", "cells": [[0,0],[1,0],[0,1],[1,1]]},
+    {"id": 5, "material": "WOOD", "cells": [[2,2],[3,2],[3,3],[4,3]]},
+    {"id": 6, "material": "AC_UNIT", "cells": [[0,2],[1,2]]},
+    {"id": 7, "material": "PLASTIC", "cells": [[0,3],[1,3],[1,4],[1,5]]},
+    {"id": 8, "material": "GENERATOR", "cells": [[3,4],[4,4],[3,5],[4,5]]},
+    {"id": 9, "material": "PLASTIC", "cells": [[0,5],[0,6],[1,6],[1,7]]},
+    {"id": 10, "material": "WOOD", "cells": [[3,6],[4,6],[3,7],[4,7]]},
+    {"id": 11, "material": "PLASTIC", "cells": [[0,7],[0,8],[1,8]]},
+    {"id": 12, "material": "GOLD", "cells": [[5,1]]},
+    {"id": 13, "material": "BRICK", "cells": [[3,8],[4,8],[4,9]]},
+    {"id": 14, "material": "PLASTIC", "cells": [[1,9],[0,10],[1,10],[0,11]]},
+    {"id": 15, "material": "WOOD", "cells": [[2,7],[2,8],[2,9],[3,9]]}
+  ]
+}
