@@ -24,7 +24,11 @@ abstract class Scene(val game: Game) {
         buttons.forEach { it.update(dt) }
     }
 
+    /** World pass: pixel art drawn into the low-resolution buffer. */
     abstract fun draw(c: Canvas)
+
+    /** UI pass: drawn at full screen resolution on a canvas scaled to virtual units. */
+    open fun drawUi(c: Canvas) = drawButtons(c)
 
     open fun touch(t: Touch) {
         handleButtons(t)

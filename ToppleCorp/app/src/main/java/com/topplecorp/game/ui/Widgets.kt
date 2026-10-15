@@ -4,8 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import com.topplecorp.game.audio.Sound
 import com.topplecorp.game.gfx.Draw
-import com.topplecorp.game.gfx.Pal
-import com.topplecorp.game.gfx.PixelFont
 import kotlin.math.pow
 import kotlin.math.sin
 
@@ -35,33 +33,34 @@ object Ease {
 }
 
 /**
- * Chunky pixel button with a 3D lip that compresses when pressed.
+ * Rounded translucent-black button with a sans-serif label and an optional vector [icon]
+ * (tinted with [color]) or pixel-art [sprite].
  */
 class Button(
     var x: Float, var y: Float, var w: Float, var h: Float,
     var label: String = "",
-    var icon: Bitmap? = null,
-    var color: Int = Pal.ORANGE,
-    var textScale: Int = 1,
+    var icon: Icon? = null,
+    var color: Int = Ui.TEXT,
+    var textSize: Float = 10f,
     var sound: Sound = Sound.CLICK,
     val onClick: () -> Unit,
 ) {
     var enabled = true
     var visible = true
     var selected = false
+    /** Primary buttons get an accent outline. */
+    var primary = false
     var pressed = false
         private set
     private var press = 0f
     private var hover = 0f
     var badge: String? = null
-    var iconScale = 1f
-    var textColor = Pal.WHITE
+    var sprite: Bitmap? = null
+    var spriteScale = 2f
+    var iconSize = 0f // 0 = automatic
+    var radius = 0f   // 0 = automatic
 
-    companion object {
-        const val DEPTH = 6f
-    }
-
-    fun contains(px: Float, py: Float) = px >= x - 2 && px <= x + w + 2 && py >= y - 4 && py <= y + h + DEPTH + 2
+    fun contains(px: Float, py: Float) = px >= x - 2 && px <= x + w + 2 && py >= y - 2 && py <= y + h + 2
 
     /** Returns true if the touch was consumed. */
     fun touch(t: Touch, play: (Sound) -> Unit): Boolean {
@@ -88,68 +87,86 @@ class Button(
 
     fun draw(c: Canvas, alpha: Float = 1f) {
         if (!visible) return
-        val depth = DEPTH
-        val lift = hover * 2f
-        val sink = press * (depth - 2) - lift
-        val face = when {
-            !enabled -> Pal.GRAY_DARK
-            selected -> Pal.tint(color, 0.2f)
-            else -> color
+        val cx = x + w / 2f
+        val cy = y + h / 2f
+        val r = if (radius > 0f) radius else minOf(h / 2f, 9f)
+        c.save()
+        val s = 1f - press * 0.05f
+        c.scale(s, s, cx, cy)
+
+        val bg = when {
+            !enabled -> Ui.withAlpha(Ui.BG_SOFT, alpha)
+            else -> Ui.withAlpha(if (selected) Ui.BG_STRONG else Ui.BG, alpha)
         }
-        // Drop shadow on the floor
-        Draw.rect(c, x + 3, y + h + depth, w - 2, 3f, Pal.alpha(Pal.INK, 0.3f * alpha))
-        Draw.block(c, x, y + sink, w, h, face, depth - press * (depth - 2) + lift)
-        val cy = y + sink
-        var contentW = 0f
+        Ui.roundRect(c, x, y, w, h, r, bg)
+        if (press > 0.01f) Ui.roundRect(c, x, y, w, h, r, Ui.withAlpha(0x26FFFFFF, press))
+        when {
+            selected -> Ui.outline(c, x, y, w, h, r, Ui.withAlpha(color, hover * alpha), 1.5f)
+            primary -> Ui.outline(c, x, y, w, h, r, Ui.withAlpha(color, 0.9f * alpha), 1.5f)
+            else -> Ui.outline(c, x, y, w, h, r, Ui.withAlpha(Ui.BORDER, alpha), 0.5f)
+        }
+
+        val contentAlpha = alpha * (if (enabled) 1f else 0.4f)
         val ic = icon
-        val iconW = (ic?.width ?: 0) * iconScale
-        val textW = if (label.isNotEmpty()) PixelFont.width(label, textScale) else 0f
-        contentW = iconW + textW + if (ic != null && label.isNotEmpty()) 4f else 0f
-        var cx = x + (w - contentW) / 2f
+        val sp = sprite
+        val iconW = when {
+            ic != null -> if (iconSize > 0f) iconSize else minOf(h * 0.5f, 16f)
+            sp != null -> sp.width * spriteScale
+            else -> 0f
+        }
+        val textW = if (label.isNotEmpty()) Ui.width(label, textSize) else 0f
+        val gap = if (iconW > 0f && textW > 0f) textSize * 0.5f else 0f
+        var lx = cx - (iconW + gap + textW) / 2f
         if (ic != null) {
-            Draw.bitmap(c, ic, cx.toInt().toFloat(), (cy + (h - ic.height * iconScale) / 2f).toInt().toFloat(), iconScale)
-            cx += iconW + 4f
+            val iconColor = if (label.isEmpty() || primary) color else Ui.TEXT
+            Icons.draw(c, ic, lx + iconW / 2f, cy, iconW, Ui.withAlpha(iconColor, contentAlpha))
+            lx += iconW + gap
+        } else if (sp != null) {
+            Draw.bitmap(c, sp, lx, cy - sp.height * spriteScale / 2f, spriteScale, (255 * contentAlpha).toInt())
+            lx += iconW + gap
         }
-        if (label.isNotEmpty()) {
-            val tc = if (enabled) textColor else Pal.GRAY
-            PixelFont.drawShadow(c, label, cx, (cy + (h - PixelFont.height(textScale)) / 2f).toInt().toFloat(), tc, textScale,
-                shadow = Pal.shade(face, 0.4f))
-        }
+        if (label.isNotEmpty()) Ui.text(c, label, lx, cy, textSize, Ui.TEXT, alpha = contentAlpha)
+
         badge?.let {
-            val bw = PixelFont.width(it) + 8
-            Draw.block(c, x + w - bw + 4, cy - 6, bw, 13f, Pal.RED, 2f)
-            PixelFont.draw(c, it, x + w - bw + 8, cy - 3, Pal.WHITE)
+            val bw = maxOf(Ui.width(it, 7f, Ui.Weight.BOLD) + 7f, 12f)
+            Ui.roundRect(c, x + w - bw + 3, y - 4, bw, 12f, 6f, Ui.withAlpha(0xFF000000.toInt(), 0.85f * alpha))
+            Ui.outline(c, x + w - bw + 3, y - 4, bw, 12f, 6f, Ui.withAlpha(color, alpha), 1f)
+            Ui.text(c, it, x + w - bw / 2f + 3, y + 2, 7f, Ui.TEXT, Ui.Align.CENTER, Ui.Weight.BOLD, alpha)
         }
+        c.restore()
     }
 }
 
-/** Simple on/off toggle switch. */
+/** iOS-style on/off switch. */
 class Toggle(var x: Float, var y: Float, var on: Boolean, val onChange: (Boolean) -> Unit) {
-    val w = 40f; val h = 20f
+    val w = 34f; val h = 20f
     private var knob = if (on) 1f else 0f
 
     fun touch(t: Touch, play: (Sound) -> Unit): Boolean {
-        if (t.action == TouchAction.UP && t.x in x - 4..x + w + 4 && t.y in y - 6..y + h + 6) {
+        val inside = t.x in x - 6..x + w + 6 && t.y in y - 6..y + h + 6
+        if (t.action == TouchAction.UP && inside) {
             on = !on; play(Sound.SELECT); onChange(on); return true
         }
-        return t.x in x - 4..x + w + 4 && t.y in y - 6..y + h + 6
+        return inside
     }
 
     fun update(dt: Float) { knob = Ease.approach(knob, if (on) 1f else 0f, 18f, dt) }
 
     fun draw(c: Canvas) {
-        Draw.block(c, x, y, w, h, Pal.mix(Pal.GRAY_DARK, Pal.GREEN, knob), 3f)
-        val kx = x + 3 + knob * (w - h)
-        Draw.block(c, kx, y + 1, h - 6, h - 6, Pal.CREAM, 2f)
+        val track = if (knob > 0.5f) Ui.withAlpha(Ui.GREEN, 0.4f + knob * 0.6f) else Ui.withAlpha(0x59FFFFFF, 1f - knob)
+        Ui.roundRect(c, x, y, w, h, h / 2f, track)
+        val kr = h / 2f - 2f
+        Ui.circle(c, x + h / 2f + knob * (w - h), y + h / 2f + 0.5f, kr, 0x33000000)
+        Ui.circle(c, x + h / 2f + knob * (w - h), y + h / 2f, kr, Ui.TEXT)
     }
 }
 
-/** Horizontal slider 0..1. */
+/** Horizontal slider 0..1 with a round knob. */
 class Slider(var x: Float, var y: Float, var w: Float, var value: Float, val onChange: (Float) -> Unit) {
     private var dragging = false
 
     fun touch(t: Touch): Boolean {
-        val inside = t.x in x - 6..x + w + 6 && t.y in y - 10..y + 14
+        val inside = t.x in x - 8..x + w + 8 && t.y in y - 12..y + 12
         when (t.action) {
             TouchAction.DOWN -> if (inside) dragging = true
             TouchAction.UP, TouchAction.CANCEL -> if (dragging) { dragging = false; onChange(value); return true }
@@ -163,8 +180,9 @@ class Slider(var x: Float, var y: Float, var w: Float, var value: Float, val onC
     }
 
     fun draw(c: Canvas) {
-        Draw.rect(c, x, y + 1, w, 6f, Pal.INK)
-        Draw.rect(c, x + 2, y + 3, (w - 4) * value, 2f, Pal.GOLD)
-        Draw.block(c, x + w * value - 6, y - 4, 12f, 13f, Pal.CREAM, 3f)
+        Ui.roundRect(c, x, y - 2f, w, 4f, 2f, 0x40FFFFFF)
+        Ui.roundRect(c, x, y - 2f, w * value, 4f, 2f, Ui.ACCENT)
+        Ui.circle(c, x + w * value, y + 0.5f, 7f, 0x33000000)
+        Ui.circle(c, x + w * value, y, 7f, Ui.TEXT)
     }
 }

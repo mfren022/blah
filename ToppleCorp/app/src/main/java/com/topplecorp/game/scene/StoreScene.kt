@@ -8,13 +8,15 @@ import com.topplecorp.game.data.StoreItem
 import com.topplecorp.game.gfx.Backdrop
 import com.topplecorp.game.gfx.Draw
 import com.topplecorp.game.gfx.Pal
-import com.topplecorp.game.gfx.PixelFont
 import com.topplecorp.game.gfx.Sprites
 import com.topplecorp.game.gfx.Themes
 import com.topplecorp.game.ui.Button
 import com.topplecorp.game.ui.Ease
+import com.topplecorp.game.ui.Icon
+import com.topplecorp.game.ui.Icons
 import com.topplecorp.game.ui.Touch
 import com.topplecorp.game.ui.TouchAction
+import com.topplecorp.game.ui.Ui
 import com.topplecorp.game.ui.UiKit
 import kotlin.math.sin
 
@@ -34,11 +36,15 @@ class StoreScene(game: Game) : Scene(game) {
     override fun layout() {
         buttons.clear()
         buttons += UiKit.backButton { onBack() }
-        val tw = (w - 24f) / 2f
-        val ts = if (PixelFont.width("CREW SKINS", 2) + 12 <= tw) 2 else 1
-        buttons += Button(8f, 48f, tw, 30f, "TILESETS", color = Pal.BLUE, textScale = ts, sound = Sound.SELECT) { setCategory(StoreItem.Category.TILESETS) }
-        buttons += Button(16f + tw, 48f, tw, 30f, "CREW SKINS", color = Pal.BLUE, textScale = ts, sound = Sound.SELECT) { setCategory(StoreItem.Category.CREW) }
-        cardW = (w - 24f) / 2f
+        val tw = (w - 28f) / 2f
+        buttons += Button(10f, UiKit.HEADER_H + 8f, tw, 30f, "Tilesets", color = Ui.ACCENT, textSize = 11f, sound = Sound.SELECT) {
+            setCategory(StoreItem.Category.TILESETS)
+        }.apply { radius = 15f }
+        buttons += Button(18f + tw, UiKit.HEADER_H + 8f, tw, 30f, "Crew Skins", color = Ui.ACCENT, textSize = 11f, sound = Sound.SELECT) {
+            setCategory(StoreItem.Category.CREW)
+        }.apply { radius = 15f }
+        gridY = UiKit.HEADER_H + 48f
+        cardW = (w - 28f) / 2f
         cardH = ((h - gridY - 40f) / 3f - 8f).coerceAtMost(130f)
         refreshTabs()
     }
@@ -53,13 +59,11 @@ class StoreScene(game: Game) : Scene(game) {
     private fun refreshTabs() {
         buttons[1].selected = category == StoreItem.Category.TILESETS
         buttons[2].selected = category == StoreItem.Category.CREW
-        buttons[1].color = if (buttons[1].selected) Pal.ORANGE else Pal.PANEL_LIGHT
-        buttons[2].color = if (buttons[2].selected) Pal.ORANGE else Pal.PANEL_LIGHT
     }
 
     override fun onBack() = game.goTo { MenuScene(game) }
 
-    private fun cardPos(i: Int) = floatArrayOf(8f + (i % 2) * (cardW + 8f), gridY + (i / 2) * (cardH + 8f))
+    private fun cardPos(i: Int) = floatArrayOf(10f + (i % 2) * (cardW + 8f), gridY + (i / 2) * (cardH + 8f))
 
     private fun hit(x: Float, y: Float): Int {
         val items = StoreCatalog.of(category)
@@ -90,10 +94,10 @@ class StoreScene(game: Game) : Scene(game) {
                 val item = StoreCatalog.of(category)[i]
                 if (item.available) {
                     game.play(Sound.SELECT)
-                    showToast("${item.name.uppercase()} EQUIPPED")
+                    showToast("${item.name} equipped")
                 } else {
                     game.play(Sound.DENY)
-                    showToast("COMING SOON!")
+                    showToast("Coming soon!")
                 }
             }
             TouchAction.CANCEL -> pressed = -1
@@ -104,16 +108,19 @@ class StoreScene(game: Game) : Scene(game) {
 
     override fun draw(c: Canvas) {
         backdrop.draw(c, h, h * 0.85f, 0f)
-        Draw.dim(c, w, h, 0.55f)
-        UiKit.header(c, w, "STORE")
-        UiKit.goldPill(c, w - 6, 12f, game.save.gold)
+        Draw.dim(c, w, h, 0.25f)
+    }
+
+    override fun drawUi(c: Canvas) {
+        UiKit.header(c, w, "Store")
+        UiKit.goldPill(c, w - 10f, 23f, game.save.gold)
         val items = StoreCatalog.of(category)
         items.forEachIndexed { i, item ->
             val p = cardPos(i)
             val appear = Ease.outBack(((switchTime - i * 0.04f) / 0.3f).coerceIn(0f, 1f))
             if (appear <= 0f) return@forEachIndexed
             c.save()
-            val s = appear * (if (i == pressed) 1f - tabAnim * 0.06f else 1f)
+            val s = appear * (if (i == pressed) 1f - tabAnim * 0.05f else 1f)
             c.scale(s, s, p[0] + cardW / 2, p[1] + cardH / 2)
             drawCard(c, item, p[0], p[1])
             c.restore()
@@ -121,29 +128,27 @@ class StoreScene(game: Game) : Scene(game) {
         drawButtons(c)
         if (toastTime > 0f) {
             val a = (toastTime / 0.3f).coerceAtMost(1f)
-            val tw = PixelFont.width(toast) + 20
-            val ty = h - 36f + (1f - a) * 10f
-            Draw.panel(c, (w - tw) / 2, ty, tw, 18f, Pal.INK_SOFT, 2f)
-            PixelFont.drawShadow(c, toast, w / 2f, ty + 6, Pal.GOLD, align = 1, alpha = (255 * a).toInt())
+            val tw = Ui.width(toast, 10f) + 28
+            val ty = h - 40f + (1f - a) * 10f
+            Ui.panel(c, (w - tw) / 2, ty, tw, 24f, 12f, Ui.withAlpha(Ui.BG_STRONG, a))
+            Ui.text(c, toast, w / 2f, ty + 12, 10f, Ui.TEXT, Ui.Align.CENTER, alpha = a)
         }
     }
 
     private fun drawCard(c: Canvas, item: StoreItem, x: Float, y: Float) {
-        Draw.panel(c, x, y, cardW, cardH, Pal.PANEL, 3f)
-        // Preview area
-        val pvH = cardH - 34f
-        Draw.rect(c, x + 4, y + 4, cardW - 8, pvH, Pal.PANEL_DARK)
+        Ui.panel(c, x, y, cardW, cardH, 12f)
+        val pvH = cardH - 38f
         val cx = x + cardW / 2
         val cy = y + 4 + pvH / 2
         if (item.category == StoreItem.Category.TILESETS) {
-            // Mini 3D block stack in the tileset's colours.
+            // Mini 3D block stack in the tileset's colours (pixel art).
             val size = 14f
             val d = 4f
             val layout = listOf(0 to 0, 1 to 0, 2 to 0, 0 to 1, 1 to 1, 1 to 2)
             for ((i, pos) in layout.withIndex()) {
                 val col = item.colors[i % item.colors.size]
-                val bx = cx - 24 + pos.first * size
-                val by = cy + 14 - (pos.second + 1) * size + sin(switchTime * 2f + i) * 0.5f
+                val bx = (cx - 24 + pos.first * size).toInt().toFloat()
+                val by = (cy + 16 - (pos.second + 1) * size).toInt().toFloat()
                 Draw.rect(c, bx + d, by - d, size, d, Pal.tint(col, 0.3f))
                 Draw.rect(c, bx + size, by - d + 1, d, size, Pal.shade(col, 0.6f))
                 Draw.rect(c, bx, by, size, size, col)
@@ -154,26 +159,27 @@ class StoreScene(game: Game) : Scene(game) {
                 Draw.rect(c, bx + 1, by + 1, size - 2, 1f, Pal.tint(col, 0.4f))
             }
         } else {
-            // Crew silhouettes tinted with the skin colours.
             Sprites.crew.forEachIndexed { i, m ->
-                val bx = cx - 26 + i * 18
+                val bx = cx - 30 + i * 20
                 val bob = if ((switchTime * 3f + i).toInt() % 2 == 0) 0f else -1f
-                if (item.available) Draw.bitmap(c, m.body, bx, cy - 10 + bob)
-                else Draw.silhouette(c, m.body, bx, cy - 10 + bob, 1f, item.colors[i % item.colors.size])
+                if (item.available) Draw.bitmap(c, m.body, bx, cy - 12 + bob)
+                else Draw.silhouette(c, m.body, bx, cy - 12 + bob, 1f, item.colors[i % item.colors.size])
             }
         }
         if (!item.available) {
-            Draw.panel(c, x + cardW - 52, y + 2, 50f, 11f, Pal.PURPLE, 1f)
-            PixelFont.draw(c, "SOON", x + cardW - 27 - PixelFont.width("SOON") / 2, y + 4, Pal.WHITE)
+            val tw = Ui.width("Soon", 7f, Ui.Weight.BOLD) + 12f
+            Ui.roundRect(c, x + cardW - tw - 6, y + 6, tw, 13f, 6.5f, Ui.withAlpha(Ui.PURPLE, 0.9f))
+            Ui.text(c, "Soon", x + cardW - 6 - tw / 2, y + 12.5f, 7f, Ui.TEXT, Ui.Align.CENTER, Ui.Weight.BOLD)
         }
-        PixelFont.drawShadow(c, item.name.uppercase(), cx, y + cardH - 27, Pal.CREAM, align = 1)
+        Ui.text(c, item.name, cx, y + cardH - 26, 9.5f, Ui.TEXT, Ui.Align.CENTER, Ui.Weight.BOLD)
         if (item.available) {
-            PixelFont.drawShadow(c, "EQUIPPED", cx, y + cardH - 14, Pal.GREEN, align = 1)
+            Icons.draw(c, Icon.CHECK, cx - Ui.width("Equipped", 8f) / 2 - 7, y + cardH - 12, 9f, Ui.GREEN)
+            Ui.text(c, "Equipped", cx + 4, y + cardH - 12, 8f, Ui.GREEN, Ui.Align.CENTER)
         } else {
             val price = UiKit.formatGold(item.price)
-            val pw = PixelFont.width(price) + 12
-            Draw.bitmap(c, Sprites.coin, cx - pw / 2, y + cardH - 15)
-            PixelFont.drawShadow(c, price, cx - pw / 2 + 12, y + cardH - 14, Pal.alpha(Pal.GOLD, 0.6f))
+            val pw = Ui.width(price, 8f) + 12
+            Ui.coin(c, cx - pw / 2 + 4, y + cardH - 12, 4f)
+            Ui.text(c, price, cx - pw / 2 + 12, y + cardH - 12, 8f, Ui.TEXT_DIM)
         }
     }
 }

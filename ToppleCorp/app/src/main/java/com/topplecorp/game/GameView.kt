@@ -104,6 +104,13 @@ class GameView(context: Context, private val game: Game) : SurfaceView(context),
                 game.draw(bc)
                 canvas.drawColor(0xFF1B1726.toInt())
                 canvas.drawBitmap(b, null, dst, blit)
+                // UI is drawn straight onto the screen at full resolution for smooth text and shapes.
+                canvas.save()
+                canvas.clipRect(dst)
+                canvas.translate(dst.left.toFloat(), dst.top.toFloat())
+                canvas.scale(scale.toFloat(), scale.toFloat())
+                game.drawUi(canvas)
+                canvas.restore()
             }
         } finally {
             try { holder.unlockCanvasAndPost(canvas) } catch (_: Exception) {}

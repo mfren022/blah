@@ -1,6 +1,7 @@
 package com.topplecorp.game.gfx
 
 import android.graphics.Canvas
+import com.topplecorp.game.ui.Ui
 import kotlin.random.Random
 
 /**
@@ -128,15 +129,21 @@ class Particles {
         }
     }
 
+    /** Floating labels, drawn in the full-resolution UI pass. */
+    fun drawText(c: Canvas, offset: Float) {
+        for (p in list) {
+            val t = p.text ?: continue
+            val a = (p.life / p.maxLife).coerceIn(0f, 1f)
+            val pop = 1f + (1f - ((p.maxLife - p.life) / 0.15f).coerceIn(0f, 1f)) * 0.4f
+            Ui.shadowText(c, t, p.x, p.y + offset, 9f * pop, p.color, Ui.Align.CENTER, Ui.Weight.BOLD, (a * 1.5f).coerceAtMost(1f))
+        }
+    }
+
     /** Draw with an extra y [offset] (camera). */
     fun draw(c: Canvas, offset: Float) {
         for (p in list) {
             val a = (p.life / p.maxLife).coerceIn(0f, 1f)
-            val t = p.text
-            if (t != null) {
-                PixelFont.drawShadow(c, t, p.x, p.y + offset, p.color, 1, align = 1, alpha = (255 * a.coerceAtMost(1f)).toInt())
-                continue
-            }
+            if (p.text != null) continue
             // Depth: particles closer to the camera (z > 0) look bigger.
             val depth = 1f + (p.z / 60f).coerceIn(-0.5f, 1.5f)
             val s = (p.size * depth).coerceAtLeast(1f)

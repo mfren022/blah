@@ -5,15 +5,13 @@ import com.topplecorp.core.Campaign
 import com.topplecorp.game.Game
 import com.topplecorp.game.audio.Sound
 import com.topplecorp.game.gfx.Backdrop
-import com.topplecorp.game.gfx.Draw
-import com.topplecorp.game.gfx.Pal
-import com.topplecorp.game.gfx.PixelFont
-import com.topplecorp.game.gfx.Sprites
 import com.topplecorp.game.gfx.Themes
-import com.topplecorp.game.ui.Button
 import com.topplecorp.game.ui.Ease
+import com.topplecorp.game.ui.Icon
+import com.topplecorp.game.ui.Icons
 import com.topplecorp.game.ui.Touch
 import com.topplecorp.game.ui.TouchAction
+import com.topplecorp.game.ui.Ui
 import com.topplecorp.game.ui.UiKit
 import kotlin.math.sin
 
@@ -38,7 +36,7 @@ class LevelSelectScene(game: Game, private val city: Int) : Scene(game) {
         val gridW = cols * tile + (cols - 1) * gap
         val gridH = rows * (tile + 10f) + (rows - 1) * gap
         gridX = (w - gridW) / 2f
-        gridY = 52f + ((availH - gridH) / 2f).coerceAtLeast(0f)
+        gridY = UiKit.HEADER_H + 12f + ((availH - gridH) / 2f).coerceAtLeast(0f)
     }
 
     override fun onBack() = game.goTo { CityScene(game) }
@@ -85,9 +83,11 @@ class LevelSelectScene(game: Game, private val city: Int) : Scene(game) {
     override fun draw(c: Canvas) {
         backdrop.draw(c, h, h * 0.8f, 0f)
         backdrop.drawGround(c, h * 0.8f, h)
-        Draw.dim(c, w, h, 0.35f)
-        UiKit.header(c, w, Campaign.cities[city].name.uppercase())
-        UiKit.goldPill(c, w - 6, 12f, game.save.gold)
+    }
+
+    override fun drawUi(c: Canvas) {
+        UiKit.header(c, w, Campaign.cities[city].name)
+        UiKit.goldPill(c, w - 10f, 23f, game.save.gold)
 
         val save = game.save
         var nextFound = false
@@ -100,31 +100,35 @@ class LevelSelectScene(game: Game, private val city: Int) : Scene(game) {
             val stars = save.stars(city, i)
             val isNext = unlocked && stars == 0 && !nextFound
             if (isNext) nextFound = true
+            val th = tile + 10f
             val cx = r[0] + tile / 2
-            val cy = r[1] + tile / 2
+            val cy = r[1] + th / 2
             c.save()
-            val s = appear * (if (i == pressed) 1f - pressAnim * 0.08f else 1f) * (if (isNext) 1f + sin(time * 5f) * 0.03f else 1f)
+            val s = appear * (if (i == pressed) 1f - pressAnim * 0.06f else 1f) * (if (isNext) 1f + sin(time * 5f) * 0.025f else 1f)
             c.scale(s, s, cx, cy)
-            val face = when {
-                !unlocked -> Pal.GRAY_DARK
-                isNext -> Pal.ORANGE
-                stars == 3 -> Pal.GOLD_DARK
-                else -> theme.accent
+            Ui.panel(c, r[0], r[1], tile, th, 10f, if (unlocked) Ui.BG else Ui.BG_SOFT)
+            when {
+                isNext -> Ui.outline(c, r[0], r[1], tile, th, 10f, Ui.ACCENT, 1.5f)
+                stars == 3 -> Ui.outline(c, r[0], r[1], tile, th, 10f, Ui.withAlpha(Ui.GOLD, 0.7f), 1f)
             }
-            Draw.block(c, r[0], r[1], tile, tile, face, 6f)
             if (unlocked) {
-                PixelFont.drawShadow(c, "${i + 1}", cx, r[1] + tile / 2 - 9, Pal.WHITE, 2, align = 1, shadow = Pal.shade(face, 0.4f))
-                UiKit.stars(c, cx, r[1] + tile - 13, stars, 1f, 0f)
-                if (save.goldBlock(city, i)) Draw.bitmap(c, Sprites.goldBar, r[0] + tile - 14, r[1] - 3)
+                Ui.text(c, "${i + 1}", cx, r[1] + th * 0.4f, 15f, Ui.TEXT, Ui.Align.CENTER, Ui.Weight.BOLD)
+                Ui.stars(c, cx, r[1] + th - 10f, stars, 3.6f, 1.5f)
+                if (save.goldBlock(city, i)) {
+                    Ui.roundRect(c, r[0] + tile - 11, r[1] + 4, 8f, 5f, 1.5f, Ui.GOLD)
+                }
             } else {
-                Draw.bitmap(c, Sprites.lock, cx - 4, cy - 5)
+                Icons.draw(c, Icon.LOCK, cx, cy, 14f, Ui.TEXT_FAINT)
             }
             c.restore()
         }
         drawButtons(c)
         // Footer: total stars
         val total = save.cityStars(city)
-        Draw.bitmap(c, Sprites.star, w / 2 - 28, h - 22f)
-        PixelFont.drawShadow(c, "$total / ${Campaign.LEVELS_PER_CITY * 3}", w / 2 - 15, h - 20f, Pal.GOLD)
+        val label = "$total / ${Campaign.LEVELS_PER_CITY * 3}"
+        val pw = Ui.width(label, 9f) + 30f
+        Ui.panel(c, w / 2 - pw / 2, h - 30f, pw, 20f, 10f)
+        Ui.star(c, w / 2 - pw / 2 + 12, h - 20f, 5f, true)
+        Ui.text(c, label, w / 2 - pw / 2 + 21, h - 20f, 9f, Ui.TEXT)
     }
 }

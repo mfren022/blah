@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
-import android.graphics.Rect
 import android.graphics.RectF
 
 /** Shared colour palette (ARGB). */
@@ -84,7 +83,6 @@ object Draw {
     val fill = Paint().apply { isAntiAlias = false; style = Paint.Style.FILL }
     val bmp = Paint().apply { isAntiAlias = false; isFilterBitmap = false }
     private val tinted = Paint().apply { isAntiAlias = false; isFilterBitmap = false }
-    private val src = Rect()
     private val dst = RectF()
 
     fun rect(c: Canvas, x: Float, y: Float, w: Float, h: Float, color: Int) {
@@ -117,60 +115,6 @@ object Draw {
         tinted.alpha = Color.alpha(color)
         dst.set(x, y, x + b.width * scale, y + b.height * scale)
         c.drawBitmap(b, null, dst, tinted)
-    }
-
-    fun region(c: Canvas, b: Bitmap, sx: Int, sy: Int, sw: Int, sh: Int, x: Float, y: Float, scale: Float, paint: Paint) {
-        src.set(sx, sy, sx + sw, sy + sh)
-        dst.set(x, y, x + sw * scale, y + sh * scale)
-        c.drawBitmap(b, src, dst, paint)
-    }
-
-    /**
-     * A chunky pixel panel with cut corners, a light top edge and a 3D "depth" lip at the bottom.
-     */
-    fun panel(c: Canvas, x: Float, y: Float, w: Float, h: Float, face: Int, depth: Float = 3f, border: Int = Pal.INK) {
-        val x0 = x.toInt().toFloat(); val y0 = y.toInt().toFloat()
-        val ww = w.toInt().toFloat(); val hh = h.toInt().toFloat()
-        // Outline
-        rect(c, x0 + 1, y0, ww - 2, hh + depth, border)
-        rect(c, x0, y0 + 1, ww, hh + depth - 2, border)
-        // Depth lip
-        if (depth > 0) rect(c, x0 + 1, y0 + 1, ww - 2, hh + depth - 2, Pal.shade(face, 0.6f))
-        // Face
-        rect(c, x0 + 1, y0 + 1, ww - 2, hh - 2, face)
-        // Highlight and inner shade
-        rect(c, x0 + 2, y0 + 1, ww - 4, 1f, Pal.tint(face, 0.35f))
-        rect(c, x0 + 1, y0 + 2, 1f, hh - 4, Pal.tint(face, 0.15f))
-        rect(c, x0 + 2, y0 + hh - 2, ww - 4, 1f, Pal.shade(face, 0.85f))
-    }
-
-    /**
-     * Chunky square block used for buttons: thick outline, deep 3D lip under the face, and
-     * two-pixel bevels. [depth] is the visible lip height (shrinks when the button is pressed).
-     */
-    fun block(c: Canvas, x: Float, y: Float, w: Float, h: Float, face: Int, depth: Float = 6f) {
-        val x0 = x.toInt().toFloat(); val y0 = y.toInt().toFloat()
-        val ww = w.toInt().toFloat(); val hh = h.toInt().toFloat()
-        val d = depth.toInt().coerceAtLeast(0).toFloat()
-        // Outline around face + lip
-        rect(c, x0, y0, ww, hh + d, Pal.INK)
-        // Lip (the block's front side)
-        if (d > 0) {
-            rect(c, x0 + 2, y0 + hh - 2, ww - 4, d, Pal.shade(face, 0.55f))
-            rect(c, x0 + 2, y0 + hh - 2, ww - 4, 1f, Pal.shade(face, 0.4f))
-            // Vertical seams on the lip sell the "block" look
-            rect(c, x0 + 2, y0 + hh - 1, 2f, d - 1, Pal.shade(face, 0.68f))
-        }
-        // Face
-        rect(c, x0 + 2, y0 + 2, ww - 4, hh - 4, face)
-        // Bevels
-        rect(c, x0 + 2, y0 + 2, ww - 4, 2f, Pal.tint(face, 0.4f))
-        rect(c, x0 + 2, y0 + 4, 2f, hh - 8, Pal.tint(face, 0.2f))
-        rect(c, x0 + ww - 4, y0 + 4, 2f, hh - 8, Pal.shade(face, 0.85f))
-        rect(c, x0 + 2, y0 + hh - 4, ww - 4, 2f, Pal.shade(face, 0.78f))
-        // Corner pixels on the face for a chiselled look
-        rect(c, x0 + 2, y0 + 2, 1f, 1f, Pal.INK)
-        rect(c, x0 + ww - 3, y0 + 2, 1f, 1f, Pal.INK)
     }
 
     /** Vertical gradient using horizontal bands (dithered look). */

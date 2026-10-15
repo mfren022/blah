@@ -48,14 +48,14 @@ ToppleCorp/
     src/main/assets/levels/   150 campaign levels as JSON (c<city>_l<level>.json)
 ```
 
-- **Rendering:** everything is drawn into a low-resolution buffer (about 240–320 px wide), then scaled up by an
-  integer factor with nearest-neighbour filtering. All pixel art (blocks, crew, icons, font, skylines) is
-  generated in code. The 3D look comes from:
-  - extruded block faces;
-  - parallax skyline layers;
-  - a perspective-tilted city carousel;
-  - debris particles with depth and shadows;
-  - an extruded title.
+- **Rendering:** the game world is drawn in two passes.
+  - **World pass:** sky, skylines, towers, crew and particles are drawn as pixel art into a low-resolution
+    buffer (about 240–320 px wide), then scaled up by an integer factor with nearest-neighbour filtering.
+    All pixel art is generated in code. The 3D look comes from extruded block faces, parallax skyline layers,
+    a perspective-tilted city carousel and debris particles with depth and shadows.
+  - **UI pass:** all UI (buttons, panels, HUD, text, icons) is drawn straight onto the screen at full
+    resolution using a simple modern style: rounded corners, translucent black surfaces, the system
+    sans-serif font and vector icons (`ui/Ui.kt`).
 - **Sound:** every sound effect is synthesized at first launch into small WAV files in the cache and played
   through `SoundPool`. There is no music.
 - **Scenes:** Menu → Cities (horizontal snapping carousel) → Level select → Game. Store and Settings are
