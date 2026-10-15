@@ -4,7 +4,7 @@ import android.graphics.Canvas
 import com.topplecorp.core.Campaign
 import com.topplecorp.game.Game
 import com.topplecorp.game.audio.Sound
-import com.topplecorp.game.gfx.CityArt
+import com.topplecorp.game.gfx.CityPanorama
 import com.topplecorp.game.ui.Button
 import com.topplecorp.game.ui.Ease
 import com.topplecorp.game.ui.Icon
@@ -40,14 +40,14 @@ class CityScene(game: Game) : Scene(game) {
     private var downPos = 0f
     private var moved = false
 
-    private var arts: List<CityArt> = emptyList()
+    private var panorama: CityPanorama? = null
     private var play: Button? = null
 
     private val transitioning get() = tweenT < 1f
 
     override fun layout() {
         buttons.clear()
-        arts = (0 until count).map { CityArt(it, game.vw, game.vh) }
+        panorama = CityPanorama(game.vw, game.vh, count)
         buttons += UiKit.backButton { onBack() }
         val midY = h * 0.42f
         buttons += Button(8f, midY - 18, 28f, 36f, icon = Icon.BACK) { goTo(current - 1) }
@@ -67,7 +67,7 @@ class CityScene(game: Game) : Scene(game) {
         if (t == current && !transitioning && pos == t.toFloat()) return
         tweenFrom = pos
         tweenTo = t.toFloat()
-        tweenDur = TRANSITION * abs(tweenTo - tweenFrom).coerceIn(0.4f, 1f)
+        tweenDur = TRANSITION * abs(tweenTo - tweenFrom).coerceIn(0.5f, 1f)
         tweenT = 0f
         if (t != current) game.play(Sound.WHOOSH, 0.5f, 1f + t * 0.05f)
         current = t
@@ -128,15 +128,7 @@ class CityScene(game: Game) : Scene(game) {
     // ------------------------------------------------------------------ world pass
 
     override fun draw(c: Canvas) {
-        for (i in 0 until count) {
-            val off = i - pos
-            if (abs(off) >= 1f) continue
-            val x = off * w
-            c.save()
-            c.clipRect(x, 0f, x + w, h)
-            arts[i].draw(c, x, off, time)
-            c.restore()
-        }
+        panorama?.draw(c, pos, time)
     }
 
     // ------------------------------------------------------------------ UI pass
@@ -148,8 +140,6 @@ class CityScene(game: Game) : Scene(game) {
             if (abs(off) >= 1f || game.save.isCityUnlocked(i)) continue
             val x = off * w
             c.save()
-            c.clipRect(x, 0f, x + w, h)
-            Ui.roundRect(c, x, 0f, w, h, 0f, 0x4D000000)
             val label = "Clear ${Campaign.cities[i - 1].name} to unlock"
             val pw = Ui.width(label, 9f) + 34f
             val py = UiKit.HEADER_H + 12f
@@ -216,6 +206,6 @@ class CityScene(game: Game) : Scene(game) {
     }
 
     companion object {
-        const val TRANSITION = 0.75f
+        const val TRANSITION = 0.4f
     }
 }
