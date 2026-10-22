@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Base.Theme.Sudoku" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:windowBackground">@color/light_bg</item>
+        <item name="android:colorBackground">@color/light_bg</item>
+        <item name="android:statusBarColor">@color/light_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Light navigation bar icons need API 27; values-v27 switches to a white bar. -->
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:colorPrimary">@color/light_accent</item>
+        <item name="android:colorAccent">@color/light_accent</item>
+        <item name="android:colorControlHighlight">#1F0A3C8C</item>
+        <item name="android:textColorPrimary">@color/light_ink</item>
+        <item name="android:textColorSecondary">@color/light_ink_muted</item>
+        <item name="android:textColorHighlight">@color/light_accent_mid</item>
+
+        <item name="suBg">@color/light_bg</item>
+        <item name="suSurface">@color/light_surface</item>
+        <item name="suSurfacePressed">@color/light_surface_pressed</item>
+        <item name="suBoard">@color/light_board</item>
+        <item name="suInk">@color/light_ink</item>
+        <item name="suInkMuted">@color/light_ink_muted</item>
+        <item name="suLine">@color/light_line</item>
+        <item name="suLineStrong">@color/light_line_strong</item>
+        <item name="suAccent">@color/light_accent</item>
+        <item name="suAccentPressed">@color/light_accent_pressed</item>
+        <item name="suOnAccent">@color/light_on_accent</item>
+        <item name="suAccentSoft">@color/light_accent_soft</item>
+        <item name="suAccentMid">@color/light_accent_mid</item>
+        <item name="suUserDigit">@color/light_user_digit</item>
+        <item name="suError">@color/light_error</item>
+        <item name="suErrorSoft">@color/light_error_soft</item>
+    </style>
+
+    <style name="Theme.Sudoku" parent="Base.Theme.Sudoku" />
+
+    <style name="Theme.Sudoku.Dark" parent="android:Theme.Material.NoActionBar">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:windowBackground">@color/dark_bg</item>
+        <item name="android:colorBackground">@color/dark_bg</item>
+        <item name="android:statusBarColor">@color/dark_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/dark_bg</item>
+        <item name="android:colorPrimary">@color/dark_accent</item>
+        <item name="android:colorAccent">@color/dark_user_digit</item>
+        <item name="android:colorControlHighlight">#337FA8FF</item>
+        <item name="android:textColorPrimary">@color/dark_ink</item>
+        <item name="android:textColorSecondary">@color/dark_ink_muted</item>
+        <item name="android:textColorHighlight">@color/dark_accent_mid</item>
+
+        <item name="suBg">@color/dark_bg</item>
+        <item name="suSurface">@color/dark_surface</item>
+        <item name="suSurfacePressed">@color/dark_surface_pressed</item>
+        <item name="suBoard">@color/dark_board</item>
+        <item name="suInk">@color/dark_ink</item>
+        <item name="suInkMuted">@color/dark_ink_muted</item>
+        <item name="suLine">@color/dark_line</item>
+        <item name="suLineStrong">@color/dark_line_strong</item>
+        <item name="suAccent">@color/dark_accent</item>
+        <item name="suAccentPressed">@color/dark_accent_pressed</item>
+        <item name="suOnAccent">@color/dark_on_accent</item>
+        <item name="suAccentSoft">@color/dark_accent_soft</item>
+        <item name="suAccentMid">@color/dark_accent_mid</item>
+        <item name="suUserDigit">@color/dark_user_digit</item>
+        <item name="suError">@color/dark_error</item>
+        <item name="suErrorSoft">@color/dark_error_soft</item>
+    </style>
+</resources>

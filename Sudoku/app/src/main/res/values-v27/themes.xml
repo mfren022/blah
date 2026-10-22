@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Sudoku" parent="Base.Theme.Sudoku">
+        <item name="android:navigationBarColor">@color/light_bg</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

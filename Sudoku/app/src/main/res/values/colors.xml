@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="launcher_background">#0A3C8C</color>
+
+    <!-- Light -->
+    <color name="light_bg">#FFFFFF</color>
+    <color name="light_surface">#F2F4F8</color>
+    <color name="light_surface_pressed">#E4E8EF</color>
+    <color name="light_board">#FFFFFF</color>
+    <color name="light_ink">#111827</color>
+    <color name="light_ink_muted">#5F6B7A</color>
+    <color name="light_line">#D5DBE5</color>
+    <color name="light_line_strong">#111827</color>
+    <color name="light_accent">#0A3C8C</color>
+    <color name="light_accent_pressed">#072C69</color>
+    <color name="light_on_accent">#FFFFFF</color>
+    <color name="light_accent_soft">#E6EDF8</color>
+    <color name="light_accent_mid">#BFD0EE</color>
+    <color name="light_user_digit">#0A3C8C</color>
+    <color name="light_error">#C62828</color>
+    <color name="light_error_soft">#FBE4E4</color>
+
+    <!-- Dark -->
+    <color name="dark_bg">#0C1016</color>
+    <color name="dark_surface">#161C25</color>
+    <color name="dark_surface_pressed">#212936</color>
+    <color name="dark_board">#10151C</color>
+    <color name="dark_ink">#E8EDF4</color>
+    <color name="dark_ink_muted">#8D98A8</color>
+    <color name="dark_line">#28313E</color>
+    <color name="dark_line_strong">#9AA6B8</color>
+    <color name="dark_accent">#1E54B8</color>
+    <color name="dark_accent_pressed">#17418F</color>
+    <color name="dark_on_accent">#FFFFFF</color>
+    <color name="dark_accent_soft">#152238</color>
+    <color name="dark_accent_mid">#22396A</color>
+    <color name="dark_user_digit">#7FA8FF</color>
+    <color name="dark_error">#FF6B6B</color>
+    <color name="dark_error_soft">#3B1C20</color>
+</resources>

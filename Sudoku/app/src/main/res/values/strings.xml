@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sudoku</string>
+    <string name="back">Back</string>
+    <string name="more">More</string>
+    <string name="close">Close</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+
+    <!-- Home -->
+    <string name="home_kicker">Ultimate</string>
+    <string name="home_title">Sudoku</string>
+    <string name="home_tagline">Clean puzzles. Real logic.</string>
+    <string name="home_continue">Continue</string>
+    <string name="home_modes">Play</string>
+    <string name="home_story">Story mode</string>
+    <string name="home_story_subtitle">The Nine Districts</string>
+    <string name="home_random">Random</string>
+    <string name="home_random_subtitle">A fresh puzzle in five difficulties</string>
+    <string name="home_daily">Daily challenge</string>
+    <string name="home_solver">Solver</string>
+    <string name="home_solver_subtitle">Solve any puzzle, step by step</string>
+    <string name="home_stats">Statistics</string>
+    <string name="home_settings">Settings</string>
+    <string name="badge_soon">Soon</string>
+    <string name="badge_done">Done</string>
+    <string name="badge_resume">Resume</string>
+    <string name="daily_done_title">Daily challenge solved</string>
+    <string name="daily_done_message">You solved today\'s %1$s puzzle in %2$s. A new one arrives tomorrow.</string>
+    <string name="daily_streak">%1$d-day streak</string>
+
+    <!-- Random -->
+    <string name="random_title">Random</string>
+    <string name="random_choose">Choose a difficulty</string>
+    <string name="random_footnote">Every puzzle is made on your phone, has exactly one solution, and is graded by the hardest technique it needs.</string>
+    <string name="random_best">Best</string>
+    <string name="random_no_best">—</string>
+    <string name="replace_title">Start a new game?</string>
+    <string name="replace_message">Your %1$s game in progress will be lost.</string>
+    <string name="replace_confirm">New game</string>
+
+    <!-- Game -->
+    <string name="tool_undo">Undo</string>
+    <string name="tool_erase">Erase</string>
+    <string name="tool_notes">Notes</string>
+    <string name="tool_hint">Hint</string>
+    <string name="tool_more">More</string>
+    <string name="notes_on">On</string>
+    <string name="notes_off">Off</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="generating">Generating</string>
+    <string name="mistakes_limited">Mistakes %1$d/%2$d</string>
+    <string name="mistakes_count">Mistakes %1$d</string>
+    <string name="hints_count">Hints %1$d</string>
+    <string name="mode_random">Random</string>
+    <string name="mode_daily">Daily · %1$s</string>
+    <string name="mode_custom">Custom puzzle</string>
+    <string name="select_cell_first">Tap a cell first</string>
+    <string name="board_incorrect">The grid is full, but some digits are wrong</string>
+    <string name="hint_apply">Apply</string>
+    <string name="hint_mistake_title">Mistake</string>
+    <string name="hint_mistake_text">The %1$d in %2$s doesn\'t fit the solution. Apply to erase it.</string>
+    <string name="hint_reveal_title">Reveal</string>
+    <string name="hint_reveal_text">None of the solver\'s techniques applies here, so here is a cell for free: %1$s is %2$d.</string>
+    <string name="menu_title">Puzzle</string>
+    <string name="menu_fill_notes">Fill in all notes</string>
+    <string name="menu_clear_notes">Clear all notes</string>
+    <string name="menu_reveal_cell">Reveal selected cell</string>
+    <string name="menu_restart">Restart puzzle</string>
+    <string name="menu_show_solution">Show solution</string>
+    <string name="menu_copy">Copy puzzle</string>
+    <string name="copied">Copied to clipboard</string>
+    <string name="restart_title">Restart?</string>
+    <string name="restart_message">Your progress, notes and timer on this puzzle will be reset.</string>
+    <string name="restart_confirm">Restart</string>
+    <string name="solution_title">Show the solution?</string>
+    <string name="solution_message">This ends the game and counts as a loss.</string>
+    <string name="solution_confirm">Show solution</string>
+    <string name="solution_shown">Solution shown</string>
+    <string name="game_over_title">Game over</string>
+    <string name="game_over_message">That\'s %1$d mistakes. Keep going without the limit, start this puzzle over, or try a new one.</string>
+    <string name="keep_playing">Keep playing</string>
+    <string name="new_game">New game</string>
+    <string name="home">Home</string>
+    <string name="win_title">Solved</string>
+    <string name="win_daily_title">Daily solved</string>
+    <string name="win_time">Time</string>
+    <string name="win_mistakes">Mistakes</string>
+    <string name="win_hints">Hints</string>
+    <string name="win_best">Best</string>
+    <string name="win_new_best">New best time</string>
+    <string name="win_perfect">Perfect game</string>
+
+    <!-- Solver -->
+    <string name="solver_title">Solver</string>
+    <string name="tool_clear">Clear</string>
+    <string name="tool_step">Step</string>
+    <string name="tool_solve">Solve</string>
+    <string name="solver_intro_title">Enter a puzzle</string>
+    <string name="solver_intro_text">Type in the clues of any sudoku, or paste one, then tap Solve for the answer or Step to see how a person would crack it.</string>
+    <string name="solver_invalid_title">Clues clash</string>
+    <string name="solver_invalid_text">The highlighted digits repeat in a row, column or box.</string>
+    <string name="solver_none_title">No solution</string>
+    <string name="solver_none_text">These clues can\'t all be right. Check for a typo.</string>
+    <string name="solver_multiple_title">More than one solution</string>
+    <string name="solver_multiple_text">Showing one of them. A proper sudoku needs more clues to have a single answer.</string>
+    <string name="solver_too_hard_title">Too hard to search</string>
+    <string name="solver_too_hard_text">The search ran too long. Add a few clues and try again.</string>
+    <string name="solver_unique_title">Solved</string>
+    <string name="solver_unique_text">Unique solution, found in %1$s ms. Rated %2$s; hardest technique: %3$s.</string>
+    <string name="solver_singles">singles only</string>
+    <string name="solver_unique_text_stuck">Unique solution, found in %1$s ms. Rated Extreme: it goes beyond the logic techniques this app knows.</string>
+    <string name="solver_stuck_title">Out of techniques</string>
+    <string name="solver_stuck_text">No technique in the toolbox applies here. Tap Solve to finish with the exhaustive solver.</string>
+    <string name="solver_done_title">Solved with logic</string>
+    <string name="solver_done_text">Finished in %1$d steps. Hardest technique: %2$s.</string>
+    <string name="solver_applied_title">Step applied</string>
+    <string name="solver_applied_text">%1$d steps so far. Tap Step for the next deduction.</string>
+    <string name="solver_play">Play it</string>
+    <string name="solver_menu_paste">Paste puzzle</string>
+    <string name="solver_menu_copy">Copy puzzle</string>
+    <string name="solver_paste_failed">The clipboard doesn\'t hold an 81-cell puzzle</string>
+    <string name="solver_play_needs_unique">Only puzzles with a single solution can be played</string>
+
+    <!-- Story -->
+    <string name="story_title">Story mode</string>
+    <string name="story_soon">Coming soon</string>
+    <string name="story_hero_title">The Nine\nDistricts</string>
+    <string name="story_hero_text">A city laid out on a grid has lost its order. Travel through nine districts, each guarded by a new solving technique, from your first hidden single to the legendary XY-Chain.</string>
+    <string name="story_chapters">Chapters</string>
+    <string name="story_footnote">Story mode is still being built. Random puzzles, the daily challenge and the solver are ready to play now.</string>
+    <string name="story_locked">Story mode is coming soon</string>
+
+    <!-- Statistics -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_started">Games started</string>
+    <string name="stats_won">Games won</string>
+    <string name="stats_win_rate">Win rate</string>
+    <string name="stats_perfect">Perfect wins</string>
+    <string name="stats_best">Best time</string>
+    <string name="stats_average">Average time</string>
+    <string name="stats_streak">Current streak</string>
+    <string name="stats_best_streak">Best streak</string>
+    <string name="stats_daily">Daily challenge</string>
+    <string name="stats_daily_count">Days solved</string>
+    <string name="stats_reset">Reset statistics</string>
+    <string name="stats_reset_title">Reset statistics?</string>
+    <string name="stats_reset_message">All results and streaks will be erased. This can\'t be undone.</string>
+    <string name="stats_reset_confirm">Reset</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_gameplay">Gameplay</string>
+    <string name="settings_check">Check mistakes</string>
+    <string name="settings_check_summary">Show wrong digits in red as soon as you enter them</string>
+    <string name="settings_limit">Mistake limit</string>
+    <string name="settings_limit_summary">End the game after 3 mistakes</string>
+    <string name="settings_auto_notes">Auto-remove notes</string>
+    <string name="settings_auto_notes_summary">Placing a digit erases it from notes in the same row, column and box</string>
+    <string name="settings_assists">Assists</string>
+    <string name="settings_peers">Highlight row, column and box</string>
+    <string name="settings_peers_summary">Shade the cells that share a unit with the selected one</string>
+    <string name="settings_same">Highlight matching digits</string>
+    <string name="settings_same_summary">Shade every cell with the selected digit</string>
+    <string name="settings_hide_finished">Hide finished digits</string>
+    <string name="settings_hide_finished_summary">Remove a digit from the keypad once all nine are placed</string>
+    <string name="settings_general">General</string>
+    <string name="settings_timer">Show timer</string>
+    <string name="settings_screen_on">Keep screen on</string>
+    <string name="settings_screen_on_summary">While a puzzle is open</string>
+    <string name="settings_haptics">Vibration</string>
+    <string name="settings_haptics_summary">A light tick on taps, a buzz on mistakes</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_text">Ultimate Sudoku %1$s. Puzzles are generated on your device, checked for a single solution, and graded by a logic solver that knows 23 techniques. Hints use the same solver.</string>
+    <string name="settings_font">Roboto font: SIL Open Font License 1.1</string>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A 3x3 block of square cells with the centre cell selected, on a 108dp adaptive-icon canvas
+     (content kept inside the 66dp safe zone). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer frame -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M30,30h48v48h-48z M33,33v42h42v-42z" />
+    <!-- Cell dividers -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M45,33h2v42h-2z M61,33h2v42h-2z M33,45h42v2h-42z M33,61h42v2h-42z" />
+    <!-- Selected centre cell -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M49,49h10v10h-10z" />
+    <!-- Two placed digits, drawn as bars -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.55"
+        android:pathData="M37,37h6v6h-6z M65,65h6v6h-6z" />
+</vector>

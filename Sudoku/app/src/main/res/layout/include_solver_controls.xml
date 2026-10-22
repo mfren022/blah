@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.ultimatesudoku.app.ui.ToolButton
+            android:id="@+id/tool_erase"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:toolIcon="@drawable/ic_erase"
+            app:toolLabel="@string/tool_erase" />
+
+        <com.ultimatesudoku.app.ui.ToolButton
+            android:id="@+id/tool_clear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:toolIcon="@drawable/ic_trash"
+            app:toolLabel="@string/tool_clear" />
+
+        <com.ultimatesudoku.app.ui.ToolButton
+            android:id="@+id/tool_step"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:toolIcon="@drawable/ic_step"
+            app:toolLabel="@string/tool_step" />
+
+        <com.ultimatesudoku.app.ui.ToolButton
+            android:id="@+id/tool_solve"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:toolIcon="@drawable/ic_check"
+            app:toolLabel="@string/tool_solve" />
+    </LinearLayout>
+
+    <com.ultimatesudoku.app.ui.NumberPadView
+        android:id="@+id/numpad"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:columns="@integer/pad_columns" />
+</LinearLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Palette roles, set by Theme.Sudoku (light) and Theme.Sudoku.Dark. -->
+    <attr name="suBg" format="color" />
+    <attr name="suSurface" format="color" />
+    <attr name="suSurfacePressed" format="color" />
+    <attr name="suBoard" format="color" />
+    <attr name="suInk" format="color" />
+    <attr name="suInkMuted" format="color" />
+    <attr name="suLine" format="color" />
+    <attr name="suLineStrong" format="color" />
+    <attr name="suAccent" format="color" />
+    <attr name="suAccentPressed" format="color" />
+    <attr name="suOnAccent" format="color" />
+    <attr name="suAccentSoft" format="color" />
+    <attr name="suAccentMid" format="color" />
+    <attr name="suUserDigit" format="color" />
+    <attr name="suError" format="color" />
+    <attr name="suErrorSoft" format="color" />
+
+    <declare-styleable name="NumberPadView">
+        <attr name="columns" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="ToolButton">
+        <attr name="toolIcon" format="reference" />
+        <attr name="toolLabel" format="string" />
+    </declare-styleable>
+</resources>

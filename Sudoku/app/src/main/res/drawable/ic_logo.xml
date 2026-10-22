@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app mark: a 3x3 block with its centre cell selected. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M0,0h48v48h-48z M3,3v42h42v-42z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M15,3h2v42h-2z M31,3h2v42h-2z M3,15h42v2h-42z M3,31h42v2h-42z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M19,19h10v10h-10z" />
+</vector>
