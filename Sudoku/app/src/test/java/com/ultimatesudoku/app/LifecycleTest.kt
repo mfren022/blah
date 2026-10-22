@@ -139,6 +139,26 @@ class LifecycleTest : ScreenTest() {
         assertEquals(false, app.settings.limitMistakes)
     }
 
+    @Test
+    fun aSupersededGenerationIsDropped() {
+        val store = app.store
+        val first = Game(GameMode.RANDOM, Difficulty.EASY, givens, solution)
+        val second = Game(GameMode.RANDOM, Difficulty.HARD, givens, solution)
+        val delivered = ArrayList<Game>()
+        val gate = java.util.concurrent.CountDownLatch(1)
+        store.generate(GameStore.Slot.MAIN, {
+            gate.await()
+            first
+        }) { delivered += it }
+        store.generate(GameStore.Slot.MAIN, { second }) { delivered += it }
+        gate.countDown()
+        waitFor { !store.isGenerating }
+        idle(200)
+        assertEquals(listOf(second), delivered)
+        assertEquals(Difficulty.HARD, store.game(GameStore.Slot.MAIN)!!.difficulty)
+        assertEquals(0, app.stats.record(Difficulty.EASY).started)
+    }
+
     private fun findText(root: View, text: String): View? {
         if (root is TextView && root.text.toString() == text) return root
         if (root is android.view.ViewGroup) {

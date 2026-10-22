@@ -1,5 +1,6 @@
 package com.ultimatesudoku.core
 
+import java.util.Locale
 import kotlin.random.Random
 
 /** One puzzle per calendar day, identical on every device, easing in early in the week. */
@@ -12,7 +13,8 @@ object Daily {
         else -> Difficulty.EXPERT
     }
 
-    fun tag(year: Int, month: Int, day: Int) = "%04d-%02d-%02d".format(year, month, day)
+    /** ISO date, the same text as java.time.LocalDate.toString(), whatever the device language. */
+    fun tag(year: Int, month: Int, day: Int) = String.format(Locale.ROOT, "%04d-%02d-%02d", year, month, day)
 
     fun puzzle(year: Int, month: Int, day: Int, dayOfWeek: Int): Puzzle {
         val seed = (year * 10_000L + month * 100L + day) * 7_919L + 0x5D0C

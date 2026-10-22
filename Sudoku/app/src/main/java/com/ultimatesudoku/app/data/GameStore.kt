@@ -22,6 +22,9 @@ class GameStore(private val prefs: SharedPreferences, private val stats: Stats) 
     }
     private var listener: ((Game) -> Unit)? = null
 
+    /** Identifies the latest request; results of superseded requests are dropped. */
+    private var request = 0
+
     /** A puzzle is being generated for [generatingSlot]. */
     var isGenerating = false
         private set
@@ -44,15 +47,18 @@ class GameStore(private val prefs: SharedPreferences, private val stats: Stats) 
 
     /**
      * Builds a new game off the main thread with [make], saves it in [slot] and hands it to the
-     * current listener. A game still in progress in that slot counts as abandoned.
+     * current listener. A game still in progress in that slot counts as abandoned. Starting another
+     * generation before this one finishes replaces it.
      */
     fun generate(slot: Slot, make: () -> Game, onReady: (Game) -> Unit) {
+        val id = ++request
         isGenerating = true
         generatingSlot = slot
         listener = onReady
         worker.execute {
             val game = make()
             main.post {
+                if (id != request) return@post
                 isGenerating = false
                 start(slot, game)
                 val callback = listener
