@@ -9,11 +9,22 @@ import android.view.MotionEvent
 import android.view.View
 import java.io.File
 import java.time.Duration
+import java.util.concurrent.TimeUnit
+import org.junit.After
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowDialog
 
 /** Helpers for driving screens in Robolectric and saving what they look like. */
 abstract class ScreenTest {
+
+    /** Lets pending disk writes finish, then closes the database before Robolectric resets the app. */
+    @After
+    fun closeDatabase() {
+        val app = RuntimeEnvironment.getApplication() as SudokuApp
+        app.io.submit {}.get(10, TimeUnit.SECONDS)
+        app.history.close()
+    }
 
     protected fun idle(ms: Long = 0) {
         val looper = shadowOf(Looper.getMainLooper())

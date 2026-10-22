@@ -31,6 +31,22 @@ install over the old one and keep your saved games and statistics.
   techniques it will teach (`StoryActivity.CHAPTERS`), so the generator and grader can target them when
   the mode is built.
 
+## Solved boards
+
+Every board you complete, in any mode, is recorded with its starting combination (the clues), its
+solution, your solve time (pauses excluded), mistakes, hints and when you finished it. **Home →
+Solved boards** lists them newest first, with:
+
+- a thumbnail of each starting board's clue pattern, and totals and average time for the list;
+- filters for random, daily and custom puzzles;
+- a detail view of each board: the full starting board or its solution, your results, **Play again**
+  and **Open in solver**;
+- **Copy as CSV** and **Share as CSV**, one row per board, with each board as an 81-digit string
+  (0 for empty cells) so it can be loaded into a spreadsheet or another solver.
+
+The records live in a small SQLite database (`data/History.kt`), separate from statistics, so clearing
+one leaves the other alone.
+
 ## Playing
 
 - Notes (pencil marks), fill-in-all-notes, and notes that clear themselves when you place a digit.
@@ -111,8 +127,8 @@ Sudoku/
   core/            Engine: grid, solvers, generator, game model (pure Kotlin + tests)
   app/             Android app
     src/main/java/com/ultimatesudoku/app/
-      *Activity    Home, Random, Game, Solver, Story, Statistics, Settings
-      data/        Settings, statistics and saved games (SharedPreferences)
+      *Activity    Home, Random, Game, Solver, Story, Solved boards, Statistics, Settings
+      data/        Settings, statistics and saved games (SharedPreferences); solved boards (SQLite)
       ui/          Custom views: board, keypad, tool buttons, tiles, toggles, dialogs
     src/test/      Robolectric tests that drive every screen and save screenshots
   tools/sdkless/   SDK-free build (see above)

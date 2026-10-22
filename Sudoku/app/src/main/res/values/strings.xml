@@ -149,6 +149,60 @@
     <string name="stats_reset_message">All results and streaks will be erased. This can\'t be undone.</string>
     <string name="stats_reset_confirm">Reset</string>
 
+    <!-- Solved boards -->
+    <string name="home_records">Records</string>
+    <string name="home_history">Solved boards</string>
+    <string name="home_history_empty">Every finished puzzle, with its start and time</string>
+    <string name="home_history_summary">%1$s · %2$s total</string>
+    <plurals name="boards">
+        <item quantity="one">%d board</item>
+        <item quantity="other">%d boards</item>
+    </plurals>
+    <string name="history_title">Solved boards</string>
+    <string name="history_solved">Solved</string>
+    <string name="history_total">Total time</string>
+    <string name="history_average">Average</string>
+    <string name="history_all">All</string>
+    <string name="history_random">Random</string>
+    <string name="history_daily">Daily</string>
+    <string name="history_custom">Custom</string>
+    <string name="history_empty_title">No solved boards yet</string>
+    <string name="history_empty_text">Finish a puzzle in any mode and it lands here, with its starting board and your time.</string>
+    <string name="history_clues">%1$d clues</string>
+    <string name="history_perfect">Perfect</string>
+    <plurals name="mistakes">
+        <item quantity="one">%d mistake</item>
+        <item quantity="other">%d mistakes</item>
+    </plurals>
+    <plurals name="hints">
+        <item quantity="one">%d hint</item>
+        <item quantity="other">%d hints</item>
+    </plurals>
+    <string name="history_menu_copy">Copy as CSV</string>
+    <string name="history_menu_share">Share as CSV</string>
+    <string name="history_menu_clear">Clear history</string>
+    <string name="history_copied">Copied %1$s as CSV</string>
+    <string name="history_share_subject">Sudoku solved boards</string>
+    <string name="history_truncated">Only the newest %1$s fit in one export</string>
+    <string name="history_clear_title">Clear history?</string>
+    <string name="history_clear_message">Every solved board will be removed. Statistics are not affected.</string>
+    <string name="history_clear_confirm">Clear</string>
+    <string name="board_title">Solved board</string>
+    <string name="board_start">Starting board</string>
+    <string name="board_solution">Solution</string>
+    <string name="board_time">Time</string>
+    <string name="board_mistakes">Mistakes</string>
+    <string name="board_hints">Hints</string>
+    <string name="board_clues">Clues</string>
+    <string name="board_play_again">Play again</string>
+    <string name="board_open_solver">Open in solver</string>
+    <string name="board_menu_copy">Copy starting board</string>
+    <string name="board_menu_delete">Delete from history</string>
+    <string name="board_delete_title">Delete this board?</string>
+    <string name="board_delete_message">It will be removed from your solved boards.</string>
+    <string name="board_delete_confirm">Delete</string>
+    <string name="win_saved">Saved to solved boards</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_appearance">Appearance</string>

@@ -3,6 +3,7 @@ package com.ultimatesudoku.app
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
@@ -10,7 +11,6 @@ import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
 import android.widget.TextView
-import com.ultimatesudoku.app.data.GameStore
 import com.ultimatesudoku.app.ui.BoardView
 import com.ultimatesudoku.app.ui.Dialogs
 import com.ultimatesudoku.app.ui.NumberPadView
@@ -61,7 +61,8 @@ class SolverActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        savedInstanceState?.getString(STATE_CLUES)?.let { Grid.parse(it)?.copyInto(clues) }
+        val restored = savedInstanceState?.getString(STATE_CLUES) ?: intent.getStringExtra(EXTRA_CLUES)
+        restored?.let { Grid.parse(it)?.copyInto(clues) }
         selected = savedInstanceState?.getInt(STATE_SELECTED, -1) ?: -1
         inflate()
         showIntro()
@@ -279,21 +280,7 @@ class SolverActivity : BaseActivity() {
             return
         }
         val difficulty = rating?.let { Generator.classify(it, clueCount()) } ?: Difficulty.EXTREME
-        val start = { startActivity(GameActivity.newCustom(this, clues, answer, difficulty)) }
-        val current = app.store.game(GameStore.Slot.MAIN)
-        if (current == null || !current.isPlaying || current.values.contentEquals(current.givens)) {
-            start()
-        } else {
-            Dialogs.show(
-                this,
-                getString(R.string.replace_title),
-                getString(R.string.replace_message, current.difficulty.title),
-                listOf(
-                    Dialogs.Action(getString(R.string.replace_confirm), primary = true) { start() },
-                    Dialogs.Action(getString(R.string.cancel)),
-                ),
-            )
-        }
+        startMainGame(GameActivity.newCustom(this, clues, answer, difficulty))
     }
 
     private fun clueCount() = clues.count { it != 0 }
@@ -362,8 +349,13 @@ class SolverActivity : BaseActivity() {
         }
     }
 
-    private companion object {
-        const val STATE_CLUES = "clues"
-        const val STATE_SELECTED = "selected"
+    companion object {
+        private const val STATE_CLUES = "clues"
+        private const val STATE_SELECTED = "selected"
+        private const val EXTRA_CLUES = "clues"
+
+        /** Opens the solver with [givens] already entered. */
+        fun open(context: Context, givens: IntArray): Intent =
+            Intent(context, SolverActivity::class.java).putExtra(EXTRA_CLUES, Grid.format(givens))
     }
 }

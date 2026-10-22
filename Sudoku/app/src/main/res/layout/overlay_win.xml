@@ -159,6 +159,21 @@
                 android:alpha="0.8"
                 android:textColor="?attr/suOnAccent" />
 
+            <TextView
+                android:id="@+id/win_saved"
+                style="@style/Text.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:alpha="0.65"
+                android:drawableStart="@drawable/ic_history"
+                android:drawablePadding="6dp"
+                android:drawableTint="?attr/suOnAccent"
+                android:gravity="center_vertical"
+                android:text="@string/win_saved"
+                android:textColor="?attr/suOnAccent"
+                android:textSize="10sp" />
+
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="0dp"

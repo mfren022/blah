@@ -3,7 +3,7 @@
     android:id="@+id/top_bar"
     style="@style/TopBar"
     android:paddingStart="4dp"
-    android:paddingEnd="12dp">
+    android:paddingEnd="4dp">
 
     <ImageButton
         android:id="@+id/back"
@@ -19,4 +19,12 @@
         android:layout_marginStart="8dp"
         android:layout_weight="1"
         android:maxLines="1" />
+
+    <!-- Shown by screens that have a menu. -->
+    <ImageButton
+        android:id="@+id/more"
+        style="@style/IconButton"
+        android:contentDescription="@string/more"
+        android:src="@drawable/ic_more"
+        android:visibility="gone" />
 </LinearLayout>

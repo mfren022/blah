@@ -28,6 +28,7 @@ import com.ultimatesudoku.app.ui.buzz
 import com.ultimatesudoku.app.ui.dp
 import com.ultimatesudoku.app.ui.fitSystemBars
 import com.ultimatesudoku.app.ui.formatTime
+import com.ultimatesudoku.app.ui.modeName
 import com.ultimatesudoku.app.ui.tick
 import com.ultimatesudoku.core.Daily
 import com.ultimatesudoku.core.Difficulty
@@ -36,9 +37,8 @@ import com.ultimatesudoku.core.GameMode
 import com.ultimatesudoku.core.Generator
 import com.ultimatesudoku.core.Grid
 import com.ultimatesudoku.core.LogicSolver
+import com.ultimatesudoku.core.SolvedBoard
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.random.Random
 
 /** Plays one puzzle: entry, notes, undo, hints, timer, mistakes and the end of the game. */
@@ -575,6 +575,9 @@ class GameActivity : BaseActivity() {
         var newBest = false
         if (g.mode != GameMode.CUSTOM) newBest = app.stats.won(g.difficulty, g.elapsedMs, g.isPerfect)
         if (g.mode == GameMode.DAILY) app.stats.completeDaily(g.tag, g.elapsedMs)
+        // Every completed board goes into the history, whatever the mode.
+        val board = SolvedBoard.of(g, System.currentTimeMillis())
+        app.io.execute { app.history.add(board) }
         save()
         refresh()
         showWin(g, newBest, celebrate = true)
@@ -666,14 +669,7 @@ class GameActivity : BaseActivity() {
 
     // ---- Display ------------------------------------------------------------------------------
 
-    private fun modeName(g: Game): String = when (g.mode) {
-        GameMode.RANDOM, GameMode.STORY -> getString(R.string.mode_random)
-        GameMode.CUSTOM -> getString(R.string.mode_custom)
-        GameMode.DAILY -> {
-            val date = runCatching { LocalDate.parse(g.tag) }.getOrNull()
-            getString(R.string.mode_daily, date?.format(DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())) ?: g.tag)
-        }
-    }
+    private fun modeName(g: Game): String = modeName(g.mode, g.tag)
 
     private fun setControlsEnabled(enabled: Boolean) {
         for (view in listOf(toolUndo, toolErase, toolNotes, toolHint, toolMore, pause)) view.isEnabled = enabled

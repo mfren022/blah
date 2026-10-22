@@ -34,6 +34,10 @@ class MainActivity : BaseActivity() {
             bind(R.drawable.ic_grid, getString(R.string.home_solver), getString(R.string.home_solver_subtitle))
             setOnClickListener { startActivity(Intent(this@MainActivity, SolverActivity::class.java)) }
         }
+        findViewById<TileView>(R.id.tile_history).apply {
+            bind(R.drawable.ic_history, getString(R.string.home_history), getString(R.string.home_history_empty))
+            setOnClickListener { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) }
+        }
         findViewById<View>(R.id.continue_card).setOnClickListener {
             startActivity(GameActivity.resume(this, GameStore.Slot.MAIN))
         }
@@ -49,6 +53,27 @@ class MainActivity : BaseActivity() {
         super.onResume()
         bindContinue()
         bindDaily()
+        bindHistory()
+    }
+
+    private fun bindHistory() {
+        app.io.execute {
+            val summary = app.history.summary()
+            runOnUiThread {
+                if (isDestroyed) return@runOnUiThread
+                val subtitle = if (summary.count == 0) {
+                    getString(R.string.home_history_empty)
+                } else {
+                    getString(
+                        R.string.home_history_summary,
+                        resources.getQuantityString(R.plurals.boards, summary.count, summary.count),
+                        formatTime(summary.totalMs),
+                    )
+                }
+                findViewById<TileView>(R.id.tile_history)
+                    .bind(R.drawable.ic_history, getString(R.string.home_history), subtitle)
+            }
+        }
     }
 
     private fun bindContinue() {

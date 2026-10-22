@@ -8,6 +8,8 @@ import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.WindowInsets
 import com.ultimatesudoku.app.R
+import com.ultimatesudoku.core.formatDuration
+import java.util.Locale
 
 /** The current theme's colours (see attrs.xml), resolved once for drawing code. */
 class Palette(context: Context) {
@@ -104,11 +106,5 @@ fun View.buzz(enabled: Boolean) {
     if (enabled) performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
 }
 
-/** "4:05", "12:30" or "1:02:03". */
-fun formatTime(ms: Long): String {
-    val total = ms / 1000
-    val h = total / 3600
-    val m = total / 60 % 60
-    val s = total % 60
-    return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
-}
+/** "4:05", "12:30" or "1:02:03", in the device's digits. */
+fun formatTime(ms: Long): String = formatDuration(ms, Locale.getDefault())
