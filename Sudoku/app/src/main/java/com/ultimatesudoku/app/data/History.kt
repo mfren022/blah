@@ -63,7 +63,12 @@ class History(context: Context) {
         val where = if (mode == null) null else "mode = ?"
         val args = if (mode == null) null else arrayOf(mode.name)
         return helper.readableDatabase.query(TABLE, null, where, args, null, null, "completed_at DESC, _id DESC")
-            .use { cursor -> generateSequence { if (cursor.moveToNext()) read(cursor) else null }.filterNotNull().toList() }
+            .use { cursor ->
+                val boards = ArrayList<SolvedBoard>(cursor.count)
+                // Skip unreadable rows rather than stopping at them.
+                while (cursor.moveToNext()) read(cursor)?.let(boards::add)
+                boards
+            }
     }
 
     fun get(id: Long): SolvedBoard? =

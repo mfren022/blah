@@ -132,6 +132,23 @@ class HistoryTest : ScreenTest() {
     }
 
     @Test
+    fun anUnreadableRowDoesNotHideOlderBoards() {
+        record(GameMode.RANDOM, Difficulty.EASY, 4, 192_000, minutesAgo = 50)
+        // A row this version can't read, e.g. written by a newer version with another mode.
+        val db = android.database.sqlite.SQLiteDatabase.openDatabase(
+            app.getDatabasePath("history.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READWRITE,
+        )
+        db.execSQL(
+            "INSERT INTO solved (completed_at, mode, difficulty, tag, givens, solution, time_ms, mistakes, hints) " +
+                "VALUES (?, 'ARCADE', 'EASY', '', ?, ?, 1000, 0, 0)",
+            arrayOf<Any>(System.currentTimeMillis() - 20 * 60_000, AppScreensTest.PUZZLE, AppScreensTest.SOLUTION),
+        )
+        db.close()
+        record(GameMode.DAILY, Difficulty.HARD, 2, 482_000, minutesAgo = 5)
+        assertEquals(listOf(GameMode.DAILY, GameMode.RANDOM), app.history.all().map { it.mode })
+    }
+
+    @Test
     fun emptyHistory() {
         val activity = Robolectric.buildActivity(HistoryActivity::class.java).setup().get()
         waitFor { activity.view<View>(R.id.empty).visibility == View.VISIBLE }
