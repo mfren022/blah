@@ -13,7 +13,14 @@ import com.ultimatesudoku.core.Technique
  */
 class StoryActivity : BaseActivity() {
 
-    class Chapter(val title: String, val lesson: String, val techniques: List<Technique>)
+    /** A chapter of the story, and its art if it has some yet (a drawable, and words for it). */
+    class Chapter(
+        val title: String,
+        val lesson: String,
+        val techniques: List<Technique>,
+        val art: Int = 0,
+        val artDescription: Int = 0,
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +44,13 @@ class StoryActivity : BaseActivity() {
         fun isOpen(index: Int) = index == 0
 
         val CHAPTERS = listOf(
-            Chapter("The Old Quarter", "Full houses and hidden singles", listOf(Technique.FULL_HOUSE, Technique.HIDDEN_SINGLE)),
+            Chapter(
+                "The Old Quarter",
+                "Full houses and hidden singles",
+                listOf(Technique.FULL_HOUSE, Technique.HIDDEN_SINGLE),
+                art = R.drawable.art_old_quarter,
+                artDescription = R.string.art_old_quarter,
+            ),
             Chapter("Market Street", "Naked singles", listOf(Technique.NAKED_SINGLE)),
             Chapter("The Harbour", "Pointing and claiming", listOf(Technique.POINTING, Technique.CLAIMING)),
             Chapter("Twin Bridges", "Naked and hidden pairs", listOf(Technique.NAKED_PAIR, Technique.HIDDEN_PAIR)),

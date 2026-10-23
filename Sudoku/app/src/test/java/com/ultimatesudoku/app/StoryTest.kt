@@ -1,13 +1,17 @@
 package com.ultimatesudoku.app
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Insets
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
 import android.widget.TextView
 import com.ultimatesudoku.app.data.Settings
 import com.ultimatesudoku.app.ui.LevelMapView
+import com.ultimatesudoku.app.ui.PixelArtView
 import com.ultimatesudoku.app.ui.SquareGlowView
 import com.ultimatesudoku.core.LevelMap
 import org.junit.Assert.assertEquals
@@ -65,6 +69,70 @@ class StoryTest : ScreenTest() {
     }
 
     @Test
+    fun theFirstChapterHasItsArt() {
+        val activity = chapter(0)
+        assertEquals(View.GONE, activity.view<View>(R.id.glow).visibility)
+        val art = activity.view<PixelArtView>(R.id.art)
+        assertEquals(View.VISIBLE, art.visibility)
+        val source = BitmapFactory.decodeResource(activity.resources, R.drawable.art_old_quarter, BitmapFactory.Options().apply { inScaled = false })
+        assertEquals(128, source.width)
+        // Whole pixels, filling the width.
+        val scale = Math.ceil(art.width / 128.0).toInt()
+        assertEquals(source.height * scale, art.height)
+        val drawn = Bitmap.createBitmap(art.width, art.height, Bitmap.Config.ARGB_8888)
+        art.draw(Canvas(drawn))
+        val left = (art.width - source.width * scale) / 2
+        for ((x, y) in listOf(64 to 10, 100 to 52, 30 to 40, 90 to 70)) {
+            // Every screen pixel of an art pixel has that pixel's colour: sharp, not smoothed.
+            for (dx in listOf(0, scale - 1)) for (dy in listOf(0, scale - 1)) {
+                val sx = left + x * scale + dx
+                val sy = y * scale + dy
+                assertEquals("art pixel ($x, $y)", source.getPixel(x, y), drawn.getPixel(sx, sy))
+            }
+        }
+        // The bottom row has faded into the page.
+        val page = activity.getColor(R.color.story_bg)
+        assertEquals(page, drawn.getPixel(art.width / 2, art.height - 1))
+        // The title starts below the art.
+        val header = activity.view<View>(R.id.header)
+        assertTrue(header.top >= art.bottom)
+        assertTrue(activity.view<View>(R.id.art).contentDescription.isNotEmpty())
+    }
+
+    @Test
+    fun theArtRunsBehindTheStatusBar() {
+        // As on Android 15, where the app draws under a status bar and a navigation bar.
+        val activity = chapter(0)
+        val content = activity.view<ViewGroup>(R.id.content)
+        val bar = activity.view<View>(R.id.top_bar)
+        val barHeight = bar.height
+        val bottom = content.paddingBottom
+        content.dispatchApplyWindowInsets(
+            WindowInsets.Builder()
+                .setInsets(WindowInsets.Type.statusBars(), Insets.of(0, 72, 0, 0))
+                .setInsets(WindowInsets.Type.navigationBars(), Insets.of(0, 0, 0, 63))
+                .build(),
+        )
+        idle()
+        assertEquals(0, content.paddingTop)
+        assertEquals(bottom + 63, content.paddingBottom)
+        assertEquals(72, bar.paddingTop)
+        assertEquals(barHeight + 72, bar.height)
+        assertEquals(0, activity.view<View>(R.id.art).top)
+    }
+
+    @Test
+    @Config(qualifiers = "w891dp-h411dp-land-xxhdpi")
+    fun theArtFitsALandscapeScreen() {
+        val activity = chapter(0)
+        val art = activity.view<PixelArtView>(R.id.art)
+        // At most about half the screen tall, so it is centred with the page on either side.
+        assertTrue(art.height <= activity.resources.displayMetrics.heightPixels * 0.55f)
+        assertEquals(0, art.height % 96)
+        capture(activity, "38_chapter_art_landscape")
+    }
+
+    @Test
     fun aLockedChapter() {
         val activity = chapter(5)
         assertEquals("Chapter 06 · Locked", activity.view<TextView>(R.id.kicker).text.toString())
@@ -88,7 +156,7 @@ class StoryTest : ScreenTest() {
 
     @Test
     fun theGlowIsBrightestNearTheTopRight() {
-        val activity = chapter(0)
+        val activity = chapter(1)
         val glow = activity.view<SquareGlowView>(R.id.glow)
         val bitmap = Bitmap.createBitmap(glow.width, glow.height, Bitmap.Config.ARGB_8888)
         bitmap.eraseColor(Color.BLACK)

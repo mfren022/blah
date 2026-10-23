@@ -136,6 +136,7 @@
     <string name="chapter_kicker">Chapter %1$s</string>
     <string name="chapter_kicker_locked">Chapter %1$s · Locked</string>
     <string name="chapter_levels">Levels</string>
+    <string name="art_old_quarter">A fishing hut on stilts in a pond at dusk, beside a cherry tree in blossom</string>
     <string name="chapter_summary">%1$s · %2$s</string>
     <string name="chapter_open_hint">Each level you finish opens the paths below it.</string>
     <string name="chapter_locked_hint">Finish %1$s to open this district.</string>
