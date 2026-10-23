@@ -82,7 +82,7 @@ class GridMotifView @JvmOverloads constructor(context: Context, attrs: Attribute
 }
 
 /**
- * Placeholder art for a story chapter: small white squares 2dp apart, lit by a circular gradient at
+ * Placeholder art for a story chapter: small white squares 1dp apart, lit by a circular gradient at
  * full strength just left of the screen's top-right corner that fades to nothing by the middle of the
  * screen. The gradient is placed on the screen, not on this view, which may run on below it.
  */
@@ -93,7 +93,7 @@ class SquareGlowView @JvmOverloads constructor(context: Context, attrs: Attribut
         val screenHeight = rootView.height.takeIf { it > 0 } ?: height
         val gap = max(1, dp(GAP).roundToInt())
         // Whole pixels for every square, and as many as fit across, centred, with the same margin at the top.
-        val columns = max(1, (width + gap) / (max(1, dp(SQUARE).roundToInt()) + gap))
+        val columns = max(1, (width + gap) / (max(1, dp(PITCH - GAP).roundToInt()) + gap))
         val size = (width - gap * (columns - 1)) / columns
         val pitch = size + gap
         val left = (width - columns * pitch + gap) / 2
@@ -116,8 +116,9 @@ class SquareGlowView @JvmOverloads constructor(context: Context, attrs: Attribut
     }
 
     private companion object {
-        const val SQUARE = 4.5f
-        const val GAP = 2f
+        /** From one square to the next, setting how dense the grid is; the gap comes out of it. */
+        const val PITCH = 6.5f
+        const val GAP = 1f
 
         /** The gradient's centre, as fractions of the screen's width and height. */
         const val CENTRE_X = 0.82f

@@ -30,7 +30,7 @@ install over the old one and keep your saved games and statistics.
 - **Story mode** (placeholder): *The Nine Districts*, nine chapters. Each chapter lists the techniques
   it will teach (`StoryActivity.CHAPTERS`), so the generator and grader can target them when the mode is
   built. Tapping a chapter opens its screen, on the story's deep blue in either theme:
-  - placeholder art: a fine grid of small white squares, 2dp apart, lit by a circular gradient that is
+  - placeholder art: a fine grid of small white squares, 1dp apart, lit by a circular gradient that is
     brightest just left of the top-right corner and fades out by the middle of the screen;
   - the chapter's title, lesson and techniques;
   - underneath, a node graph of its levels, metro-map style: the routes branch and merge from the
