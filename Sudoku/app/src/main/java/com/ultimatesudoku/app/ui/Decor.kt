@@ -2,10 +2,14 @@ package com.ultimatesudoku.app.ui
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
+import kotlin.math.hypot
+import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 /** Difficulty shown as five squares, the first [level] filled. */
@@ -74,6 +78,50 @@ class GridMotifView @JvmOverloads constructor(context: Context, attrs: Attribute
             row++
             y += cell
         }
+    }
+}
+
+/**
+ * Placeholder art for a story chapter: small white squares 3dp apart, lit by a circular gradient at
+ * full strength just left of the screen's top-right corner that fades to nothing by the middle of the
+ * screen. The gradient is placed on the screen, not on this view, which may run on below it.
+ */
+class SquareGlowView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
+    private val paint = Paint().apply { color = Color.WHITE }
+
+    override fun onDraw(canvas: Canvas) {
+        val screenHeight = rootView.height.takeIf { it > 0 } ?: height
+        val gap = max(1, dp(GAP))
+        // Whole pixels for every square, and as many as fit across, centred.
+        val columns = max(1, (width + gap) / (dp(SQUARE) + gap))
+        val size = (width - gap * (columns - 1)) / columns
+        val pitch = size + gap
+        val left = (width - columns * pitch + gap) / 2
+        val cx = width * CENTRE_X
+        val cy = screenHeight * CENTRE_Y
+        val radius = hypot(cx - width / 2f, cy - screenHeight / 2f)
+        var top = 0
+        while (top < height && top < cy + radius) {
+            for (column in 0 until columns) {
+                val x = left + column * pitch
+                val distance = hypot(x + size / 2f - cx, top + size / 2f - cy) / radius
+                if (distance >= 1f) continue
+                // Eased, so the light gathers in the corner rather than washing over the screen.
+                val light = 1f - distance
+                paint.alpha = (255 * light * light).roundToInt()
+                canvas.drawRect(x.toFloat(), top.toFloat(), (x + size).toFloat(), (top + size).toFloat(), paint)
+            }
+            top += pitch
+        }
+    }
+
+    private companion object {
+        const val SQUARE = 10
+        const val GAP = 3
+
+        /** The gradient's centre, as fractions of the screen's width and height. */
+        const val CENTRE_X = 0.82f
+        const val CENTRE_Y = 0.03f
     }
 }
 

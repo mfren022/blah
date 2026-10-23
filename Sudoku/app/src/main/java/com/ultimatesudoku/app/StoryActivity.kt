@@ -1,9 +1,9 @@
 package com.ultimatesudoku.app
 
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.ultimatesudoku.app.ui.Snack
 import com.ultimatesudoku.core.Technique
 
 /**
@@ -24,13 +24,18 @@ class StoryActivity : BaseActivity() {
             row.findViewById<TextView>(R.id.number).text = "%02d".format(i + 1)
             row.findViewById<TextView>(R.id.name).text = chapter.title
             row.findViewById<TextView>(R.id.lesson).text = chapter.lesson
-            row.contentDescription = "Chapter ${i + 1}, ${chapter.title}: ${chapter.lesson}. Locked."
-            row.setOnClickListener { Snack.show(this, getString(R.string.story_locked)) }
+            row.findViewById<ImageView>(R.id.state).setImageResource(if (isOpen(i)) R.drawable.ic_chevron else R.drawable.ic_lock)
+            row.contentDescription =
+                "Chapter ${i + 1}, ${chapter.title}: ${chapter.lesson}." + if (isOpen(i)) "" else " Locked."
+            row.setOnClickListener { startActivity(ChapterActivity.open(this, i)) }
             list.addView(row)
         }
     }
 
     companion object {
+        /** Until story mode is built, only the first district is open, and only its first level. */
+        fun isOpen(index: Int) = index == 0
+
         val CHAPTERS = listOf(
             Chapter("The Old Quarter", "Full houses and hidden singles", listOf(Technique.FULL_HOUSE, Technique.HIDDEN_SINGLE)),
             Chapter("Market Street", "Naked singles", listOf(Technique.NAKED_SINGLE)),

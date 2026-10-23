@@ -29,6 +29,7 @@
             android:exported="false"
             android:windowSoftInputMode="stateHidden" />
         <activity android:name=".StoryActivity" android:exported="false" />
+        <activity android:name=".ChapterActivity" android:exported="false" />
         <activity android:name=".StatsActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".HistoryActivity" android:exported="false" />

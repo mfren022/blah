@@ -66,4 +66,51 @@
         <item name="suError">@color/dark_error</item>
         <item name="suErrorSoft">@color/dark_error_soft</item>
     </style>
+
+    <!--
+        Story screens: laid over either theme (BaseActivity.themeOverlay), so the palette roles turn
+        into light ink on the story's deep blue and every shared view follows.
+    -->
+    <style name="Base.ThemeOverlay.Sudoku.Story" parent="">
+        <item name="android:windowBackground">@color/story_bg</item>
+        <item name="android:colorBackground">@color/story_bg</item>
+        <item name="android:statusBarColor">@color/story_bg</item>
+        <item name="android:navigationBarColor">@color/story_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:colorControlHighlight">#33FFFFFF</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textColorSecondary">@color/story_ink_muted</item>
+
+        <item name="suBg">@color/story_bg</item>
+        <item name="suSurface">#1AFFFFFF</item>
+        <item name="suSurfacePressed">#29FFFFFF</item>
+        <item name="suBoard">@color/story_bg</item>
+        <item name="suInk">#FFFFFF</item>
+        <item name="suInkMuted">@color/story_ink_muted</item>
+        <item name="suLine">#33FFFFFF</item>
+        <item name="suLineStrong">#FFFFFF</item>
+        <item name="suAccent">#FFFFFF</item>
+        <item name="suAccentPressed">#DCE6F8</item>
+        <item name="suOnAccent">@color/story_bg</item>
+        <item name="suAccentSoft">#1AFFFFFF</item>
+        <item name="suAccentMid">#33FFFFFF</item>
+        <item name="suUserDigit">@color/story_highlight</item>
+        <item name="suError">#FF8A80</item>
+        <item name="suErrorSoft">#40FF8A80</item>
+    </style>
+
+    <!-- Light navigation bar icons need API 27; values-v27 turns them off here. -->
+    <style name="ThemeOverlay.Sudoku.Story" parent="Base.ThemeOverlay.Sudoku.Story" />
+
+    <style name="ThemeOverlay.Sudoku.Story.Dark">
+        <item name="android:windowBackground">@color/story_bg_dark</item>
+        <item name="android:colorBackground">@color/story_bg_dark</item>
+        <item name="android:statusBarColor">@color/story_bg_dark</item>
+        <item name="android:navigationBarColor">@color/story_bg_dark</item>
+        <item name="android:textColorSecondary">@color/story_ink_muted_dark</item>
+        <item name="suBg">@color/story_bg_dark</item>
+        <item name="suBoard">@color/story_bg_dark</item>
+        <item name="suInkMuted">@color/story_ink_muted_dark</item>
+        <item name="suOnAccent">@color/story_bg_dark</item>
+    </style>
 </resources>

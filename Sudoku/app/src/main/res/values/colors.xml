@@ -37,4 +37,11 @@
     <color name="dark_user_digit">#7FA8FF</color>
     <color name="dark_error">#FF6B6B</color>
     <color name="dark_error_soft">#3B1C20</color>
+
+    <!-- Story: the city at night, light ink on deep blue in either theme. -->
+    <color name="story_bg">#0A3C8C</color>
+    <color name="story_bg_dark">#0B1D42</color>
+    <color name="story_ink_muted">#B4C6E8</color>
+    <color name="story_ink_muted_dark">#93A6CB</color>
+    <color name="story_highlight">#A8C4FF</color>
 </resources>

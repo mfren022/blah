@@ -19,9 +19,13 @@ abstract class BaseActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         darkTheme = app.settings.isDark(this)
         setTheme(if (darkTheme) R.style.Theme_Sudoku_Dark else R.style.Theme_Sudoku)
+        themeOverlay(darkTheme).takeIf { it != 0 }?.let { theme.applyStyle(it, true) }
         super.onCreate(savedInstanceState)
         palette = Palette(this)
     }
+
+    /** A style laid over the light or [dark] theme for this screen only, or 0 for none. */
+    protected open fun themeOverlay(dark: Boolean): Int = 0
 
     override fun onResume() {
         super.onResume()

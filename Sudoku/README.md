@@ -27,9 +27,15 @@ install over the old one and keep your saved games and statistics.
   - **Step** shows the next deduction a person would make, highlighted on the board with every
     candidate pencilled in.
   - **Play it** turns a valid puzzle into a game.
-- **Story mode** (placeholder): *The Nine Districts*, nine locked chapters. Each chapter lists the
-  techniques it will teach (`StoryActivity.CHAPTERS`), so the generator and grader can target them when
-  the mode is built.
+- **Story mode** (placeholder): *The Nine Districts*, nine chapters. Each chapter lists the techniques
+  it will teach (`StoryActivity.CHAPTERS`), so the generator and grader can target them when the mode is
+  built. Tapping a chapter opens its screen, on the story's deep blue in either theme:
+  - placeholder art: a grid of small white squares, 3dp apart, lit by a circular gradient that is
+    brightest just left of the top-right corner and fades out by the middle of the screen;
+  - the chapter's title, lesson and techniques;
+  - underneath, a node graph of its levels, metro-map style: the routes branch and merge from the
+    entrance down to the chapter's final level. Only the first chapter's first level is open, and
+    levels can't be played yet.
 
 ## Continue where you left off
 
@@ -94,6 +100,9 @@ Pure Kotlin with no Android code, unit-tested on the JVM.
   or more than the solver knows. Generation is deterministic for a seed, which is how every phone gets
   the same daily puzzle.
 - `Game` holds a game in progress: entries, notes, undo history, mistakes, hints and time, plus saving.
+- `LevelMap` is a story chapter's levels as a graph: rows from an entrance to a final level, up to three
+  lanes, and paths that branch and merge without crossing. Until the levels are designed, each chapter
+  gets a placeholder map that is the same every time.
 
 The tests replay the logic solver on 1,500 random minimal puzzles and check that every placement and
 every elimination agrees with the known solution. That check is what keeps hints from ever being wrong.
@@ -135,7 +144,7 @@ Sudoku/
   core/            Engine: grid, solvers, generator, game model (pure Kotlin + tests)
   app/             Android app
     src/main/java/com/ultimatesudoku/app/
-      *Activity    Home, Random, Game, Solver, Story, Solved boards, Statistics, Settings
+      *Activity    Home, Random, Game, Solver, Story, Chapter, Solved boards, Statistics, Settings
       data/        Settings, statistics and saved games (SharedPreferences); solved boards (SQLite)
       ui/          Custom views: board, keypad, tool buttons, tiles, toggles, dialogs, and the
                    continue card's grow transition (GrowOverlay)

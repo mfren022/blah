@@ -4,4 +4,8 @@
         <item name="android:navigationBarColor">@color/light_bg</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>
+
+    <style name="ThemeOverlay.Sudoku.Story" parent="Base.ThemeOverlay.Sudoku.Story">
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
 </resources>
