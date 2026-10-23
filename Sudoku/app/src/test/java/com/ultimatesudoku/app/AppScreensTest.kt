@@ -2,6 +2,7 @@ package com.ultimatesudoku.app
 
 import android.content.Intent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import com.ultimatesudoku.app.data.GameStore
 import com.ultimatesudoku.app.data.Settings
@@ -16,6 +17,7 @@ import com.ultimatesudoku.core.Grid
 import com.ultimatesudoku.core.Puzzle
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,6 +28,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowDialog
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -108,7 +111,7 @@ class AppScreensTest : ScreenTest() {
         // Undo removes the last change.
         tap(activity.view(R.id.tool_undo))
 
-        tap(activity.view(R.id.tool_more))
+        tap(activity.view(R.id.more))
         captureDialog(activity, "04b_menu")
     }
 
@@ -148,6 +151,36 @@ class AppScreensTest : ScreenTest() {
         tap(activity.view(R.id.pause))
         assertEquals(View.VISIBLE, activity.view<View>(R.id.resume).visibility)
         capture(activity, "07_paused")
+    }
+
+    @Test
+    fun pauseIsTheRoundButtonInTheMiddleAndMoreIsTopRight() {
+        val activity = customGame().get()
+        val pause = activity.view<View>(R.id.pause)
+        val controls = activity.view<View>(R.id.controls)
+        // In the action bar at the bottom, centred, and large.
+        assertTrue(generateSequence(pause.parent as View) { it.parent as? View }.any { it === controls })
+        val at = IntArray(2).also(pause::getLocationInWindow)
+        val screenWidth = activity.window.decorView.width
+        assertTrue(Math.abs(at[0] + pause.width / 2 - screenWidth / 2) <= 2)
+        assertEquals(Math.round(56 * activity.resources.displayMetrics.density), pause.width)
+        assertEquals(pause.width, pause.height)
+        // More sits at the right end of the top bar.
+        val more = activity.view<View>(R.id.more)
+        val bar = more.parent as ViewGroup
+        assertEquals(more, bar.getChildAt(bar.childCount - 1))
+        assertEquals(activity.view<View>(R.id.title).parent, bar)
+        // Pausing turns it into a play button; it greys out once the game is over.
+        tap(pause)
+        assertEquals(activity.getString(R.string.resume), pause.contentDescription)
+        tap(pause)
+        tap(activity.view(R.id.more))
+        assertNotNull(ShadowDialog.getLatestDialog())
+        ShadowDialog.getLatestDialog().dismiss()
+        app.store.game(GameStore.Slot.MAIN)!!.revealAll()
+        val after = Robolectric.buildActivity(GameActivity::class.java, GameActivity.resume(app, GameStore.Slot.MAIN)).setup().get()
+        assertEquals(View.VISIBLE, after.view<View>(R.id.pause).visibility)
+        assertFalse(after.view<View>(R.id.pause).isEnabled)
     }
 
     @Test

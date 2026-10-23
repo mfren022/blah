@@ -81,7 +81,7 @@ class GameActivity : BaseActivity() {
     private lateinit var toolErase: ToolButton
     private lateinit var toolNotes: ToolButton
     private lateinit var toolHint: ToolButton
-    private lateinit var toolMore: ToolButton
+    private lateinit var more: ImageButton
     private lateinit var winOverlay: View
 
     private val ticker = object : Runnable {
@@ -204,7 +204,7 @@ class GameActivity : BaseActivity() {
         toolErase = findViewById(R.id.tool_erase)
         toolNotes = findViewById(R.id.tool_notes)
         toolHint = findViewById(R.id.tool_hint)
-        toolMore = findViewById(R.id.tool_more)
+        more = findViewById(R.id.more)
         winOverlay = findViewById(R.id.win_overlay)
 
         findViewById<View>(R.id.back).setOnClickListener { finish() }
@@ -214,7 +214,7 @@ class GameActivity : BaseActivity() {
         toolErase.setOnClickListener { erase() }
         toolNotes.setOnClickListener { toggleNotes() }
         toolHint.setOnClickListener { showHint() }
-        toolMore.setOnClickListener { showMenu() }
+        more.setOnClickListener { showMenu() }
         pause.setOnClickListener { togglePause() }
         resume.setOnClickListener { togglePause() }
         findViewById<View>(R.id.hint_close).setOnClickListener { closeHint() }
@@ -720,7 +720,8 @@ class GameActivity : BaseActivity() {
     private fun modeName(g: Game): String = modeName(g.mode, g.tag)
 
     private fun setControlsEnabled(enabled: Boolean) {
-        for (view in listOf(toolUndo, toolErase, toolNotes, toolHint, toolMore, pause)) view.isEnabled = enabled
+        for (view in listOf(toolUndo, toolErase, toolNotes, toolHint, more, pause)) view.isEnabled = enabled
+        more.alpha = if (enabled) 1f else DISABLED_ALPHA
         numpad.isEnabled = enabled
         board.isEnabled = enabled
     }
@@ -744,7 +745,8 @@ class GameActivity : BaseActivity() {
         toolErase.isEnabled = playing
         toolNotes.isEnabled = playing
         toolHint.isEnabled = playing
-        toolMore.isEnabled = g.isPlaying && !userPaused
+        more.isEnabled = g.isPlaying && !userPaused
+        more.alpha = if (more.isEnabled) 1f else DISABLED_ALPHA
         numpad.isEnabled = playing
         toolNotes.active = notesMode
         toolNotes.badge = getString(if (notesMode) R.string.notes_on else R.string.notes_off).uppercase()
@@ -760,7 +762,8 @@ class GameActivity : BaseActivity() {
         mistakes.setTextColor(if (g.mistakes > 0) palette.error else palette.inkMuted)
         hints.text = getString(R.string.hints_count, g.hintsUsed)
 
-        pause.visibility = if (g.isPlaying) View.VISIBLE else View.INVISIBLE
+        // Greyed rather than hidden once the game is over, so the bar keeps its shape.
+        pause.isEnabled = g.isPlaying
         pause.setImageResource(if (userPaused) R.drawable.ic_play else R.drawable.ic_pause)
         pause.contentDescription = getString(if (userPaused) R.string.resume else R.string.pause)
         resume.visibility = if (userPaused) View.VISIBLE else View.GONE
@@ -829,6 +832,7 @@ class GameActivity : BaseActivity() {
         private const val STATE_SELECTED = "selected"
         private const val STATE_NOTES = "notes"
         private const val STATE_PAUSED = "paused"
+        private const val DISABLED_ALPHA = 0.35f
 
         fun newRandom(context: Context, difficulty: Difficulty): Intent =
             Intent(context, GameActivity::class.java)

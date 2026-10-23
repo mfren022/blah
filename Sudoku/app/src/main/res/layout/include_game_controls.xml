@@ -32,6 +32,25 @@
                 app:toolIcon="@drawable/ic_erase"
                 app:toolLabel="@string/tool_erase" />
 
+            <!-- Pause sits in the middle as a large round button. -->
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <ImageButton
+                    android:id="@+id/pause"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_circle_primary"
+                    android:contentDescription="@string/pause"
+                    android:padding="16dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_pause"
+                    android:tint="?attr/suOnAccent" />
+            </FrameLayout>
+
             <com.ultimatesudoku.app.ui.ToolButton
                 android:id="@+id/tool_notes"
                 android:layout_width="0dp"
@@ -47,14 +66,6 @@
                 android:layout_weight="1"
                 app:toolIcon="@drawable/ic_bulb"
                 app:toolLabel="@string/tool_hint" />
-
-            <com.ultimatesudoku.app.ui.ToolButton
-                android:id="@+id/tool_more"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                app:toolIcon="@drawable/ic_more"
-                app:toolLabel="@string/tool_more" />
         </LinearLayout>
 
         <com.ultimatesudoku.app.ui.NumberPadView
