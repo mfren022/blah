@@ -1,5 +1,6 @@
 package com.ultimatesudoku.app
 
+import android.content.ClipboardManager
 import android.content.Intent
 import android.view.View
 import android.view.ViewGroup
@@ -111,8 +112,16 @@ class AppScreensTest : ScreenTest() {
         // Undo removes the last change.
         tap(activity.view(R.id.tool_undo))
 
-        tap(activity.view(R.id.more))
-        captureDialog(activity, "04b_menu")
+        // Pausing shows the puzzle's menu over the hidden board, with the selected cell to reveal.
+        tap(activity.view(R.id.pause))
+        assertNotNull(menuRow(activity, R.string.menu_reveal_cell))
+        capture(activity, "04b_menu")
+    }
+
+    /** A row of the menu shown over the paused board, or null. */
+    private fun menuRow(activity: GameActivity, label: Int): View? {
+        val rows = activity.view<ViewGroup>(R.id.pause_menu_items)
+        return (0 until rows.childCount).map(rows::getChildAt).firstOrNull { (it as TextView).text == activity.getString(label) }
     }
 
     @Test
@@ -149,12 +158,14 @@ class AppScreensTest : ScreenTest() {
     fun pausedGame() {
         val activity = customGame().get()
         tap(activity.view(R.id.pause))
-        assertEquals(View.VISIBLE, activity.view<View>(R.id.resume).visibility)
+        assertEquals(View.VISIBLE, activity.view<View>(R.id.pause_menu).visibility)
+        // No cell is selected, so there is nothing to reveal.
+        assertEquals(null, menuRow(activity, R.string.menu_reveal_cell))
         capture(activity, "07_paused")
     }
 
     @Test
-    fun pauseIsTheRoundButtonInTheMiddleAndMoreIsTopRight() {
+    fun pauseIsTheRoundButtonInTheMiddle() {
         val activity = customGame().get()
         val pause = activity.view<View>(R.id.pause)
         val controls = activity.view<View>(R.id.controls)
@@ -165,22 +176,64 @@ class AppScreensTest : ScreenTest() {
         assertTrue(Math.abs(at[0] + pause.width / 2 - screenWidth / 2) <= 2)
         assertEquals(Math.round(56 * activity.resources.displayMetrics.density), pause.width)
         assertEquals(pause.width, pause.height)
-        // More sits at the right end of the top bar.
-        val more = activity.view<View>(R.id.more)
-        val bar = more.parent as ViewGroup
-        assertEquals(more, bar.getChildAt(bar.childCount - 1))
-        assertEquals(activity.view<View>(R.id.title).parent, bar)
-        // Pausing turns it into a play button; it greys out once the game is over.
+        // The top bar ends with the time; there is no menu button any more.
+        val timer = activity.view<TextView>(R.id.timer)
+        val bar = timer.parent as ViewGroup
+        assertEquals(timer, bar.getChildAt(bar.childCount - 1))
+        assertEquals(20f, timer.textSize / activity.resources.displayMetrics.scaledDensity, 0.01f)
+        assertEquals(null, activity.findViewById<View>(R.id.more))
+    }
+
+    @Test
+    fun theMenuOverThePausedBoard() {
+        val activity = customGame().get()
+        val game = app.store.game(GameStore.Slot.MAIN)!!
+        val pause = activity.view<View>(R.id.pause)
+        val menu = activity.view<View>(R.id.pause_menu)
         tap(pause)
+        assertEquals(View.VISIBLE, menu.visibility)
         assertEquals(activity.getString(R.string.resume), pause.contentDescription)
+
+        // Copying leaves the game paused.
+        tap(menuRow(activity, R.string.menu_copy)!!)
+        val clipboard = activity.getSystemService(ClipboardManager::class.java)
+        assertEquals(Grid.format(givens), clipboard.primaryClip!!.getItemAt(0).text.toString())
+        assertEquals(View.VISIBLE, menu.visibility)
+
+        // Changing the board resumes, so the change shows.
+        tap(menuRow(activity, R.string.menu_fill_notes)!!)
+        assertEquals(View.GONE, menu.visibility)
+        assertTrue((0 until 81).any { game.notes[it] != 0 })
+        assertEquals(activity.getString(R.string.pause), pause.contentDescription)
+
+        // Restarting asks first; cancelling stays paused, confirming starts over, unpaused.
         tap(pause)
-        tap(activity.view(R.id.more))
-        assertNotNull(ShadowDialog.getLatestDialog())
+        tap(menuRow(activity, R.string.menu_restart)!!)
         ShadowDialog.getLatestDialog().dismiss()
-        app.store.game(GameStore.Slot.MAIN)!!.revealAll()
-        val after = Robolectric.buildActivity(GameActivity::class.java, GameActivity.resume(app, GameStore.Slot.MAIN)).setup().get()
-        assertEquals(View.VISIBLE, after.view<View>(R.id.pause).visibility)
-        assertFalse(after.view<View>(R.id.pause).isEnabled)
+        assertEquals(View.VISIBLE, menu.visibility)
+        tap(menuRow(activity, R.string.menu_restart)!!)
+        val dialog = ShadowDialog.getLatestDialog()
+        clickText(dialog.window!!.decorView, activity.getString(R.string.restart_confirm))
+        assertEquals(View.GONE, menu.visibility)
+        assertTrue((0 until 81).all { game.notes[it] == 0 })
+
+        // Showing the solution ends the game with the board on view, and pause greys out.
+        tap(pause)
+        tap(menuRow(activity, R.string.menu_show_solution)!!)
+        clickText(ShadowDialog.getLatestDialog().window!!.decorView, activity.getString(R.string.solution_confirm))
+        assertEquals(Game.Status.REVEALED, game.status)
+        assertEquals(View.GONE, menu.visibility)
+        assertFalse(activity.view<BoardView>(R.id.board).paused)
+        assertFalse(pause.isEnabled)
+    }
+
+    private fun clickText(root: View, text: String) {
+        if (root is TextView && root.text.toString() == text) {
+            root.performClick()
+            idle()
+            return
+        }
+        if (root is ViewGroup) for (i in 0 until root.childCount) clickText(root.getChildAt(i), text)
     }
 
     @Test
@@ -322,6 +375,13 @@ class AppScreensTest : ScreenTest() {
         capture(activity, "21_game_small")
         val pad = activity.view<View>(R.id.numpad)
         assertTrue(pad.height > 0)
+        // The menu over the paused board fits inside the board, even here.
+        tapCell(activity.view(R.id.board), 2)
+        tap(activity.view(R.id.pause))
+        val menu = activity.view<View>(R.id.pause_menu)
+        val board = activity.view<View>(R.id.board)
+        assertTrue(menu.height <= board.height)
+        capture(activity, "21b_paused_small")
     }
 
     @Test

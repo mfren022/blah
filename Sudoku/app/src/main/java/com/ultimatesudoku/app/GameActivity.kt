@@ -10,6 +10,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -74,14 +76,14 @@ class GameActivity : BaseActivity() {
     private lateinit var mistakes: TextView
     private lateinit var hints: TextView
     private lateinit var pause: ImageButton
-    private lateinit var resume: View
+    private lateinit var pauseMenu: View
+    private lateinit var pauseItems: LinearLayout
     private lateinit var controls: View
     private lateinit var hintPanel: View
     private lateinit var toolUndo: ToolButton
     private lateinit var toolErase: ToolButton
     private lateinit var toolNotes: ToolButton
     private lateinit var toolHint: ToolButton
-    private lateinit var more: ImageButton
     private lateinit var winOverlay: View
 
     private val ticker = object : Runnable {
@@ -197,14 +199,14 @@ class GameActivity : BaseActivity() {
         mistakes = findViewById(R.id.mistakes)
         hints = findViewById(R.id.hints)
         pause = findViewById(R.id.pause)
-        resume = findViewById(R.id.resume)
+        pauseMenu = findViewById(R.id.pause_menu)
+        pauseItems = findViewById(R.id.pause_menu_items)
         controls = findViewById(R.id.controls)
         hintPanel = findViewById(R.id.hint_panel)
         toolUndo = findViewById(R.id.tool_undo)
         toolErase = findViewById(R.id.tool_erase)
         toolNotes = findViewById(R.id.tool_notes)
         toolHint = findViewById(R.id.tool_hint)
-        more = findViewById(R.id.more)
         winOverlay = findViewById(R.id.win_overlay)
 
         findViewById<View>(R.id.back).setOnClickListener { finish() }
@@ -214,9 +216,7 @@ class GameActivity : BaseActivity() {
         toolErase.setOnClickListener { erase() }
         toolNotes.setOnClickListener { toggleNotes() }
         toolHint.setOnClickListener { showHint() }
-        more.setOnClickListener { showMenu() }
         pause.setOnClickListener { togglePause() }
-        resume.setOnClickListener { togglePause() }
         findViewById<View>(R.id.hint_close).setOnClickListener { closeHint() }
         findViewById<View>(R.id.hint_apply).setOnClickListener { applyHint() }
     }
@@ -496,31 +496,66 @@ class GameActivity : BaseActivity() {
         scheduleSave()
     }
 
-    private fun showMenu() {
-        val g = game ?: return
-        if (!g.isPlaying) return
+    /** Lists the puzzle's actions over the paused board, each a full-width row. */
+    private fun fillPauseMenu(g: Game) {
+        val ripple = TypedValue().also { theme.resolveAttribute(android.R.attr.selectableItemBackground, it, true) }.resourceId
+        val fonts = Fonts.get(this)
+        pauseItems.removeAllViews()
+        val items = menuItems(g)
+        for ((index, item) in items.withIndex()) {
+            val (label, run) = item
+            pauseItems.addView(
+                TextView(this).apply {
+                    text = label
+                    typeface = fonts.regular
+                    textSize = 16f
+                    setTextColor(palette.ink)
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(dp(20), 0, dp(20), 0)
+                    // Hairlines between rows; the panel's own border closes the last.
+                    if (index < items.lastIndex) setBackgroundResource(R.drawable.bg_row) else setBackgroundResource(ripple)
+                    isClickable = true
+                    isFocusable = true
+                    setOnClickListener { run() }
+                },
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)),
+            )
+        }
+    }
+
+    /**
+     * The puzzle's actions. Those that change the board resume the game first, so their effect shows;
+     * restart and show solution ask first; copying leaves the game paused.
+     */
+    private fun menuItems(g: Game): List<Pair<String, () -> Unit>> {
         val items = ArrayList<Pair<String, () -> Unit>>()
         items += getString(R.string.menu_fill_notes) to {
-            g.fillNotes()
-            refresh()
-            scheduleSave()
+            resumeThen {
+                g.fillNotes()
+                refresh()
+                scheduleSave()
+            }
         }
         items += getString(R.string.menu_clear_notes) to {
-            g.clearAllNotes()
-            refresh()
-            scheduleSave()
+            resumeThen {
+                g.clearAllNotes()
+                refresh()
+                scheduleSave()
+            }
         }
         val cell = selected
         if (cell >= 0 && !g.isGiven(cell) && g.values[cell] != g.solution[cell]) {
             items += getString(R.string.menu_reveal_cell) to {
-                g.reveal(cell, settings.autoRemoveNotes)
-                if (g.status == Game.Status.WON) {
-                    refresh()
-                    win()
-                } else {
-                    flashCompletedUnits(g, cell)
-                    refresh()
-                    scheduleSave()
+                resumeThen {
+                    g.reveal(cell, settings.autoRemoveNotes)
+                    if (g.status == Game.Status.WON) {
+                        refresh()
+                        win()
+                    } else {
+                        flashCompletedUnits(g, cell)
+                        refresh()
+                        scheduleSave()
+                    }
                 }
             }
         }
@@ -551,7 +586,12 @@ class GameActivity : BaseActivity() {
             clipboard.setPrimaryClip(ClipData.newPlainText("Sudoku", Grid.format(g.givens)))
             Snack.show(this, getString(R.string.copied))
         }
-        Dialogs.menu(this, getString(R.string.menu_title), items)
+        return items
+    }
+
+    private fun resumeThen(action: () -> Unit) {
+        if (userPaused) togglePause()
+        action()
     }
 
     // ---- End of game --------------------------------------------------------------------------
@@ -577,6 +617,8 @@ class GameActivity : BaseActivity() {
         if (g.mode != GameMode.CUSTOM) app.stats.lost(g.difficulty)
         closeHint()
         selected = -1
+        // Shown from the pause menu: unpause, so the solution is on view.
+        userPaused = false
         refresh()
         updateTimer()
         save()
@@ -720,8 +762,7 @@ class GameActivity : BaseActivity() {
     private fun modeName(g: Game): String = modeName(g.mode, g.tag)
 
     private fun setControlsEnabled(enabled: Boolean) {
-        for (view in listOf(toolUndo, toolErase, toolNotes, toolHint, more, pause)) view.isEnabled = enabled
-        more.alpha = if (enabled) 1f else DISABLED_ALPHA
+        for (view in listOf(toolUndo, toolErase, toolNotes, toolHint, pause)) view.isEnabled = enabled
         numpad.isEnabled = enabled
         board.isEnabled = enabled
     }
@@ -745,8 +786,6 @@ class GameActivity : BaseActivity() {
         toolErase.isEnabled = playing
         toolNotes.isEnabled = playing
         toolHint.isEnabled = playing
-        more.isEnabled = g.isPlaying && !userPaused
-        more.alpha = if (more.isEnabled) 1f else DISABLED_ALPHA
         numpad.isEnabled = playing
         toolNotes.active = notesMode
         toolNotes.badge = getString(if (notesMode) R.string.notes_on else R.string.notes_off).uppercase()
@@ -766,7 +805,8 @@ class GameActivity : BaseActivity() {
         pause.isEnabled = g.isPlaying
         pause.setImageResource(if (userPaused) R.drawable.ic_play else R.drawable.ic_pause)
         pause.contentDescription = getString(if (userPaused) R.string.resume else R.string.pause)
-        resume.visibility = if (userPaused) View.VISIBLE else View.GONE
+        pauseMenu.visibility = if (userPaused) View.VISIBLE else View.GONE
+        if (userPaused) fillPauseMenu(g)
         updateTimerText()
     }
 
@@ -832,7 +872,6 @@ class GameActivity : BaseActivity() {
         private const val STATE_SELECTED = "selected"
         private const val STATE_NOTES = "notes"
         private const val STATE_PAUSED = "paused"
-        private const val DISABLED_ALPHA = 0.35f
 
         fun newRandom(context: Context, difficulty: Difficulty): Intent =
             Intent(context, GameActivity::class.java)

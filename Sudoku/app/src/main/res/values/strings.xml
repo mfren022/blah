@@ -50,6 +50,7 @@
     <string name="notes_off">Off</string>
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
+    <string name="paused">Paused</string>
     <string name="generating">Generating</string>
     <string name="mistakes_limited">Mistakes %1$d/%2$d</string>
     <string name="mistakes_count">Mistakes %1$d</string>

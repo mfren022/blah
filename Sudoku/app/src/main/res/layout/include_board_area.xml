@@ -7,17 +7,35 @@
         android:layout_height="match_parent"
         android:layout_gravity="center" />
 
-    <TextView
-        android:id="@+id/resume"
-        style="@style/Button.Primary"
-        android:layout_width="wrap_content"
-        android:layout_height="52dp"
+    <!-- While paused, the puzzle's menu sits over the hidden board; the play button resumes. -->
+    <LinearLayout
+        android:id="@+id/pause_menu"
+        android:layout_width="264dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:drawableStart="@drawable/ic_play"
-        android:drawablePadding="10dp"
-        android:drawableTint="?attr/suOnAccent"
-        android:paddingStart="24dp"
-        android:paddingEnd="28dp"
-        android:text="@string/resume"
-        android:visibility="gone" />
+        android:background="@drawable/bg_panel"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="?attr/suAccent" />
+
+        <TextView
+            style="@style/Text.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="20dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="6dp"
+            android:text="@string/paused" />
+
+        <LinearLayout
+            android:id="@+id/pause_menu_items"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
 </merge>

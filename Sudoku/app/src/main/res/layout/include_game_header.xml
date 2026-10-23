@@ -25,14 +25,9 @@
             style="@style/Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
             android:fontFamily="@font/roboto_medium"
-            android:textSize="17sp" />
-
-        <ImageButton
-            android:id="@+id/more"
-            style="@style/IconButton"
-            android:contentDescription="@string/more"
-            android:src="@drawable/ic_more" />
+            android:textSize="20sp" />
     </LinearLayout>
 
     <LinearLayout

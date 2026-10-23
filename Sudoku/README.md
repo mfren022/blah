@@ -74,8 +74,9 @@ one leaves the other alone.
 - Mistakes show in red as you make them; three mistakes end the game. Both can be switched off.
 - Highlights for the selected cell's row, column, box and matching digits. A finished row, column or box
   flashes. The keypad counts what's left of each digit and hides finished ones.
-- Timer with pause (the board is hidden while paused), statistics per difficulty, and a win screen with
-  confetti.
+- Timer, and a large pause button in the middle of the action bar. Pausing hides the board and shows
+  the puzzle's menu over it: fill in or clear all notes, reveal the selected cell, restart, show the
+  solution, copy the puzzle. Statistics per difficulty, and a win screen with confetti.
 - Landscape layout and hardware keyboard support: digits, arrows, Backspace, N for notes, H for a hint,
   Space to pause, Ctrl+Z to undo.
 
