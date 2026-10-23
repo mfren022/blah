@@ -12,6 +12,8 @@
     <string name="home_title">Sudoku</string>
     <string name="home_tagline">Clean puzzles. Real logic.</string>
     <string name="home_continue">Continue</string>
+    <string name="home_continue_description">Continue %1$s, %2$s: %3$s played, %4$d%% complete</string>
+    <string name="percent">%1$d%%</string>
     <string name="home_modes">Play</string>
     <string name="home_story">Story mode</string>
     <string name="home_story_subtitle">The Nine Districts</string>

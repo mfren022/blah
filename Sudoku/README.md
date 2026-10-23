@@ -31,6 +31,14 @@ install over the old one and keep your saved games and statistics.
   techniques it will teach (`StoryActivity.CHAPTERS`), so the generator and grader can target them when
   the mode is built.
 
+## Continue where you left off
+
+While a random or custom game is in progress, the home screen's **Continue** card shows a live preview
+of it: the board as you left it (your digits, notes and any mistakes), the difficulty, time played and
+how much is filled in. Tapping the card grows it into the game: the card expands to fill the screen while
+its board travels to the exact spot where the game draws its own, then the game's controls fade in
+around it. Back during the growth shrinks it back into the card.
+
 ## Solved boards
 
 Every board you complete, in any mode, is recorded with its starting combination (the clues), its
@@ -129,7 +137,8 @@ Sudoku/
     src/main/java/com/ultimatesudoku/app/
       *Activity    Home, Random, Game, Solver, Story, Solved boards, Statistics, Settings
       data/        Settings, statistics and saved games (SharedPreferences); solved boards (SQLite)
-      ui/          Custom views: board, keypad, tool buttons, tiles, toggles, dialogs
+      ui/          Custom views: board, keypad, tool buttons, tiles, toggles, dialogs, and the
+                   continue card's grow transition (GrowOverlay)
     src/test/      Robolectric tests that drive every screen and save screenshots
   tools/sdkless/   SDK-free build (see above)
   dist/Sudoku.apk  The latest signed APK

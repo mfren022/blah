@@ -6,6 +6,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.ultimatesudoku.app.data.Settings
 import com.ultimatesudoku.app.ui.Dialogs
+import com.ultimatesudoku.app.ui.SectionHeader
 import com.ultimatesudoku.app.ui.SegmentedView
 import com.ultimatesudoku.app.ui.SquareToggle
 import com.ultimatesudoku.app.ui.dp
@@ -79,8 +80,8 @@ class SettingsActivity : BaseActivity() {
 
     private fun section(title: Int) {
         list.addView(
-            TextView(this, null, 0, R.style.Text_Caption).apply { setText(title) },
-            LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            SectionHeader(this).apply { setText(title) },
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 .apply { topMargin = dp(28) },
         )
     }

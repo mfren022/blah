@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import com.ultimatesudoku.core.Candidate
+import com.ultimatesudoku.core.Game
 import com.ultimatesudoku.core.Grid
 import com.ultimatesudoku.core.Step
 import kotlin.math.min
@@ -92,6 +93,11 @@ class BoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         conflicts = Grid.conflicts(values)
         describeSelection()
         invalidate()
+    }
+
+    /** Shows [game]'s grid, marking wrong digits only when [checkMistakes] is on. */
+    fun showGame(game: Game, checkMistakes: Boolean) {
+        setContent(game.givens, game.values, game.notes, BooleanArray(81) { checkMistakes && game.isWrong(it) })
     }
 
     /** Tells screen readers which cell is selected and what it holds. */

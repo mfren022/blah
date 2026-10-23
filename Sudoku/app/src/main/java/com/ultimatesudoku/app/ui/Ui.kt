@@ -1,6 +1,7 @@
 package com.ultimatesudoku.app.ui
 
 import android.content.Context
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.os.Build
 import android.util.TypedValue
@@ -75,11 +76,29 @@ fun fitSystemBars(view: View) {
     val right = view.paddingRight
     val bottom = view.paddingBottom
     view.setOnApplyWindowInsetsListener { v, insets ->
-        val (l, t, r, b) = systemBarInsets(insets)
+        val bars = systemBarInsets(insets)
+        val (l, t, r, b) = bars
+        v.setTag(R.id.system_bars, bars)
         v.setPadding(left + l, top + t, right + r, bottom + b)
         insets
     }
     view.requestApplyInsets()
+}
+
+/** The insets [fitSystemBars] last added to [view]'s padding: left, top, right and bottom. */
+fun appliedSystemBars(view: View): IntArray = view.getTag(R.id.system_bars) as? IntArray ?: IntArray(4)
+
+/** [view]'s bounds in the coordinates of [ancestor], from the last layout. Works off screen too. */
+fun boundsWithin(ancestor: View, view: View): Rect {
+    val bounds = Rect(0, 0, view.width, view.height)
+    var v = view
+    while (v !== ancestor) {
+        bounds.offset(v.left, v.top)
+        val parent = v.parent as View
+        bounds.offset(-parent.scrollX, -parent.scrollY)
+        v = parent
+    }
+    return bounds
 }
 
 /** Left, top, right and bottom insets of the system bars and display cutout. */

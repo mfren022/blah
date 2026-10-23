@@ -5,13 +5,19 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.WindowManager
+import android.view.animation.DecelerateInterpolator
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -24,6 +30,7 @@ import com.ultimatesudoku.app.ui.Fonts
 import com.ultimatesudoku.app.ui.NumberPadView
 import com.ultimatesudoku.app.ui.Snack
 import com.ultimatesudoku.app.ui.ToolButton
+import com.ultimatesudoku.app.ui.boundsWithin
 import com.ultimatesudoku.app.ui.buzz
 import com.ultimatesudoku.app.ui.dp
 import com.ultimatesudoku.app.ui.fitSystemBars
@@ -39,6 +46,7 @@ import com.ultimatesudoku.core.Grid
 import com.ultimatesudoku.core.LogicSolver
 import com.ultimatesudoku.core.SolvedBoard
 import java.time.LocalDate
+import kotlin.math.abs
 import kotlin.random.Random
 
 /** Plays one puzzle: entry, notes, undo, hints, timer, mistakes and the end of the game. */
@@ -94,6 +102,10 @@ class GameActivity : BaseActivity() {
             userPaused = savedInstanceState.getBoolean(STATE_PAUSED)
         }
         inflate()
+        if (savedInstanceState == null) {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra<Rect>(EXTRA_BOARD_ON_SCREEN)?.let(::arriveAt)
+        }
 
         val kind = intent.getStringExtra(EXTRA_NEW)
         val store = app.store
@@ -207,6 +219,42 @@ class GameActivity : BaseActivity() {
         resume.setOnClickListener { togglePause() }
         findViewById<View>(R.id.hint_close).setOnClickListener { closeHint() }
         findViewById<View>(R.id.hint_apply).setOnClickListener { applyHint() }
+    }
+
+    /**
+     * Arriving from the home screen's preview, which has just grown to [boardOnScreen]: the board
+     * starts there (normally exactly where it is laid out) and the rest of the screen fades in around it.
+     */
+    private fun arriveAt(boardOnScreen: Rect) {
+        val root = findViewById<ViewGroup>(R.id.root)
+        val boardArea = findViewById<View>(R.id.board_area)
+        val around = (0 until root.childCount).map(root::getChildAt).filter { it !== boardArea }
+        for (view in around) view.alpha = 0f
+        board.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                board.viewTreeObserver.removeOnPreDrawListener(this)
+                val at = IntArray(2).also(board::getLocationOnScreen)
+                val off = abs(at[0] - boardOnScreen.left) > 1 || abs(at[1] - boardOnScreen.top) > 1 ||
+                    abs(board.width - boardOnScreen.width()) > 1
+                if (off && board.width > 0) {
+                    // It landed somewhere else (the window moved, say): carry it on from there.
+                    board.pivotX = 0f
+                    board.pivotY = 0f
+                    board.scaleX = boardOnScreen.width() / board.width.toFloat()
+                    board.scaleY = board.scaleX
+                    board.translationX = (boardOnScreen.left - at[0]).toFloat()
+                    board.translationY = (boardOnScreen.top - at[1]).toFloat()
+                    board.animate().scaleX(1f).scaleY(1f).translationX(0f).translationY(0f)
+                        .setDuration(220).setInterpolator(DecelerateInterpolator()).start()
+                }
+                for (view in around) {
+                    view.translationY = if (view.bottom <= boardArea.top) -dp(8f) else dp(16f)
+                    view.animate().alpha(1f).translationY(0f)
+                        .setDuration(260).setInterpolator(DecelerateInterpolator()).start()
+                }
+                return true
+            }
+        })
     }
 
     private fun startNew(kind: String) {
@@ -682,7 +730,7 @@ class GameActivity : BaseActivity() {
         val check = settings.checkMistakes
         board.highlightPeers = settings.highlightPeers
         board.highlightSame = settings.highlightSame
-        board.setContent(g.givens, g.values, g.notes, BooleanArray(81) { check && g.isWrong(it) })
+        board.showGame(g, check)
         board.selected = if (g.isPlaying) selected else -1
         board.paused = userPaused
         board.message = null
@@ -774,6 +822,7 @@ class GameActivity : BaseActivity() {
         private const val EXTRA_DIFFICULTY = "difficulty"
         private const val EXTRA_GIVENS = "givens"
         private const val EXTRA_SOLUTION = "solution"
+        private const val EXTRA_BOARD_ON_SCREEN = "board_on_screen"
         private const val KIND_RANDOM = "random"
         private const val KIND_DAILY = "daily"
         private const val KIND_CUSTOM = "custom"
@@ -800,7 +849,35 @@ class GameActivity : BaseActivity() {
                 .putExtra(EXTRA_GIVENS, Grid.format(givens))
                 .putExtra(EXTRA_SOLUTION, Grid.format(solution))
 
-        fun resume(context: Context, slot: GameStore.Slot): Intent =
-            Intent(context, GameActivity::class.java).putExtra(EXTRA_SLOT, slot.name)
+        /**
+         * Reopens the game saved in [slot]. Pass [boardOnScreen] when the caller has already grown a
+         * preview of the board to that spot on screen: the game then opens around it.
+         */
+        fun resume(context: Context, slot: GameStore.Slot, boardOnScreen: Rect? = null): Intent =
+            Intent(context, GameActivity::class.java)
+                .putExtra(EXTRA_SLOT, slot.name)
+                .apply { if (boardOnScreen != null) putExtra(EXTRA_BOARD_ON_SCREEN, boardOnScreen) }
+
+        /**
+         * Where this screen draws its board, in a content area of [width] by [height] pixels whose
+         * system bars take [systemBars] (as [com.ultimatesudoku.app.ui.fitSystemBars] applies them).
+         * Lays the real layout out off screen, so it can't drift from what [inflate] builds.
+         */
+        fun boardBounds(context: Context, width: Int, height: Int, systemBars: IntArray): Rect {
+            val screen = LayoutInflater.from(context).inflate(R.layout.activity_game, FrameLayout(context), false)
+            val root = screen.findViewById<View>(R.id.root)
+            root.setPadding(
+                root.paddingLeft + systemBars[0],
+                root.paddingTop + systemBars[1],
+                root.paddingRight + systemBars[2],
+                root.paddingBottom + systemBars[3],
+            )
+            screen.measure(
+                View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
+            )
+            screen.layout(0, 0, width, height)
+            return boundsWithin(screen, screen.findViewById(R.id.board))
+        }
     }
 }

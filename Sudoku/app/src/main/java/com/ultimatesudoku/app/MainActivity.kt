@@ -1,21 +1,30 @@
 package com.ultimatesudoku.app
 
+import android.animation.ValueAnimator
+import android.app.ActivityOptions
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.ultimatesudoku.app.data.GameStore
+import com.ultimatesudoku.app.ui.BoardView
 import com.ultimatesudoku.app.ui.Dialogs
+import com.ultimatesudoku.app.ui.GrowOverlay
 import com.ultimatesudoku.app.ui.TileView
+import com.ultimatesudoku.app.ui.appliedSystemBars
 import com.ultimatesudoku.app.ui.formatTime
+import com.ultimatesudoku.app.ui.modeName
 import com.ultimatesudoku.core.Daily
-import com.ultimatesudoku.core.GameMode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class MainActivity : BaseActivity() {
+
+    /** The continue card growing into the game, while it does. */
+    private var growing: GrowOverlay? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,9 +47,9 @@ class MainActivity : BaseActivity() {
             bind(R.drawable.ic_history, getString(R.string.home_history), getString(R.string.home_history_empty))
             setOnClickListener { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) }
         }
-        findViewById<View>(R.id.continue_card).setOnClickListener {
-            startActivity(GameActivity.resume(this, GameStore.Slot.MAIN))
-        }
+        findViewById<View>(R.id.continue_card).setOnClickListener { openContinue() }
+        // A picture only: taps on it go to the card.
+        findViewById<BoardView>(R.id.continue_board).isEnabled = false
         findViewById<View>(R.id.button_stats).setOnClickListener {
             startActivity(Intent(this, StatsActivity::class.java))
         }
@@ -51,9 +60,29 @@ class MainActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Back from the game, or it closed before showing: the card is a card again.
+        endGrowing()
         bindContinue()
         bindDaily()
         bindHistory()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Gone unseen: the game covers this screen by now, or the app left mid-growth.
+        endGrowing()
+    }
+
+    @Deprecated("Still the back hook for apps not opted in to predictive back")
+    override fun onBackPressed() {
+        val overlay = growing
+        if (overlay == null) {
+            @Suppress("DEPRECATION")
+            super.onBackPressed()
+        } else if (overlay.isGrowing) {
+            overlay.shrink(::endGrowing)
+        }
+        // Otherwise the game is already opening.
     }
 
     private fun bindHistory() {
@@ -79,19 +108,68 @@ class MainActivity : BaseActivity() {
     private fun bindContinue() {
         val card = findViewById<View>(R.id.continue_card)
         val game = app.store.game(GameStore.Slot.MAIN)?.takeIf { it.isPlaying }
+        val visibility = if (game == null) View.GONE else View.VISIBLE
+        card.visibility = visibility
+        findViewById<View>(R.id.continue_header).visibility = visibility
+        if (game == null) return
+        findViewById<BoardView>(R.id.continue_board).showGame(game, app.settings.checkMistakes)
+        val mode = modeName(game.mode, game.tag)
+        val time = formatTime(game.elapsedMs)
+        val percent = (game.progress * 100).toInt()
+        findViewById<TextView>(R.id.continue_mode).text = mode
+        findViewById<TextView>(R.id.continue_title).text = game.difficulty.title
+        findViewById<TextView>(R.id.continue_time).text = time
+        findViewById<TextView>(R.id.continue_percent).text = getString(R.string.percent, percent)
+        val bar = percent.coerceIn(2, 100)
+        findViewById<View>(R.id.continue_progress).layoutParams =
+            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, bar.toFloat())
+        findViewById<View>(R.id.continue_rest).layoutParams =
+            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, (100 - bar).toFloat())
+        card.contentDescription = getString(R.string.home_continue_description, game.difficulty.title, mode, time, percent)
+    }
+
+    /**
+     * Opens the game in progress by growing its card into the game screen: the preview board lands
+     * exactly where the game will draw its board, then the game opens on top without a window
+     * animation and brings in its controls around the board.
+     */
+    private fun openContinue() {
+        if (growing != null) return
+        val game = app.store.game(GameStore.Slot.MAIN)?.takeIf { it.isPlaying }
         if (game == null) {
-            card.visibility = View.GONE
+            bindContinue()
             return
         }
-        card.visibility = View.VISIBLE
-        val mode = if (game.mode == GameMode.CUSTOM) getString(R.string.mode_custom) else getString(R.string.mode_random)
-        findViewById<TextView>(R.id.continue_title).text = "${game.difficulty.title} · $mode"
-        findViewById<TextView>(R.id.continue_time).text = formatTime(game.elapsedMs)
-        val progress = (game.progress * 100).toInt().coerceIn(2, 100)
-        findViewById<View>(R.id.continue_progress).layoutParams =
-            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, progress.toFloat())
-        findViewById<View>(R.id.continue_rest).layoutParams =
-            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, (100 - progress).toFloat())
+        val replacing = app.store.isGenerating && app.store.generatingSlot == GameStore.Slot.MAIN
+        if (!ValueAnimator.areAnimatorsEnabled() || replacing) {
+            // No motion wanted, or the game opens on a new puzzle that is still being generated.
+            startActivity(GameActivity.resume(this, GameStore.Slot.MAIN))
+            return
+        }
+        val content = findViewById<ViewGroup>(android.R.id.content)
+        val preview = findViewById<BoardView>(R.id.continue_board)
+        val target = GameActivity.boardBounds(this, content.width, content.height, appliedSystemBars(findViewById(R.id.root)))
+        val overlay = GrowOverlay(this)
+        overlay.board.showGame(game, app.settings.checkMistakes)
+        content.addView(overlay, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        growing = overlay
+        preview.visibility = View.INVISIBLE
+        overlay.grow(findViewById(R.id.continue_card), preview, target) {
+            val origin = IntArray(2).also(content::getLocationOnScreen)
+            target.offset(origin[0], origin[1])
+            startActivity(
+                GameActivity.resume(this, GameStore.Slot.MAIN, boardOnScreen = target),
+                ActivityOptions.makeCustomAnimation(this, 0, 0).toBundle(),
+            )
+        }
+    }
+
+    private fun endGrowing() {
+        val overlay = growing ?: return
+        growing = null
+        overlay.stop()
+        (overlay.parent as? ViewGroup)?.removeView(overlay)
+        findViewById<View>(R.id.continue_board).visibility = View.VISIBLE
     }
 
     private fun bindDaily() {

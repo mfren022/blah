@@ -69,78 +69,139 @@
             android:layout_marginTop="12dp"
             android:text="@string/home_tagline" />
 
+        <com.ultimatesudoku.app.ui.SectionHeader
+            android:id="@+id/continue_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/home_continue"
+            android:visibility="gone" />
+
+        <!-- The game in progress: a live preview of its board that grows into the game when tapped. -->
         <LinearLayout
             android:id="@+id/continue_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="10dp"
             android:background="@drawable/bg_button_outline"
             android:clickable="true"
             android:focusable="true"
-            android:orientation="vertical"
-            android:padding="16dp"
+            android:orientation="horizontal"
+            android:padding="14dp"
             android:visibility="gone">
 
-            <TextView
-                style="@style/Text.Caption"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/home_continue"
-                android:textColor="?attr/suUserDigit" />
+            <com.ultimatesudoku.app.ui.BoardView
+                android:id="@+id/continue_board"
+                android:layout_width="136dp"
+                android:layout_height="136dp"
+                android:importantForAccessibility="no" />
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/continue_mode"
+                    style="@style/Text.Caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:textColor="?attr/suUserDigit" />
 
                 <TextView
                     android:id="@+id/continue_title"
-                    style="@style/Text.Heading"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:id="@+id/continue_time"
                     style="@style/Text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/roboto_medium" />
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/roboto_medium"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textSize="24sp" />
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="8dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_play"
-                    android:tint="?attr/suAccent" />
-            </LinearLayout>
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:minHeight="12dp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="4dp"
-                android:layout_marginTop="12dp"
-                android:background="?attr/suSurface"
-                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-                <View
-                    android:id="@+id/continue_progress"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:background="?attr/suAccent" />
+                    <TextView
+                        android:id="@+id/continue_time"
+                        style="@style/Text"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/roboto_medium"
+                        android:maxLines="1" />
 
-                <View
-                    android:id="@+id/continue_rest"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent" />
+                    <TextView
+                        android:id="@+id/continue_percent"
+                        style="@style/Text.Caption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="4dp"
+                    android:layout_marginTop="8dp"
+                    android:background="?attr/suSurface"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:id="@+id/continue_progress"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:background="?attr/suAccent" />
+
+                    <View
+                        android:id="@+id/continue_rest"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="14dp"
+                    android:background="?attr/suAccent"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_play"
+                        android:tint="?attr/suOnAccent" />
+
+                    <TextView
+                        style="@style/Button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:clickable="false"
+                        android:focusable="false"
+                        android:minHeight="0dp"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="0dp"
+                        android:text="@string/resume"
+                        android:textColor="?attr/suOnAccent" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
-        <TextView
-            style="@style/Text.Caption"
-            android:layout_width="wrap_content"
+        <com.ultimatesudoku.app.ui.SectionHeader
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
             android:text="@string/home_modes" />
@@ -169,9 +230,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp" />
 
-        <TextView
-            style="@style/Text.Caption"
-            android:layout_width="wrap_content"
+        <com.ultimatesudoku.app.ui.SectionHeader
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
             android:text="@string/home_records" />

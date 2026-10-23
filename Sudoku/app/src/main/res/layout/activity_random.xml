@@ -22,9 +22,8 @@
             android:paddingEnd="20dp"
             android:paddingBottom="20dp">
 
-            <TextView
-                style="@style/Text.Caption"
-                android:layout_width="wrap_content"
+            <com.ultimatesudoku.app.ui.SectionHeader
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/random_choose" />
 

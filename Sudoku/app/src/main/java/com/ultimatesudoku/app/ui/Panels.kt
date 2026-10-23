@@ -3,8 +3,12 @@ package com.ultimatesudoku.app.ui
 import android.app.Activity
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.Gravity
@@ -19,6 +23,34 @@ import android.widget.TextView
 import com.ultimatesudoku.app.R
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
+
+/** A section label followed by a faint rule that runs to the end of the row. */
+class SectionHeader @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
+    TextView(context, attrs, 0, R.style.Text_Caption) {
+
+    private val rule = Paint().apply { color = Palette(context).line }
+    private val capitals = Rect()
+
+    init {
+        maxLines = 1
+        ellipsize = TextUtils.TruncateAt.END
+        if (Build.VERSION.SDK_INT >= 28) isAccessibilityHeading = true
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        val text = layout ?: return
+        val start = totalPaddingLeft + text.getLineRight(0) + dp(12f)
+        val end = (width - totalPaddingRight).toFloat()
+        if (end - start < dp(8f)) return
+        // Level with the middle of the capitals rather than the middle of the line.
+        paint.getTextBounds("H", 0, 1, capitals)
+        val thickness = max(1, dp(1))
+        val top = (totalPaddingTop + text.getLineBaseline(0) + capitals.exactCenterY() - thickness / 2f).roundToInt()
+        canvas.drawRect(start, top.toFloat(), end, (top + thickness).toFloat(), rule)
+    }
+}
 
 /** A full-width menu tile: icon square, title and subtitle, then a badge or a chevron. */
 class TileView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(context, attrs) {
