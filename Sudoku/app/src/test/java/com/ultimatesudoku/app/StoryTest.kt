@@ -1,7 +1,6 @@
 package com.ultimatesudoku.app
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Insets
@@ -11,7 +10,6 @@ import android.view.WindowInsets
 import android.widget.TextView
 import com.ultimatesudoku.app.data.Settings
 import com.ultimatesudoku.app.ui.LevelMapView
-import com.ultimatesudoku.app.ui.PixelArtView
 import com.ultimatesudoku.app.ui.SquareGlowView
 import com.ultimatesudoku.core.LevelMap
 import org.junit.Assert.assertEquals
@@ -71,33 +69,50 @@ class StoryTest : ScreenTest() {
     @Test
     fun theFirstChapterHasItsArt() {
         val activity = chapter(0)
-        assertEquals(View.GONE, activity.view<View>(R.id.glow).visibility)
-        val art = activity.view<PixelArtView>(R.id.art)
-        assertEquals(View.VISIBLE, art.visibility)
-        val source = BitmapFactory.decodeResource(activity.resources, R.drawable.art_old_quarter, BitmapFactory.Options().apply { inScaled = false })
-        assertEquals(128, source.width)
-        // Whole pixels, filling the width.
-        val scale = Math.ceil(art.width / 128.0).toInt()
-        assertEquals(source.height * scale, art.height)
-        val drawn = Bitmap.createBitmap(art.width, art.height, Bitmap.Config.ARGB_8888)
-        art.draw(Canvas(drawn))
-        val left = (art.width - source.width * scale) / 2
-        for ((x, y) in listOf(64 to 10, 100 to 52, 30 to 40, 90 to 70)) {
-            // Every screen pixel of an art pixel has that pixel's colour: sharp, not smoothed.
-            for (dx in listOf(0, scale - 1)) for (dy in listOf(0, scale - 1)) {
-                val sx = left + x * scale + dx
-                val sy = y * scale + dy
-                assertEquals("art pixel ($x, $y)", source.getPixel(x, y), drawn.getPixel(sx, sy))
-            }
-        }
-        // The bottom row has faded into the page.
+        val glow = activity.view<SquareGlowView>(R.id.glow)
+        val art = checkNotNull(glow.art)
+        assertEquals(64, art.width)
+        assertTrue(glow.contentDescription.isNotEmpty())
         val page = activity.getColor(R.color.story_bg)
-        assertEquals(page, drawn.getPixel(art.width / 2, art.height - 1))
-        // The title starts below the art.
-        val header = activity.view<View>(R.id.header)
-        assertTrue(header.top >= art.bottom)
-        assertTrue(activity.view<View>(R.id.art).contentDescription.isNotEmpty())
+        val drawn = Bitmap.createBitmap(glow.width, glow.height, Bitmap.Config.ARGB_8888)
+        drawn.eraseColor(page)
+        glow.draw(Canvas(drawn))
+        // The grid: 5.5dp squares 1dp apart, as many as fit across, centred, the art anchored top-right.
+        val density = glow.resources.displayMetrics.density
+        val gap = Math.round(density)
+        val columns = (glow.width + gap) / (Math.round(5.5f * density) + gap)
+        val size = (glow.width - gap * (columns - 1)) / columns
+        val pitch = size + gap
+        val left = (glow.width - columns * pitch + gap) / 2
+        val screenHeight = activity.window.decorView.height
+        val cx = glow.width * 0.82f
+        val cy = screenHeight * 0.03f
+        val radius = Math.hypot((cx - glow.width / 2f).toDouble(), (cy - screenHeight / 2f).toDouble()).toFloat()
+        var checked = 0
+        for ((column, row) in listOf(columns - 1 to 0, columns - 12 to 3, columns - 10 to 22, columns - 30 to 30, 5 to 60)) {
+            val x = left + column * pitch
+            val y = left + row * pitch
+            val light = 1f - Math.hypot((x + size / 2f - cx).toDouble(), (y + size / 2f - cy).toDouble()).toFloat() / radius
+            val pixel = art.getPixel(art.width - columns + column, row)
+            val expected = if (light <= 0f) page else blend(page, pixel, light)
+            val actual = drawn.getPixel(x + size / 2, y + size / 2)
+            for (channel in listOf(Color::red, Color::green, Color::blue)) {
+                assertTrue("square ($column, $row)", Math.abs(channel(expected) - channel(actual)) <= 2)
+            }
+            // And the gap beside it shows the page.
+            assertEquals(page, drawn.getPixel(x + size, y + size / 2))
+            checked++
+        }
+        assertEquals(5, checked)
+        // The other chapters still have the plain grid.
+        assertEquals(null, chapter(1).view<SquareGlowView>(R.id.glow).art)
     }
+
+    private fun blend(from: Int, to: Int, t: Float) = Color.rgb(
+        Math.round(Color.red(from) + (Color.red(to) - Color.red(from)) * t),
+        Math.round(Color.green(from) + (Color.green(to) - Color.green(from)) * t),
+        Math.round(Color.blue(from) + (Color.blue(to) - Color.blue(from)) * t),
+    )
 
     @Test
     fun theArtRunsBehindTheStatusBar() {
@@ -118,18 +133,13 @@ class StoryTest : ScreenTest() {
         assertEquals(bottom + 63, content.paddingBottom)
         assertEquals(72, bar.paddingTop)
         assertEquals(barHeight + 72, bar.height)
-        assertEquals(0, activity.view<View>(R.id.art).top)
+        assertEquals(0, activity.view<View>(R.id.glow).top)
     }
 
     @Test
     @Config(qualifiers = "w891dp-h411dp-land-xxhdpi")
-    fun theArtFitsALandscapeScreen() {
-        val activity = chapter(0)
-        val art = activity.view<PixelArtView>(R.id.art)
-        // At most about half the screen tall, so it is centred with the page on either side.
-        assertTrue(art.height <= activity.resources.displayMetrics.heightPixels * 0.55f)
-        assertEquals(0, art.height % 96)
-        capture(activity, "38_chapter_art_landscape")
+    fun theArtInLandscape() {
+        capture(chapter(0), "38_chapter_art_landscape")
     }
 
     @Test

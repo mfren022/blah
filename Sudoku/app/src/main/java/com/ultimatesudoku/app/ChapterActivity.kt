@@ -3,21 +3,19 @@ package com.ultimatesudoku.app
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import com.ultimatesudoku.app.ui.LevelMapView
-import com.ultimatesudoku.app.ui.PixelArtView
 import com.ultimatesudoku.app.ui.Snack
-import com.ultimatesudoku.app.ui.dp
+import com.ultimatesudoku.app.ui.SquareGlowView
 import com.ultimatesudoku.app.ui.systemBarInsets
 import com.ultimatesudoku.core.LevelMap
 
 /**
- * One story chapter, on the story's deep blue whatever the theme: its art (or, until it has some, a
- * glowing grid of squares), what it teaches, and underneath, the map of its levels and the routes
- * through them. Levels can't be played until story mode is built.
+ * One story chapter, on the story's deep blue whatever the theme: its art glowing through a grid of
+ * squares (plain white ones until it has art), what it teaches, and underneath, the map of its levels
+ * and the routes through them. Levels can't be played until story mode is built.
  */
 class ChapterActivity : BaseActivity() {
 
@@ -57,26 +55,21 @@ class ChapterActivity : BaseActivity() {
         }
     }
 
-    /** Swaps the placeholder grid for the chapter's art, and starts the title where the art ends. */
+    /** Lights the grid with the chapter's art, and starts the title below the picture's brightest part. */
     private fun showArt(chapter: StoryActivity.Chapter) {
-        val bitmap = BitmapFactory.decodeResource(resources, chapter.art, BitmapFactory.Options().apply { inScaled = false })
-        findViewById<View>(R.id.glow).visibility = View.GONE
-        findViewById<PixelArtView>(R.id.art).apply {
-            visibility = View.VISIBLE
-            setArt(bitmap)
+        findViewById<SquareGlowView>(R.id.glow).apply {
+            art = BitmapFactory.decodeResource(resources, chapter.art, BitmapFactory.Options().apply { inScaled = false })
             contentDescription = getString(chapter.artDescription)
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
         }
-        findViewById<View>(R.id.header).apply { setPadding(paddingLeft, dp(12), paddingRight, paddingBottom) }
-        if (Build.VERSION.SDK_INT < 35) {
-            // Before Android 15 the status bar has its own colour: the sky's.
-            @Suppress("DEPRECATION")
-            window.statusBarColor = bitmap.getPixel(bitmap.width / 2, 0)
+        findViewById<View>(R.id.header).apply {
+            setPadding(paddingLeft, resources.getDimensionPixelSize(R.dimen.chapter_picture_space), paddingRight, paddingBottom)
         }
     }
 
     /**
-     * Lets the art and the glow run up behind the status bar: only the top bar is pushed below it,
-     * and the rest of the page is kept clear of the other bars.
+     * Lets the grid run up behind the status bar: only the top bar is pushed below it, and the rest
+     * of the page is kept clear of the other bars.
      */
     private fun fitUnderSystemBars() {
         val content = findViewById<View>(R.id.content)

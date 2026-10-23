@@ -5,15 +5,11 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.RectF
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
-import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.hypot
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -87,12 +83,27 @@ class GridMotifView @JvmOverloads constructor(context: Context, attrs: Attribute
 }
 
 /**
- * Placeholder art for a story chapter: small white squares 1dp apart, lit by a circular gradient at
- * full strength just left of the screen's top-right corner that fades to nothing by the middle of the
+ * A story chapter's art as a grid of small squares 1dp apart, lit by a circular gradient at full
+ * strength just left of the screen's top-right corner that fades to nothing by the middle of the
  * screen. The gradient is placed on the screen, not on this view, which may run on below it.
+ *
+ * Each square shows one pixel of [art], whose top-right pixel sits in the top-right square. Without
+ * art the squares are plain white, a placeholder.
  */
 class SquareGlowView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
-    private val paint = Paint().apply { color = Color.WHITE }
+    private val paint = Paint()
+    private var pixels: IntArray? = null
+    private var artWidth = 0
+    private var artHeight = 0
+
+    var art: Bitmap? = null
+        set(value) {
+            field = value
+            artWidth = value?.width ?: 0
+            artHeight = value?.height ?: 0
+            pixels = value?.let { IntArray(artWidth * artHeight).also { all -> it.getPixels(all, 0, artWidth, 0, 0, artWidth, artHeight) } }
+            invalidate()
+        }
 
     override fun onDraw(canvas: Canvas) {
         val screenHeight = rootView.height.takeIf { it > 0 } ?: height
@@ -105,18 +116,30 @@ class SquareGlowView @JvmOverloads constructor(context: Context, attrs: Attribut
         val cx = width * CENTRE_X
         val cy = screenHeight * CENTRE_Y
         val radius = hypot(cx - width / 2f, cy - screenHeight / 2f)
+        val pixels = pixels
         var top = left
+        var row = 0
         while (top < height && top < cy + radius) {
             for (column in 0 until columns) {
                 val x = left + column * pitch
                 val distance = hypot(x + size / 2f - cx, top + size / 2f - cy) / radius
                 if (distance >= 1f) continue
-                // Eased, so the light gathers in the corner rather than washing over the screen.
                 val light = 1f - distance
-                paint.alpha = (255 * light * light).roundToInt()
+                if (pixels == null) {
+                    // Eased, so the light gathers in the corner rather than washing over the screen.
+                    paint.color = Color.WHITE
+                    paint.alpha = (255 * light * light).roundToInt()
+                } else {
+                    // Straight, so the art's colours carry further from the corner.
+                    val ax = artWidth - columns + column
+                    if (ax < 0 || row >= artHeight) continue
+                    paint.color = pixels[row * artWidth + ax]
+                    paint.alpha = (255 * light).roundToInt()
+                }
                 canvas.drawRect(x.toFloat(), top.toFloat(), (x + size).toFloat(), (top + size).toFloat(), paint)
             }
             top += pitch
+            row++
         }
     }
 
@@ -128,90 +151,6 @@ class SquareGlowView @JvmOverloads constructor(context: Context, attrs: Attribut
         /** The gradient's centre, as fractions of the screen's width and height. */
         const val CENTRE_X = 0.82f
         const val CENTRE_Y = 0.03f
-    }
-}
-
-/**
- * A pixel-art picture, scaled up by whole pixels so every art pixel stays square and sharp. It fills
- * the width, cropping the sides, unless that would make it taller than about half the screen (in
- * landscape); then it is centred. Its bottom rows, and its sides when it doesn't reach them, dither
- * away into the page colour.
- */
-class PixelArtView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
-    private val palette = Palette(context)
-    private val paint = Paint().apply { isFilterBitmap = false }
-    private val bounds = RectF()
-    private var art: Bitmap? = null
-    private var faded: Bitmap? = null
-    private var fadedSides = false
-    private var scale = 1
-
-    fun setArt(bitmap: Bitmap) {
-        art = bitmap
-        faded = null
-        requestLayout()
-        invalidate()
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = MeasureSpec.getSize(widthMeasureSpec)
-        val art = art
-        if (art == null) {
-            setMeasuredDimension(width, 0)
-            return
-        }
-        val tallest = resources.displayMetrics.heightPixels * MAX_HEIGHT
-        scale = max(1, min(ceil(width / art.width.toFloat()).toInt(), floor(tallest / art.height).toInt()))
-        setMeasuredDimension(width, art.height * scale)
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        val art = art ?: return
-        val drawn = art.width * scale
-        val sides = drawn < width
-        val image = faded?.takeIf { fadedSides == sides } ?: fade(art, sides).also {
-            faded = it
-            fadedSides = sides
-        }
-        val left = (width - drawn) / 2f
-        bounds.set(left, 0f, left + drawn, (art.height * scale).toFloat())
-        canvas.drawBitmap(image, null, bounds, paint)
-    }
-
-    /** A copy of [art] whose bottom rows, and sides if asked, blend into the page in dithered steps. */
-    private fun fade(art: Bitmap, sides: Boolean): Bitmap {
-        val out = art.copy(Bitmap.Config.ARGB_8888, true)
-        val page = palette.bg
-        for (y in 0 until art.height) {
-            for (x in 0 until art.width) {
-                var amount = (y - (art.height - FADE)) + 1f
-                if (sides) amount = max(amount, max(FADE - x, x - (art.width - 1 - FADE)).toFloat())
-                if (amount <= 0f) continue
-                val threshold = (BAYER[y % 4][x % 4] + 0.5f) / 16
-                val step = floor(min(amount / FADE, 1f) * STEPS + threshold) / STEPS
-                if (step > 0f) out.setPixel(x, y, blend(art.getPixel(x, y), page, min(step, 1f)))
-            }
-        }
-        return out
-    }
-
-    private fun blend(from: Int, to: Int, t: Float): Int = Color.rgb(
-        (Color.red(from) + (Color.red(to) - Color.red(from)) * t).roundToInt(),
-        (Color.green(from) + (Color.green(to) - Color.green(from)) * t).roundToInt(),
-        (Color.blue(from) + (Color.blue(to) - Color.blue(from)) * t).roundToInt(),
-    )
-
-    private companion object {
-        /** Rows (and columns) over which the picture fades into the page. */
-        const val FADE = 12
-
-        /** Steps of the blend between picture and page; dithering fills in between. */
-        const val STEPS = 4
-
-        /** The tallest the picture may get, as a share of the screen's height. */
-        const val MAX_HEIGHT = 0.55f
-
-        val BAYER = arrayOf(intArrayOf(0, 8, 2, 10), intArrayOf(12, 4, 14, 6), intArrayOf(3, 11, 1, 9), intArrayOf(15, 7, 13, 5))
     }
 }
 

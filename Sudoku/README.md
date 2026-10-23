@@ -30,11 +30,11 @@ install over the old one and keep your saved games and statistics.
 - **Story mode** (placeholder): *The Nine Districts*, nine chapters. Each chapter lists the techniques
   it will teach (`StoryActivity.CHAPTERS`), so the generator and grader can target them when the mode is
   built. Tapping a chapter opens its screen, on the story's deep blue in either theme:
-  - its art: chapter 1 has a pastel pixel-art scene, a fishing hut on stilts in a pond at dusk, drawn
-    by `tools/art/old_quarter.py` and scaled up by whole pixels so it stays sharp, its bottom dithering
-    into the page. Chapters without art yet show a fine grid of small white squares, 1dp apart, lit by
-    a circular gradient that is brightest just left of the top-right corner and fades out by the
-    middle of the screen;
+  - its art, as a fine grid of small squares 1dp apart, lit by a circular gradient that is brightest
+    just left of the top-right corner and fades out by the middle of the screen. Chapter 1's squares
+    show a pastel pixel-art scene, a fishing hut on stilts in a pond at dusk, one square per art pixel
+    (painted by `tools/art/old_quarter.py`); the other chapters' squares are plain white until they
+    get art;
   - the chapter's title, lesson and techniques;
   - underneath, a node graph of its levels, metro-map style: the routes branch and merge from the
     entrance down to the chapter's final level. Only the first chapter's first level is open, and

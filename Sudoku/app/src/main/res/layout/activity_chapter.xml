@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Placeholder for chapters without art yet, under the status bar too. -->
+        <!-- The chapter's art (or a placeholder) as a lit grid of squares, under the status bar too. -->
         <com.ultimatesudoku.app.ui.SquareGlowView
             android:id="@+id/glow"
             android:layout_width="match_parent"
@@ -24,19 +24,7 @@
             android:orientation="vertical"
             android:paddingBottom="24dp">
 
-            <!-- The chapter's art, when it has some, runs up behind the status bar and the top bar. -->
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.ultimatesudoku.app.ui.PixelArtView
-                    android:id="@+id/art"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone" />
-
-                <include layout="@layout/include_top_bar" />
-            </FrameLayout>
+            <include layout="@layout/include_top_bar" />
 
             <LinearLayout
                 android:id="@+id/header"
