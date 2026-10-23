@@ -82,7 +82,7 @@ class GridMotifView @JvmOverloads constructor(context: Context, attrs: Attribute
 }
 
 /**
- * Placeholder art for a story chapter: small white squares 3dp apart, lit by a circular gradient at
+ * Placeholder art for a story chapter: small white squares 2dp apart, lit by a circular gradient at
  * full strength just left of the screen's top-right corner that fades to nothing by the middle of the
  * screen. The gradient is placed on the screen, not on this view, which may run on below it.
  */
@@ -91,16 +91,16 @@ class SquareGlowView @JvmOverloads constructor(context: Context, attrs: Attribut
 
     override fun onDraw(canvas: Canvas) {
         val screenHeight = rootView.height.takeIf { it > 0 } ?: height
-        val gap = max(1, dp(GAP))
-        // Whole pixels for every square, and as many as fit across, centred.
-        val columns = max(1, (width + gap) / (dp(SQUARE) + gap))
+        val gap = max(1, dp(GAP).roundToInt())
+        // Whole pixels for every square, and as many as fit across, centred, with the same margin at the top.
+        val columns = max(1, (width + gap) / (max(1, dp(SQUARE).roundToInt()) + gap))
         val size = (width - gap * (columns - 1)) / columns
         val pitch = size + gap
         val left = (width - columns * pitch + gap) / 2
         val cx = width * CENTRE_X
         val cy = screenHeight * CENTRE_Y
         val radius = hypot(cx - width / 2f, cy - screenHeight / 2f)
-        var top = 0
+        var top = left
         while (top < height && top < cy + radius) {
             for (column in 0 until columns) {
                 val x = left + column * pitch
@@ -116,8 +116,8 @@ class SquareGlowView @JvmOverloads constructor(context: Context, attrs: Attribut
     }
 
     private companion object {
-        const val SQUARE = 10
-        const val GAP = 3
+        const val SQUARE = 4.5f
+        const val GAP = 2f
 
         /** The gradient's centre, as fractions of the screen's width and height. */
         const val CENTRE_X = 0.82f

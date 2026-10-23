@@ -11,8 +11,8 @@ android {
         applicationId = "com.ultimatesudoku.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.3.1"
     }
 
     // One shared key so every build (Android Studio, CI or tools/sdkless) installs over the previous

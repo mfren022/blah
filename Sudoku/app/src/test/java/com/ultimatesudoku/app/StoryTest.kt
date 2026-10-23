@@ -109,10 +109,19 @@ class StoryTest : ScreenTest() {
         assertTrue(brightest(0.5f, 0.25f) in 15..120)
         assertEquals(0, brightest(0.5f, 0.52f))
         assertEquals(0, brightest(0.1f, 0.7f))
-        // The squares are whole pixels apart: gaps of 3dp show the background.
-        val row = (0.03f * screenHeight).toInt()
-        val pixels = (0 until bitmap.width).map { Color.red(bitmap.getPixel(it, row)) }
-        assertTrue(pixels.count { it == 0 } > 0)
+        // Along a lit row: squares 4.5dp wide, whole pixels, 2dp apart, about 62 across a 411dp screen.
+        val density = glow.resources.displayMetrics.density
+        val lightX = (0.82f * glow.width).toInt()
+        val row = (0 until bitmap.height).first { Color.red(bitmap.getPixel(lightX, it)) > 0 } + 2
+        val lit = (0 until bitmap.width).map { Color.red(bitmap.getPixel(it, row)) > 0 }
+        val runs = ArrayList<Pair<Boolean, Int>>()
+        for (on in lit) if (runs.isNotEmpty() && runs.last().first == on) runs[runs.size - 1] = on to runs.last().second + 1 else runs += on to 1
+        val inner = runs.drop(1).dropLast(1)
+        assertEquals(setOf(Math.round(2 * density)), inner.filter { !it.first }.map { it.second }.toSet())
+        assertTrue(inner.filter { it.first }.all { it.second in 13..15 })
+        // The whole top row is lit, however faintly, so its squares can be counted.
+        val across = runs.count { it.first }
+        assertTrue("$across squares across", across in 60..64)
     }
 
     @Test
