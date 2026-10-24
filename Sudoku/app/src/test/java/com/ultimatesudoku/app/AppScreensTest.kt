@@ -2,6 +2,10 @@ package com.ultimatesudoku.app
 
 import android.content.ClipboardManager
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -113,8 +117,10 @@ class AppScreensTest : ScreenTest() {
         tap(activity.view(R.id.tool_undo))
 
         // Pausing shows the puzzle's menu over the hidden board, with the selected cell to reveal.
+        // There's room for every option without scrolling.
         tap(activity.view(R.id.pause))
         assertNotNull(menuRow(activity, R.string.menu_reveal_cell))
+        assertFalse(activity.view<View>(R.id.pause_menu_scroll).canScrollVertically(1))
         capture(activity, "04b_menu")
     }
 
@@ -158,10 +164,40 @@ class AppScreensTest : ScreenTest() {
     fun pausedGame() {
         val activity = customGame().get()
         tap(activity.view(R.id.pause))
-        assertEquals(View.VISIBLE, activity.view<View>(R.id.pause_menu).visibility)
-        // No cell is selected, so there is nothing to reveal.
+        val menu = activity.view<View>(R.id.pause_menu)
+        assertEquals(View.VISIBLE, menu.visibility)
+        // No cell is selected, so there is nothing to reveal, and the menu fills the board's square.
         assertEquals(null, menuRow(activity, R.string.menu_reveal_cell))
+        assertEquals(bounds(activity.view(R.id.board)), bounds(menu))
+        // A large title at the top, the options in the middle, and two buttons side by side at the bottom.
+        val title = activity.view<TextView>(R.id.pause_title)
+        assertTrue(title.isAllCaps)
+        assertEquals(34f, title.textSize / activity.resources.displayMetrics.scaledDensity, 0.01f)
+        val options = bounds(activity.view(R.id.pause_menu_items))
+        val restart = activity.view<View>(R.id.pause_restart)
+        val abandon = activity.view<View>(R.id.pause_abandon)
+        assertTrue(bounds(title).bottom <= options.top)
+        assertTrue(options.bottom <= bounds(restart).top)
+        assertEquals(bounds(restart).top, bounds(abandon).top)
+        assertTrue(bounds(restart).right < bounds(abandon).left)
+        assertEquals(bounds(menu).bottom - bounds(restart).bottom, bounds(restart).left - bounds(menu).left)
+        // Restart is white and abandon red, each with an icon.
+        assertEquals(Color.WHITE, fill(restart))
+        assertEquals(activity.getColor(R.color.button_danger), fill(abandon))
+        for (button in listOf(restart, abandon)) assertTrue((button as ViewGroup).getChildAt(0) is android.widget.ImageView)
         capture(activity, "07_paused")
+    }
+
+    private fun bounds(view: View): Rect {
+        val at = IntArray(2).also(view::getLocationInWindow)
+        return Rect(at[0], at[1], at[0] + view.width, at[1] + view.height)
+    }
+
+    /** The colour a button is filled with, from just inside its left edge. */
+    private fun fill(button: View): Int {
+        val bitmap = Bitmap.createBitmap(button.width, button.height, Bitmap.Config.ARGB_8888)
+        button.draw(Canvas(bitmap))
+        return bitmap.getPixel(Math.round(6 * button.resources.displayMetrics.density), button.height / 2)
     }
 
     @Test
@@ -206,19 +242,26 @@ class AppScreensTest : ScreenTest() {
         assertTrue((0 until 81).any { game.notes[it] != 0 })
         assertEquals(activity.getString(R.string.pause), pause.contentDescription)
 
-        // Restarting asks first; cancelling stays paused, confirming starts over, unpaused.
+        // Restarting, the white button, asks first; cancelling stays paused, confirming starts over, unpaused.
         tap(pause)
-        tap(menuRow(activity, R.string.menu_restart)!!)
+        tap(activity.view(R.id.pause_restart))
         ShadowDialog.getLatestDialog().dismiss()
         assertEquals(View.VISIBLE, menu.visibility)
-        tap(menuRow(activity, R.string.menu_restart)!!)
+        tap(activity.view(R.id.pause_restart))
         val dialog = ShadowDialog.getLatestDialog()
         clickText(dialog.window!!.decorView, activity.getString(R.string.restart_confirm))
         assertEquals(View.GONE, menu.visibility)
         assertTrue((0 until 81).all { game.notes[it] == 0 })
 
-        // Showing the solution ends the game with the board on view, and pause greys out.
+        // Abandoning asks first too; a puzzle of your own doesn't count as a loss, so it doesn't say so.
         tap(pause)
+        tap(activity.view(R.id.pause_abandon))
+        assertNotNull(findText(ShadowDialog.getLatestDialog().window!!.decorView, activity.getString(R.string.abandon_message_custom)))
+        ShadowDialog.getLatestDialog().dismiss()
+        assertEquals(View.VISIBLE, menu.visibility)
+        assertTrue(game.isPlaying)
+
+        // Showing the solution ends the game with the board on view, and pause greys out.
         tap(menuRow(activity, R.string.menu_show_solution)!!)
         clickText(ShadowDialog.getLatestDialog().window!!.decorView, activity.getString(R.string.solution_confirm))
         assertEquals(Game.Status.REVEALED, game.status)
@@ -227,13 +270,43 @@ class AppScreensTest : ScreenTest() {
         assertFalse(pause.isEnabled)
     }
 
+    @Test
+    fun abandoningAPuzzle() {
+        // A random game, two wins into a streak.
+        repeat(2) { app.stats.won(Difficulty.HARD, 300_000, perfect = false) }
+        val game = Game(GameMode.RANDOM, Difficulty.HARD, givens, solution)
+        app.store.start(GameStore.Slot.MAIN, game)
+        val activity = Robolectric.buildActivity(GameActivity::class.java, GameActivity.resume(app, GameStore.Slot.MAIN)).setup().get()
+        tap(activity.view(R.id.pause))
+
+        // The red button asks first, with a red button to confirm; cancelling stays paused.
+        tap(activity.view(R.id.pause_abandon))
+        val panel = ShadowDialog.getLatestDialog().window!!.decorView
+        assertNotNull(findText(panel, activity.getString(R.string.abandon_message)))
+        assertEquals(activity.getColor(R.color.button_danger), fill(findText(panel, activity.getString(R.string.abandon_confirm))!!))
+        captureDialog(activity, "07b_abandon")
+        ShadowDialog.getLatestDialog().dismiss()
+        assertEquals(View.VISIBLE, activity.view<View>(R.id.pause_menu).visibility)
+        assertTrue(game.isPlaying)
+        assertFalse(activity.isFinishing)
+
+        // Confirming gives the game up as a loss, which ends the streak, and leaves it.
+        tap(activity.view(R.id.pause_abandon))
+        clickText(ShadowDialog.getLatestDialog().window!!.decorView, activity.getString(R.string.abandon_confirm))
+        assertEquals(Game.Status.LOST, app.store.game(GameStore.Slot.MAIN)!!.status)
+        assertEquals(0, app.stats.record(Difficulty.HARD).streak)
+        assertTrue(activity.isFinishing)
+    }
+
+    private fun findText(root: View, text: String): TextView? {
+        if (root is TextView && root.text.toString() == text) return root
+        if (root is ViewGroup) for (i in 0 until root.childCount) findText(root.getChildAt(i), text)?.let { return it }
+        return null
+    }
+
     private fun clickText(root: View, text: String) {
-        if (root is TextView && root.text.toString() == text) {
-            root.performClick()
-            idle()
-            return
-        }
-        if (root is ViewGroup) for (i in 0 until root.childCount) clickText(root.getChildAt(i), text)
+        checkNotNull(findText(root, text)) { "No \"$text\"" }.performClick()
+        idle()
     }
 
     @Test
@@ -357,6 +430,8 @@ class AppScreensTest : ScreenTest() {
         }
         tap(activity.view(R.id.tool_hint))
         capture(activity, "19_game_dark")
+        tap(activity.view(R.id.pause))
+        capture(activity, "19b_paused_dark")
     }
 
     @Test
@@ -365,6 +440,8 @@ class AppScreensTest : ScreenTest() {
         val activity = customGame().get()
         tapCell(activity.view(R.id.board), 40)
         capture(activity, "20_game_landscape")
+        tap(activity.view(R.id.pause))
+        capture(activity, "20b_paused_landscape")
     }
 
     @Test
@@ -375,12 +452,16 @@ class AppScreensTest : ScreenTest() {
         capture(activity, "21_game_small")
         val pad = activity.view<View>(R.id.numpad)
         assertTrue(pad.height > 0)
-        // The menu over the paused board fits inside the board, even here.
+        // The menu over the paused board is as wide as the board and, with a cell selected to reveal,
+        // taller, as far as there's room; the options scroll for the rest and the buttons stay in view.
         tapCell(activity.view(R.id.board), 2)
         tap(activity.view(R.id.pause))
         val menu = activity.view<View>(R.id.pause_menu)
         val board = activity.view<View>(R.id.board)
-        assertTrue(menu.height <= board.height)
+        assertEquals(board.width, menu.width)
+        assertTrue(menu.height >= board.height)
+        assertTrue(menu.height <= activity.view<View>(R.id.board_area).height)
+        assertTrue(bounds(menu).contains(bounds(activity.view(R.id.pause_abandon))))
         capture(activity, "21b_paused_small")
     }
 

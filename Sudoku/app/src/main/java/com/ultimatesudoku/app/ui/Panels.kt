@@ -119,9 +119,26 @@ class TileView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
     }
 }
 
+/**
+ * A paused game's menu, in the board's place: as wide as the board, at least as tall, and taller
+ * when its contents need it, up to the room there is. Past that, its weighted part gives way.
+ */
+class PausePanel @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(context, attrs) {
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        // The board is the largest square that fits.
+        val room = MeasureSpec.getSize(heightMeasureSpec)
+        val side = min(MeasureSpec.getSize(widthMeasureSpec), room)
+        val width = MeasureSpec.makeMeasureSpec(side, MeasureSpec.EXACTLY)
+        super.onMeasure(width, MeasureSpec.makeMeasureSpec(room, MeasureSpec.AT_MOST))
+        if (measuredHeight < side) super.onMeasure(width, MeasureSpec.makeMeasureSpec(side, MeasureSpec.EXACTLY))
+    }
+}
+
 /** Square dialogs and menus, styled like the rest of the app. */
 object Dialogs {
-    class Action(val label: String, val primary: Boolean = false, val run: () -> Unit = {})
+    /** A dialog button: [primary] fills it with the accent, [danger] with red for an action that ends something. */
+    class Action(val label: String, val primary: Boolean = false, val danger: Boolean = false, val run: () -> Unit = {})
 
     fun show(
         activity: Activity,
@@ -158,7 +175,11 @@ object Dialogs {
             )
         }
         actions.forEachIndexed { i, action ->
-            val style = if (action.primary) R.style.Button_Primary else R.style.Button_Outline
+            val style = when {
+                action.danger -> R.style.Button_Danger
+                action.primary -> R.style.Button_Primary
+                else -> R.style.Button_Outline
+            }
             val button = TextView(activity, null, 0, style).apply {
                 text = action.label
                 setOnClickListener {

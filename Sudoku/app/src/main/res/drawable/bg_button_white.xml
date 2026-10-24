@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A white button in either theme, outlined so it keeps its shape on a white page. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#1F111827">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/button_white" />
+            <stroke
+                android:width="1dp"
+                android:color="?attr/suLine" />
+        </shape>
+    </item>
+</ripple>

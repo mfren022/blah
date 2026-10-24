@@ -217,6 +217,8 @@ class GameActivity : BaseActivity() {
         toolNotes.setOnClickListener { toggleNotes() }
         toolHint.setOnClickListener { showHint() }
         pause.setOnClickListener { togglePause() }
+        findViewById<View>(R.id.pause_restart).setOnClickListener { confirmRestart() }
+        findViewById<View>(R.id.pause_abandon).setOnClickListener { confirmAbandon() }
         findViewById<View>(R.id.hint_close).setOnClickListener { closeHint() }
         findViewById<View>(R.id.hint_apply).setOnClickListener { applyHint() }
     }
@@ -496,7 +498,7 @@ class GameActivity : BaseActivity() {
         scheduleSave()
     }
 
-    /** Lists the puzzle's actions over the paused board, each a full-width row. */
+    /** Lists the puzzle's actions between the paused menu's title and its buttons, each a full-width row. */
     private fun fillPauseMenu(g: Game) {
         val ripple = TypedValue().also { theme.resolveAttribute(android.R.attr.selectableItemBackground, it, true) }.resourceId
         val fonts = Fonts.get(this)
@@ -512,20 +514,20 @@ class GameActivity : BaseActivity() {
                     setTextColor(palette.ink)
                     gravity = Gravity.CENTER_VERTICAL
                     setPadding(dp(20), 0, dp(20), 0)
-                    // Hairlines between rows; the panel's own border closes the last.
+                    // Hairlines between rows, none under the last.
                     if (index < items.lastIndex) setBackgroundResource(R.drawable.bg_row) else setBackgroundResource(ripple)
                     isClickable = true
                     isFocusable = true
                     setOnClickListener { run() }
                 },
-                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)),
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(44)),
             )
         }
     }
 
     /**
-     * The puzzle's actions. Those that change the board resume the game first, so their effect shows;
-     * restart and show solution ask first; copying leaves the game paused.
+     * The puzzle's actions, besides restarting and abandoning it. Those that change the board resume
+     * the game first, so their effect shows; show solution asks first; copying leaves the game paused.
      */
     private fun menuItems(g: Game): List<Pair<String, () -> Unit>> {
         val items = ArrayList<Pair<String, () -> Unit>>()
@@ -559,17 +561,6 @@ class GameActivity : BaseActivity() {
                 }
             }
         }
-        items += getString(R.string.menu_restart) to {
-            Dialogs.show(
-                this,
-                getString(R.string.restart_title),
-                getString(R.string.restart_message),
-                listOf(
-                    Dialogs.Action(getString(R.string.restart_confirm), primary = true) { restart() },
-                    Dialogs.Action(getString(R.string.cancel)),
-                ),
-            )
-        }
         items += getString(R.string.menu_show_solution) to {
             Dialogs.show(
                 this,
@@ -592,6 +583,31 @@ class GameActivity : BaseActivity() {
     private fun resumeThen(action: () -> Unit) {
         if (userPaused) togglePause()
         action()
+    }
+
+    private fun confirmRestart() {
+        Dialogs.show(
+            this,
+            getString(R.string.restart_title),
+            getString(R.string.restart_message),
+            listOf(
+                Dialogs.Action(getString(R.string.restart_confirm), primary = true) { restart() },
+                Dialogs.Action(getString(R.string.cancel)),
+            ),
+        )
+    }
+
+    private fun confirmAbandon() {
+        val g = game ?: return
+        Dialogs.show(
+            this,
+            getString(R.string.abandon_title),
+            getString(if (g.mode == GameMode.CUSTOM) R.string.abandon_message_custom else R.string.abandon_message),
+            listOf(
+                Dialogs.Action(getString(R.string.abandon_confirm), danger = true) { abandon() },
+                Dialogs.Action(getString(R.string.cancel)),
+            ),
+        )
     }
 
     // ---- End of game --------------------------------------------------------------------------
@@ -623,6 +639,17 @@ class GameActivity : BaseActivity() {
         updateTimer()
         save()
         Snack.show(this, getString(R.string.solution_shown))
+    }
+
+    /** Gives the puzzle up, which ends it as a loss, as running out of mistakes does, and leaves it. */
+    private fun abandon() {
+        val g = game ?: return
+        if (!g.isPlaying) return
+        accumulateTime()
+        g.markLost()
+        if (g.mode != GameMode.CUSTOM) app.stats.lost(g.difficulty)
+        save()
+        finish()
     }
 
     private fun gameOver() {

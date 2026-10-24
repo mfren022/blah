@@ -38,6 +38,12 @@
     <color name="dark_error">#FF6B6B</color>
     <color name="dark_error_soft">#3B1C20</color>
 
+    <!-- Filled buttons that keep their colours in either theme. -->
+    <color name="button_white">#FFFFFF</color>
+    <color name="button_white_ink">#111827</color>
+    <color name="button_danger">#C62828</color>
+    <color name="button_danger_ink">#FFFFFF</color>
+
     <!-- Story: the city at night, light ink on deep blue in either theme. -->
     <color name="story_bg">#0A3C8C</color>
     <color name="story_bg_dark">#0B1D42</color>

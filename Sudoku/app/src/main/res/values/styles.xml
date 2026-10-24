@@ -62,6 +62,21 @@
         <item name="android:textColor">?attr/suInk</item>
     </style>
 
+    <!-- Red, for an action that ends something. -->
+    <style name="Button.Danger">
+        <item name="android:background">@drawable/bg_button_danger</item>
+        <item name="android:textColor">@color/button_danger_ink</item>
+    </style>
+
+    <!-- The label of a button laid out as an icon and text. -->
+    <style name="Text.ButtonLabel">
+        <item name="android:fontFamily">@font/roboto_medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:maxLines">1</item>
+    </style>
+
     <style name="Button.Text">
         <item name="android:background">?android:attr/selectableItemBackground</item>
         <item name="android:textColor">?attr/suAccent</item>

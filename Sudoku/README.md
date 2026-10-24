@@ -67,16 +67,17 @@ one leaves the other alone.
 ## Playing
 
 - Notes (pencil marks), fill-in-all-notes, and notes that clear themselves when you place a digit.
-- Undo (kept across app restarts), erase, restart, reveal a cell, show the solution.
+- Undo (kept across app restarts), erase, restart, reveal a cell, show the solution, abandon.
 - **Hints** explain the next logical step from your position and highlight it: the cells involved, the
   candidates that form the pattern, and the candidates it removes. If you have entered a wrong digit,
   the hint points that out first. Apply carries the step out.
 - Mistakes show in red as you make them; three mistakes end the game. Both can be switched off.
 - Highlights for the selected cell's row, column, box and matching digits. A finished row, column or box
   flashes. The keypad counts what's left of each digit and hides finished ones.
-- Timer, and a large pause button in the middle of the action bar. Pausing hides the board and shows
-  the puzzle's menu over it: fill in or clear all notes, reveal the selected cell, restart, show the
-  solution, copy the puzzle. Statistics per difficulty, and a win screen with confetti.
+- Timer, and a large pause button in the middle of the action bar. Pausing puts the puzzle's menu in
+  the board's place: a large PAUSED title; fill in or clear all notes, reveal the selected cell, show
+  the solution, copy the puzzle; and at the bottom a white Restart and a red Abandon, each confirmed
+  first. Abandoning counts as a loss. Statistics per difficulty, and a win screen with confetti.
 - Landscape layout and hardware keyboard support: digits, arrows, Backspace, N for notes, H for a hint,
   Space to pause, Ctrl+Z to undo.
 
