@@ -49,7 +49,8 @@ install over the old one and keep your saved games and statistics.
   full houses and hidden singles, as the chapter teaches: Easy, from 40 clues down to 36, except level 6
   and the final level, which are Medium (32 and 30 clues). Level 1 is open to begin with; finishing a level
   opens the levels its paths lead to, lights up the paths walked, and counts towards the chapter's
-  Levels (X/Y) and its badge on the chapter list. Story games have their own save slot, so a level in
+  Levels (X/Y) and its badge on the chapter list. On the map, levels ready to play are blue, finished
+  ones white and the rest dim. Story games have their own save slot, so a level in
   progress is picked up where it was left and never replaces a random game. The other chapters' levels
   are still to come.
 

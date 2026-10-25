@@ -232,15 +232,32 @@ class StoryTest : ScreenTest() {
         }
     }
 
-    /** Taps level [number] on [view], finding it where the map draws it. */
-    private fun tapLevel(view: LevelMapView, number: Int) {
+    /** The centre of level [number]'s stop on [view], where the map draws it. */
+    private fun stopCentre(view: LevelMapView, number: Int): Pair<Float, Float> {
         val level = view.map!!.level(number)
         val density = view.resources.displayMetrics.density
         val inner = view.width - view.paddingLeft - view.paddingRight
         val spread = minOf(inner * 0.3f, 116 * density)
         val x = view.paddingLeft + inner / 2f + (level.lane - 1) * spread
         val y = view.paddingTop + (7 + 30) * density + level.row * 76 * density
+        return x to y
+    }
+
+    /** Taps level [number] on [view]. */
+    private fun tapLevel(view: LevelMapView, number: Int) {
+        val (x, y) = stopCentre(view, number)
         tap(view, x / view.width, y / view.height)
+    }
+
+    /** The colour level [number]'s stop is filled with on [view], just inside its corner, clear of the number. */
+    private fun stopColour(view: LevelMapView, number: Int): Int {
+        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        bitmap.eraseColor(view.context.getColor(R.color.story_bg))
+        view.draw(Canvas(bitmap))
+        val (x, y) = stopCentre(view, number)
+        val density = view.resources.displayMetrics.density
+        val corner = (if (number == view.map!!.final.number) 30 else 22) * density - 4 * density
+        return bitmap.getPixel(Math.round(x - corner), Math.round(y - corner))
     }
 
     @Test
@@ -278,12 +295,19 @@ class StoryTest : ScreenTest() {
         for (level in listOf(2, 3)) app.story.finish(0, level)
         controller.pause().resume()
         assertEquals(setOf(4, 6), view.open)
+        // Finished levels are white, those ready to play blue, and the rest dim.
+        val ready = activity.getColor(R.color.story_level_ready)
+        assertEquals(Palette(activity).accent, stopColour(view, 3))
+        assertEquals(ready, stopColour(view, 4))
+        assertEquals(ready, stopColour(view, 6))
+        assertTrue(stopColour(view, 5) !in setOf(Palette(activity).accent, ready))
         idle(3000) // until the snack from the shut level has gone
         capture(activity, "40_pond_progress")
         // On down the right-hand route of the second half, to the final level.
         for (level in listOf(6, 9, 10)) app.story.finish(0, level)
         controller.pause().resume()
         assertEquals(setOf(4, 7, 11), view.open)
+        assertEquals(activity.getColor(R.color.story_level_ready), stopColour(view, 11))
         assertEquals("Levels (6/11)", activity.view<TextView>(R.id.levels).text.toString())
         activity.view<android.widget.ScrollView>(R.id.scroll).fullScroll(View.FOCUS_DOWN)
         capture(activity, "41_pond_final_open")

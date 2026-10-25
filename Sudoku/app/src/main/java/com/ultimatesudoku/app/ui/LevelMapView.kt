@@ -17,7 +17,7 @@ import kotlin.math.roundToInt
  * A chapter's levels as a node graph, like a metro map: square stops in rows and lanes, joined by
  * right-angled paths. The entrance is at the top and the chapter's final level, drawn larger with a
  * star, at the bottom. Finished levels are filled, and the paths on from them drawn bright; levels
- * ready to play are filled and ringed; the rest are drawn locked.
+ * ready to play are filled blue and ringed; the rest are drawn locked.
  */
 class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
 
@@ -49,6 +49,8 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
         }
 
     private val palette = Palette(context)
+    private val ready = context.getColor(R.color.story_level_ready)
+    private val readyPressed = context.getColor(R.color.story_level_ready_pressed)
     private val fonts = Fonts.get(context)
     private val track = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -115,17 +117,19 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
         val isOpen = level.number in open
         val isFinished = level.number in finished
         val ink: Int
-        if (isOpen || isFinished) {
-            if (!isFinished) {
-                // A ring marks where to go next.
-                edge.color = palette.ink
-                edge.alpha = 110
-                edge.strokeWidth = dp(1.5f)
-                canvas.drawRect(cx - h - ring, cy - h - ring, cx + h + ring, cy + h + ring, edge)
-            }
+        if (isFinished) {
             fill.color = if (pressed == level.number) palette.accentPressed else palette.accent
             canvas.drawRect(cx - h, cy - h, cx + h, cy + h, fill)
             ink = palette.onAccent
+        } else if (isOpen) {
+            // Blue, and ringed, where to go next.
+            edge.color = palette.ink
+            edge.alpha = 110
+            edge.strokeWidth = dp(1.5f)
+            canvas.drawRect(cx - h - ring, cy - h - ring, cx + h + ring, cy + h + ring, edge)
+            fill.color = if (pressed == level.number) readyPressed else ready
+            canvas.drawRect(cx - h, cy - h, cx + h, cy + h, fill)
+            ink = palette.ink
         } else {
             // Opaque first, so the paths stop at the edge.
             fill.color = palette.bg

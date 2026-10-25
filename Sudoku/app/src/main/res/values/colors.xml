@@ -50,4 +50,7 @@
     <color name="story_ink_muted">#B4C6E8</color>
     <color name="story_ink_muted_dark">#93A6CB</color>
     <color name="story_highlight">#A8C4FF</color>
+    <!-- A level on a chapter's map that's open but not yet finished. -->
+    <color name="story_level_ready">#1F6FEB</color>
+    <color name="story_level_ready_pressed">#1A5CC4</color>
 </resources>
