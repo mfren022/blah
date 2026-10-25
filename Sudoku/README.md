@@ -32,8 +32,9 @@ install over the old one and keep your saved games and statistics.
   the harbour, past the lighthouse, over the open sea, up with the kites to the stars, down into the deep,
   and home at daybreak. Each chapter lists the techniques it will teach (`StoryActivity.CHAPTERS`), so the
   generator and grader can target them when the mode is built. Every chapter is open. The chapter list
-  shows each one's number and name, and a badge counting its finished levels out of all, on a darker
-  block that turns blue once the chapter is complete (`data/StoryProgress.kt` keeps the count). Tapping a
+  shows each one's number and name, a badge counting its finished levels out of all, on a darker block
+  that turns blue once the chapter is complete (`data/StoryProgress.kt` keeps the count), and a chevron (a
+  locked chapter would show a faint red lock instead). Tapping a
   chapter opens its screen, on the story's deep blue in either theme:
   - its picture, a pastel pixel-art scene shown as a fine grid of small squares 1dp apart, one square per
     pixel, lit by a circular gradient that is brightest just left of the top-right corner and fades out

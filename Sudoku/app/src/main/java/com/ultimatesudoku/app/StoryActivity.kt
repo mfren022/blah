@@ -1,6 +1,7 @@
 package com.ultimatesudoku.app
 
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.ultimatesudoku.core.LevelMap
@@ -39,13 +40,25 @@ class StoryActivity : BaseActivity() {
                 setBackgroundColor(if (complete) palette.accent else palette.surfacePressed)
                 setTextColor(if (complete) palette.onAccent else palette.inkMuted)
             }
+            showState(row.findViewById(R.id.state), isOpen(i))
             row.contentDescription = getString(R.string.chapter_row, i + 1, chapter.title, finished, map.levels.size)
             row.setOnClickListener { startActivity(ChapterActivity.open(this, i)) }
             list.addView(row)
         }
     }
 
+    /** A chevron on [icon] for an open chapter, or for a locked one a lock, in a faint red. */
+    internal fun showState(icon: ImageView, open: Boolean) {
+        icon.setImageResource(if (open) R.drawable.ic_chevron else R.drawable.ic_lock)
+        // The lock is the theme's red at half strength.
+        icon.setColorFilter(if (open) palette.inkMuted else palette.error)
+        icon.imageAlpha = if (open) 255 else 128
+    }
+
     companion object {
+        /** Every chapter is open; a locked one would show a faint red lock on the list. */
+        fun isOpen(index: Int) = index in CHAPTERS.indices
+
         val CHAPTERS = listOf(
             Chapter(
                 "The Pond", listOf(Technique.FULL_HOUSE, Technique.HIDDEN_SINGLE),

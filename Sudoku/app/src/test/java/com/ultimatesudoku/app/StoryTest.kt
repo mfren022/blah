@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
+import android.widget.ImageView
 import android.widget.TextView
 import com.ultimatesudoku.app.data.Settings
 import com.ultimatesudoku.app.ui.LevelMapView
@@ -82,8 +83,18 @@ class StoryTest : ScreenTest() {
             val complete = finished == total
             assertEquals(if (complete) palette.accent else palette.surfacePressed, (badge.background as ColorDrawable).color)
             assertEquals(if (complete) palette.onAccent else palette.inkMuted, badge.currentTextColor)
+            // Then the chevron on the right, every chapter being open.
+            val icon = row.findViewById<ImageView>(R.id.state)
+            assertEquals(R.drawable.ic_chevron, shadowOf(icon.drawable).createdFromResId)
+            assertEquals(255, icon.imageAlpha)
         }
         capture(story, "15b_story_progress")
+        // No chapter is locked, but if one were, its lock would be a faint red.
+        val icon = rows.getChildAt(2).findViewById<ImageView>(R.id.state)
+        story.showState(icon, open = false)
+        assertEquals(R.drawable.ic_lock, shadowOf(icon.drawable).createdFromResId)
+        assertEquals(128, icon.imageAlpha)
+        capture(story, "15c_story_lock")
         // A chapter's own screen counts the same.
         val levels = chapter(0).view<TextView>(R.id.levels).text.toString()
         assertEquals("Levels (3/${LevelMap.forChapter(0).levels.size})", levels)
