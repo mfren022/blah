@@ -31,16 +31,18 @@ install over the old one and keep your saved games and statistics.
   One summer night she dreams, and a golden fish leads her from the pond through the sleeping village and
   the harbour, past the lighthouse, over the open sea, up with the kites to the stars, down into the deep,
   and home at daybreak. Each chapter lists the techniques it will teach (`StoryActivity.CHAPTERS`), so the
-  generator and grader can target them when the mode is built. Tapping a chapter opens its screen, on the
-  story's deep blue in either theme:
+  generator and grader can target them when the mode is built. Every chapter is open. The chapter list
+  shows each one's number and name, and a badge counting its finished levels out of all, on a darker
+  block that turns blue once the chapter is complete (`data/StoryProgress.kt` keeps the count). Tapping a
+  chapter opens its screen, on the story's deep blue in either theme:
   - its picture, a pastel pixel-art scene shown as a fine grid of small squares 1dp apart, one square per
     pixel, lit by a circular gradient that is brightest just left of the top-right corner and fades out
     by the middle of the screen. The golden fish is somewhere in every one. The pictures are painted by
     `tools/art/paint.py`, one module per chapter;
   - the chapter's title and its part of the story;
   - underneath, a **Levels (finished/total)** header and a node graph of the levels, metro-map style:
-    the routes branch and merge from the entrance down to the chapter's final level. Only the first
-    chapter's first level is open, and levels can't be played yet.
+    the routes branch and merge from the entrance down to the chapter's final level. Each chapter's first
+    level is open, though levels can't be played yet.
 
 ## Continue where you left off
 

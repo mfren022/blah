@@ -139,10 +139,10 @@
     <string name="story_footnote">Story mode is still being built. Random puzzles, the daily challenge and the solver are ready to play now.</string>
     <string name="story_locked">Story mode is coming soon</string>
     <string name="chapter_kicker">Chapter %1$s</string>
-    <string name="chapter_kicker_locked">Chapter %1$s · Locked</string>
     <string name="chapter_levels">Levels (%1$d/%2$d)</string>
-    <string name="chapter_map_open">Level map: %1$s on %2$s. Level 1 is open; the rest are locked.</string>
-    <string name="chapter_map_locked">Level map: %1$s on %2$s, all locked.</string>
+    <string name="chapter_map">Level map: %1$s on %2$s. Level 1 is open; the rest are locked.</string>
+    <string name="chapter_progress">%1$d/%2$d</string>
+    <string name="chapter_row">Chapter %1$d, %2$s, %3$d of %4$d levels finished</string>
 
     <!-- Anna's dream, chapter by chapter, and words for each chapter's picture. -->
     <string name="story_pond">Anna lives in a hut on stilts at the edge of the village pond. One summer evening, as she hangs up her nets, a golden fish rises under the lantern, looks straight at her, and is gone. That night she falls asleep by the open window, and dreams.</string>

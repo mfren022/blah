@@ -29,23 +29,19 @@ class ChapterActivity : BaseActivity() {
         findViewById<View>(R.id.back).setOnClickListener { finish() }
         val index = intent.getIntExtra(EXTRA_CHAPTER, 0).coerceIn(StoryActivity.CHAPTERS.indices)
         val chapter = StoryActivity.CHAPTERS[index]
-        val open = StoryActivity.isOpen(index)
         showArt(chapter)
-        val number = "%02d".format(index + 1)
-        findViewById<TextView>(R.id.kicker).text =
-            getString(if (open) R.string.chapter_kicker else R.string.chapter_kicker_locked, number)
+        findViewById<TextView>(R.id.kicker).text = getString(R.string.chapter_kicker, "%02d".format(index + 1))
         findViewById<TextView>(R.id.chapter_title).text = chapter.title
         findViewById<TextView>(R.id.story).text = getString(chapter.story)
 
         val map = LevelMap.forChapter(index)
-        // Finished out of all: none yet, as levels can't be played until story mode is built.
-        findViewById<TextView>(R.id.levels).text = getString(R.string.chapter_levels, 0, map.levels.size)
+        findViewById<TextView>(R.id.levels).text = getString(R.string.chapter_levels, app.story.finishedIn(index, map), map.levels.size)
         val levels = resources.getQuantityString(R.plurals.levels, map.levels.size, map.levels.size)
         val routes = resources.getQuantityString(R.plurals.routes, map.routes(), map.routes())
         findViewById<LevelMapView>(R.id.map).apply {
             this.map = map
-            this.open = if (open) setOf(map.entrance.number) else emptySet()
-            contentDescription = getString(if (open) R.string.chapter_map_open else R.string.chapter_map_locked, levels, routes)
+            this.open = setOf(map.entrance.number)
+            contentDescription = getString(R.string.chapter_map, levels, routes)
             onLevelTap = LevelMapView.OnLevelTapListener { Snack.show(this@ChapterActivity, getString(R.string.story_locked)) }
         }
     }

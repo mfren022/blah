@@ -6,6 +6,7 @@ import com.ultimatesudoku.app.data.GameStore
 import com.ultimatesudoku.app.data.History
 import com.ultimatesudoku.app.data.Settings
 import com.ultimatesudoku.app.data.Stats
+import com.ultimatesudoku.app.data.StoryProgress
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -17,6 +18,8 @@ class SudokuApp : Application() {
     lateinit var store: GameStore
         private set
     lateinit var history: History
+        private set
+    lateinit var story: StoryProgress
         private set
 
     /** One background thread for disk work, so writes happen in order. */
@@ -31,5 +34,6 @@ class SudokuApp : Application() {
         stats = Stats(prefs)
         store = GameStore(prefs, stats)
         history = History(this)
+        story = StoryProgress(prefs)
     }
 }

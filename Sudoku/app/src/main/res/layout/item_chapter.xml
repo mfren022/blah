@@ -22,35 +22,29 @@
         android:textColor="?attr/suUserDigit"
         android:textSize="15sp" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/name"
+        style="@style/Text.Heading"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_weight="1"
-        android:orientation="vertical">
+        android:maxLines="1" />
 
-        <TextView
-            android:id="@+id/name"
-            style="@style/Text.Heading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/lesson"
-            style="@style/Text.Body.Muted"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textSize="13sp" />
-    </LinearLayout>
-
-    <ImageView
-        android:id="@+id/state"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+    <!-- Levels finished out of all, on a block that turns blue once the chapter is complete. -->
+    <TextView
+        android:id="@+id/progress"
+        style="@style/Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginEnd="4dp"
+        android:fontFamily="@font/roboto_medium"
+        android:gravity="center"
         android:importantForAccessibility="no"
-        android:src="@drawable/ic_lock"
-        android:tint="?attr/suInkMuted" />
+        android:minWidth="52dp"
+        android:paddingStart="8dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="5dp"
+        android:textSize="13sp" />
 </LinearLayout>

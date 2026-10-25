@@ -4,12 +4,14 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Insets
+import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.TextView
 import com.ultimatesudoku.app.data.Settings
 import com.ultimatesudoku.app.ui.LevelMapView
+import com.ultimatesudoku.app.ui.Palette
 import com.ultimatesudoku.app.ui.SquareGlowView
 import com.ultimatesudoku.core.LevelMap
 import org.junit.Assert.assertEquals
@@ -56,6 +58,35 @@ class StoryTest : ScreenTest() {
         val intent = shadowOf(story).nextStartedActivity
         assertEquals(ChapterActivity::class.java.name, intent.component?.className)
         assertEquals(3, intent.getIntExtra("chapter", -1))
+    }
+
+    @Test
+    fun theChapterListCountsFinishedLevels() {
+        // Three levels into the first chapter, and the second finished.
+        for (level in 1..3) app.story.finish(0, level)
+        for (level in LevelMap.forChapter(1).levels) app.story.finish(1, level.number)
+        val story = Robolectric.buildActivity(StoryActivity::class.java).setup().get()
+        val rows = story.view<ViewGroup>(R.id.chapters)
+        val palette = Palette(story)
+        StoryActivity.CHAPTERS.forEachIndexed { i, chapter ->
+            val row = rows.getChildAt(i)
+            val total = LevelMap.forChapter(i).levels.size
+            val finished = when (i) {
+                0 -> 3
+                1 -> total
+                else -> 0
+            }
+            // Just its number, its name and the count, on a darker block, or blue once complete.
+            assertEquals(listOf("%02d".format(i + 1), chapter.title, "$finished/$total"), texts(row).map { it.text.toString() })
+            val badge = row.findViewById<TextView>(R.id.progress)
+            val complete = finished == total
+            assertEquals(if (complete) palette.accent else palette.surfacePressed, (badge.background as ColorDrawable).color)
+            assertEquals(if (complete) palette.onAccent else palette.inkMuted, badge.currentTextColor)
+        }
+        capture(story, "15b_story_progress")
+        // A chapter's own screen counts the same.
+        val levels = chapter(0).view<TextView>(R.id.levels).text.toString()
+        assertEquals("Levels (3/${LevelMap.forChapter(0).levels.size})", levels)
     }
 
     @Test
@@ -169,12 +200,15 @@ class StoryTest : ScreenTest() {
     }
 
     @Test
-    fun aLockedChapter() {
-        val activity = chapter(5)
-        assertEquals("Chapter 06 · Locked", activity.view<TextView>(R.id.kicker).text.toString())
-        assertTrue(activity.view<LevelMapView>(R.id.map).open.isEmpty())
-        assertEquals("Levels (0/${LevelMap.forChapter(5).levels.size})", activity.view<TextView>(R.id.levels).text.toString())
-        capture(activity, "34_chapter_locked")
+    fun everyChapterIsOpen() {
+        for (index in StoryActivity.CHAPTERS.indices) {
+            val activity = chapter(index)
+            assertEquals("Chapter %02d".format(index + 1), activity.view<TextView>(R.id.kicker).text.toString())
+            // Its first level ready to play, once levels can be played.
+            val map = activity.view<LevelMapView>(R.id.map)
+            assertEquals(setOf(map.map!!.entrance.number), map.open)
+            if (index == 5) capture(activity, "34_chapter_6")
+        }
     }
 
     @Test
