@@ -10,10 +10,17 @@ import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.ImageView
 import android.widget.TextView
+import com.ultimatesudoku.app.data.GameStore
 import com.ultimatesudoku.app.data.Settings
+import com.ultimatesudoku.app.ui.BoardView
 import com.ultimatesudoku.app.ui.LevelMapView
+import com.ultimatesudoku.app.ui.NumberPadView
 import com.ultimatesudoku.app.ui.Palette
 import com.ultimatesudoku.app.ui.SquareGlowView
+import com.ultimatesudoku.core.Difficulty
+import com.ultimatesudoku.core.Game
+import com.ultimatesudoku.core.GameMode
+import com.ultimatesudoku.core.Grid
 import com.ultimatesudoku.core.LevelMap
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -26,6 +33,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowDialog
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -113,6 +121,8 @@ class StoryTest : ScreenTest() {
         // Under the story, only the levels header, counting those finished out of all.
         assertEquals("Levels (0/${map.levels.size})", activity.view<TextView>(R.id.levels).text.toString())
         assertEquals(listOf(R.id.kicker, R.id.chapter_title, R.id.story, R.id.levels), texts(activity.view(R.id.header)).map { it.id })
+        // Its levels can be played, so no word of story mode still being built.
+        assertEquals(View.GONE, activity.view<View>(R.id.footnote).visibility)
         assertTrue(view.height > 0)
         capture(activity, "33_chapter")
     }
@@ -222,16 +232,114 @@ class StoryTest : ScreenTest() {
         }
     }
 
+    /** Taps level [number] on [view], finding it where the map draws it. */
+    private fun tapLevel(view: LevelMapView, number: Int) {
+        val level = view.map!!.level(number)
+        val density = view.resources.displayMetrics.density
+        val inner = view.width - view.paddingLeft - view.paddingRight
+        val spread = minOf(inner * 0.3f, 116 * density)
+        val x = view.paddingLeft + inner / 2f + (level.lane - 1) * spread
+        val y = view.paddingTop + (7 + 30) * density + level.row * 76 * density
+        tap(view, x / view.width, y / view.height)
+    }
+
     @Test
-    fun tappingALevelSaysStoryModeIsComing() {
+    fun theOtherChaptersAreStillComing() {
+        val activity = chapter(1)
+        assertEquals(View.VISIBLE, activity.view<View>(R.id.footnote).visibility)
+        tapLevel(activity.view(R.id.map), 1)
+        assertNotNull(findText(activity.window.decorView, activity.getString(R.string.story_locked)))
+        assertEquals(null, shadowOf(activity).nextStartedActivity)
+    }
+
+    @Test
+    fun playingThePond() {
+        val controller = Robolectric.buildActivity(ChapterActivity::class.java, ChapterActivity.open(app, 0)).setup()
+        val activity = controller.get()
+        val view = activity.view<LevelMapView>(R.id.map)
+        // To begin with, only the entrance.
+        assertEquals(setOf(1), view.open)
+        assertEquals("Levels (0/11)", activity.view<TextView>(R.id.levels).text.toString())
+        // A level further on stays shut until one leading to it is finished.
+        tapLevel(view, 2)
+        assertNotNull(findText(activity.window.decorView, activity.getString(R.string.level_locked)))
+        assertEquals(null, shadowOf(activity).nextStartedActivity)
+        // The entrance starts its fixed puzzle.
+        tapLevel(view, 1)
+        val intent = shadowOf(activity).nextStartedActivity
+        assertEquals(GameActivity::class.java.name, intent.component?.className)
+        assertEquals(listOf("story", 0, 1), listOf(intent.getStringExtra("new"), intent.getIntExtra("chapter", -1), intent.getIntExtra("level", -1)))
+        // Finishing it opens both routes on; finishing one of them through opens level 6.
+        app.story.finish(0, 1)
+        controller.pause().resume()
+        assertEquals(setOf(1), view.finished)
+        assertEquals(setOf(2, 4), view.open)
+        assertEquals("Levels (1/11)", activity.view<TextView>(R.id.levels).text.toString())
+        for (level in listOf(2, 3)) app.story.finish(0, level)
+        controller.pause().resume()
+        assertEquals(setOf(4, 6), view.open)
+        idle(3000) // until the snack from the shut level has gone
+        capture(activity, "40_pond_progress")
+        // On down the right-hand route of the second half, to the final level.
+        for (level in listOf(6, 9, 10)) app.story.finish(0, level)
+        controller.pause().resume()
+        assertEquals(setOf(4, 7, 11), view.open)
+        assertEquals("Levels (6/11)", activity.view<TextView>(R.id.levels).text.toString())
+        activity.view<android.widget.ScrollView>(R.id.scroll).fullScroll(View.FOCUS_DOWN)
+        capture(activity, "41_pond_final_open")
+    }
+
+    @Test
+    fun winningAStoryLevel() {
+        val activity = Robolectric.buildActivity(GameActivity::class.java, GameActivity.newStory(app, 0, 1)).setup().get()
+        val game = checkNotNull(app.store.game(GameStore.Slot.STORY))
+        assertEquals(GameMode.STORY, game.mode)
+        assertEquals(Difficulty.EASY, game.difficulty)
+        assertEquals("The Pond · Level 1", activity.view<TextView>(R.id.mode_label).text.toString())
+        val board = activity.view<BoardView>(R.id.board)
+        val pad = activity.view<NumberPadView>(R.id.numpad)
+        for (cell in 0 until 81) {
+            if (game.givens[cell] != 0) continue
+            tap(board, (Grid.col(cell) + 0.5f) / 9f, (Grid.row(cell) + 0.5f) / 9f)
+            tap(pad, (game.solution[cell] - 0.5f) / 9f, 0.5f)
+        }
+        idle(1500)
+        assertEquals(Game.Status.WON, game.status)
+        // It counts as finished, and the win screen leads back to the chapter.
+        assertEquals(setOf(1), app.story.finished(0))
+        val back = activity.view<TextView>(R.id.win_primary)
+        assertEquals(activity.getString(R.string.story_back), back.text.toString())
+        back.performClick()
+        assertTrue(activity.isFinishing)
+    }
+
+    @Test
+    fun theFinalLevelIsMedium() {
+        val activity = Robolectric.buildActivity(GameActivity::class.java, GameActivity.newStory(app, 0, 11)).setup().get()
+        assertEquals(Difficulty.MEDIUM, app.store.game(GameStore.Slot.STORY)!!.difficulty)
+        assertEquals("The Pond · Final level", activity.view<TextView>(R.id.mode_label).text.toString())
+    }
+
+    @Test
+    fun switchingLevelsAsksFirst() {
+        app.story.finish(0, 1)
+        // Level 4 under way.
+        Robolectric.buildActivity(GameActivity::class.java, GameActivity.newStory(app, 0, 4)).setup()
+        val saved = checkNotNull(app.store.game(GameStore.Slot.STORY))
+        val cell = (0 until 81).first { saved.givens[it] == 0 }
+        saved.enter(cell, saved.solution[cell], true, true)
+        app.store.save(GameStore.Slot.STORY, saved)
         val activity = chapter(0)
         val view = activity.view<LevelMapView>(R.id.map)
-        // The entrance sits at the top, in the middle lane.
-        val map = view.map!!
-        val top = view.paddingTop + view.resources.displayMetrics.density * (7 + 30)
-        tap(view, 0.5f, top / view.height)
-        assertNotNull(findText(activity.window.decorView, activity.getString(R.string.story_locked)))
-        assertEquals(1, map.entrance.number)
+        // Going back to level 4 carries on with it...
+        tapLevel(view, 4)
+        val resume = shadowOf(activity).nextStartedActivity
+        assertEquals(null, resume.getStringExtra("new"))
+        assertEquals("STORY", resume.getStringExtra("slot"))
+        // ...and starting level 2 instead asks first.
+        tapLevel(view, 2)
+        assertEquals(null, shadowOf(activity).nextStartedActivity)
+        assertNotNull(findText(ShadowDialog.getLatestDialog().window!!.decorView, activity.getString(R.string.level_replace_title)))
     }
 
     @Test

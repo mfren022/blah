@@ -7,12 +7,12 @@ import kotlin.random.Random
  * The levels of one story chapter and the paths between them. Levels sit in rows, from the entrance
  * (row 0) down to the chapter's final level, in up to three lanes. Every path leads from a level to
  * one in the next row, so routes branch and merge but each visits one level per row, and no two
- * paths cross.
+ * paths cross. Paths are listed row by row.
  */
 class LevelMap(val levels: List<Level>, val paths: List<Path>) {
 
-    /** A level, numbered from 1 in reading order: row by row, left to right. */
-    data class Level(val number: Int, val row: Int, val lane: Int)
+    /** A level, numbered from 1, and how hard its puzzle is. */
+    data class Level(val number: Int, val row: Int, val lane: Int, val difficulty: Difficulty = Difficulty.EASY)
 
     /** A path from level [from] to level [to], by number. */
     data class Path(val from: Int, val to: Int)
@@ -43,10 +43,32 @@ class LevelMap(val levels: List<Level>, val paths: List<Path>) {
         private val TRIPLE = listOf(0, 1, 2)
 
         /**
-         * The map for chapter [index] (from 0): a placeholder until the levels are designed, but the
-         * same every time and different for every chapter. Later chapters run longer.
+         * Chapter 1, The Pond: from level 1, two routes (2 then 3, or 4 then 5) to level 6, then two
+         * more (7 then 8, or 9 then 10) to the final level. Levels are numbered down each route in
+         * turn; 6 and the final level are Medium, the rest Easy.
          */
-        fun forChapter(index: Int): LevelMap {
+        private val POND = LevelMap(
+            listOf(
+                Level(1, 0, 1),
+                Level(2, 1, 0), Level(3, 2, 0), Level(4, 1, 2), Level(5, 2, 2),
+                Level(6, 3, 1, Difficulty.MEDIUM),
+                Level(7, 4, 0), Level(8, 5, 0), Level(9, 4, 2), Level(10, 5, 2),
+                Level(11, 6, 1, Difficulty.MEDIUM),
+            ),
+            listOf(
+                Path(1, 2), Path(1, 4), Path(2, 3), Path(4, 5), Path(3, 6), Path(5, 6),
+                Path(6, 7), Path(6, 9), Path(7, 8), Path(9, 10), Path(8, 11), Path(10, 11),
+            ),
+        )
+
+        /**
+         * The map for chapter [index] (from 0). Chapter 1's is designed; the others are placeholders
+         * until theirs are, numbered in reading order (row by row, left to right), the same every time
+         * and different for every chapter. Later chapters run longer.
+         */
+        fun forChapter(index: Int): LevelMap = if (index == 0) POND else placeholder(index)
+
+        private fun placeholder(index: Int): LevelMap {
             val random = Random(0x5D0C + index * 31)
             val rows = ArrayList<List<Int>>()
             rows += SINGLE

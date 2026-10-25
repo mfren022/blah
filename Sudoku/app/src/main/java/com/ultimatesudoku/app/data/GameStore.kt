@@ -8,12 +8,12 @@ import com.ultimatesudoku.core.GameMode
 import java.util.concurrent.Executors
 
 /**
- * Saved games and puzzle generation. There are two save slots so a daily challenge in progress
- * survives starting a random game, and vice versa.
+ * Saved games and puzzle generation. Each kind of game has its own save slot, so a daily challenge
+ * or a story level in progress survives starting a random game, and the other way round.
  */
 class GameStore(private val prefs: SharedPreferences, private val stats: Stats) {
 
-    enum class Slot { MAIN, DAILY }
+    enum class Slot { MAIN, DAILY, STORY }
 
     private val loaded = HashMap<Slot, Game?>()
     private val main = Handler(Looper.getMainLooper())

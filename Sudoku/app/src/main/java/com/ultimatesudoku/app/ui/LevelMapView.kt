@@ -15,8 +15,9 @@ import kotlin.math.roundToInt
 
 /**
  * A chapter's levels as a node graph, like a metro map: square stops in rows and lanes, joined by
- * right-angled paths. The entrance is at the top and the chapter's final level, drawn larger, at
- * the bottom. Open levels are filled and ringed; the rest are drawn locked.
+ * right-angled paths. The entrance is at the top and the chapter's final level, drawn larger with a
+ * star, at the bottom. Finished levels are filled, and the paths on from them drawn bright; levels
+ * ready to play are filled and ringed; the rest are drawn locked.
  */
 class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
 
@@ -33,8 +34,15 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
             invalidate()
         }
 
-    /** Numbers of the levels that can be played now. */
+    /** Numbers of the levels ready to play next. */
     var open: Set<Int> = emptySet()
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    /** Numbers of the levels finished. */
+    var finished: Set<Int> = emptySet()
         set(value) {
             field = value
             invalidate()
@@ -51,7 +59,7 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
     private val edge = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val label = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER }
     private val route = Path()
-    private val finalMark = context.getDrawable(R.drawable.ic_logo)!!.mutate()
+    private val finalMark = context.getDrawable(R.drawable.ic_star)!!.mutate()
 
     private val stop = dp(44f)
     private val finalStop = dp(60f)
@@ -81,10 +89,12 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
     override fun onDraw(canvas: Canvas) {
         val map = map ?: return
         // Paths run centre to centre under the stops: down, across halfway between the rows, down.
-        track.strokeWidth = dp(2f)
+        // Those on from a finished level are walked, and drawn bright.
         track.color = palette.ink
-        track.alpha = 70
         for (path in map.paths) {
+            val walked = path.from in finished
+            track.strokeWidth = dp(if (walked) 3f else 2f)
+            track.alpha = if (walked) 210 else 70
             val from = map.level(path.from)
             val to = map.level(path.to)
             val mid = (y(from.row) + y(to.row)) / 2
@@ -103,13 +113,16 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
         val cy = y(level.row)
         val h = half(map, level)
         val isOpen = level.number in open
+        val isFinished = level.number in finished
         val ink: Int
-        if (isOpen) {
-            // A ring marks where to go next.
-            edge.color = palette.ink
-            edge.alpha = 110
-            edge.strokeWidth = dp(1.5f)
-            canvas.drawRect(cx - h - ring, cy - h - ring, cx + h + ring, cy + h + ring, edge)
+        if (isOpen || isFinished) {
+            if (!isFinished) {
+                // A ring marks where to go next.
+                edge.color = palette.ink
+                edge.alpha = 110
+                edge.strokeWidth = dp(1.5f)
+                canvas.drawRect(cx - h - ring, cy - h - ring, cx + h + ring, cy + h + ring, edge)
+            }
             fill.color = if (pressed == level.number) palette.accentPressed else palette.accent
             canvas.drawRect(cx - h, cy - h, cx + h, cy + h, fill)
             ink = palette.onAccent

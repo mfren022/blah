@@ -26,7 +26,13 @@ class StoryActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setScreen(R.layout.activity_story, getString(R.string.story_title))
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Fresh counts, after a level has been played.
         val list = findViewById<LinearLayout>(R.id.chapters)
+        list.removeAllViews()
         CHAPTERS.forEachIndexed { i, chapter ->
             val row = layoutInflater.inflate(R.layout.item_chapter, list, false)
             val map = LevelMap.forChapter(i)

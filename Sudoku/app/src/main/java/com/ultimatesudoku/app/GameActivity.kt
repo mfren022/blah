@@ -45,8 +45,10 @@ import com.ultimatesudoku.core.Game
 import com.ultimatesudoku.core.GameMode
 import com.ultimatesudoku.core.Generator
 import com.ultimatesudoku.core.Grid
+import com.ultimatesudoku.core.LevelMap
 import com.ultimatesudoku.core.LogicSolver
 import com.ultimatesudoku.core.SolvedBoard
+import com.ultimatesudoku.core.StoryPuzzles
 import java.time.LocalDate
 import kotlin.math.abs
 import kotlin.random.Random
@@ -269,6 +271,14 @@ class GameActivity : BaseActivity() {
                     Grid.parse(intent.getStringExtra(EXTRA_GIVENS)!!)!!,
                     Grid.parse(intent.getStringExtra(EXTRA_SOLUTION)!!)!!,
                 )
+                store.start(slot, g)
+                onGameReady(g)
+            }
+            KIND_STORY -> {
+                val chapter = intent.getIntExtra(EXTRA_CHAPTER, 0)
+                val level = LevelMap.forChapter(chapter).level(intent.getIntExtra(EXTRA_LEVEL, 1))
+                val (givens, solution) = checkNotNull(StoryPuzzles.puzzle(chapter, level.number))
+                val g = Game(GameMode.STORY, level.difficulty, givens, solution, StoryPuzzles.tag(chapter, level.number))
                 store.start(slot, g)
                 onGameReady(g)
             }
@@ -675,8 +685,10 @@ class GameActivity : BaseActivity() {
                     save()
                 },
                 Dialogs.Action(getString(R.string.restart_confirm)) { restart() },
-                Dialogs.Action(getString(if (g.mode == GameMode.RANDOM) R.string.new_game else R.string.home)) {
-                    if (g.mode == GameMode.RANDOM) nextGame(g) else goHome()
+                when (g.mode) {
+                    GameMode.RANDOM -> Dialogs.Action(getString(R.string.new_game)) { nextGame(g) }
+                    GameMode.STORY -> Dialogs.Action(getString(R.string.story_back)) { finish() }
+                    else -> Dialogs.Action(getString(R.string.home)) { goHome() }
                 },
             ),
             cancelable = false,
@@ -692,6 +704,8 @@ class GameActivity : BaseActivity() {
         var newBest = false
         if (g.mode != GameMode.CUSTOM) newBest = app.stats.won(g.difficulty, g.elapsedMs, g.isPerfect)
         if (g.mode == GameMode.DAILY) app.stats.completeDaily(g.tag, g.elapsedMs)
+        // A story level, once finished, opens the levels its paths lead to.
+        if (g.mode == GameMode.STORY) StoryPuzzles.parseTag(g.tag)?.let { (chapter, level) -> app.story.finish(chapter, level) }
         // Every completed board goes into the history, whatever the mode.
         val board = SolvedBoard.of(g, System.currentTimeMillis())
         app.io.execute { app.history.add(board) }
@@ -741,9 +755,15 @@ class GameActivity : BaseActivity() {
         val primary = findViewById<TextView>(R.id.win_primary)
         val secondary = findViewById<TextView>(R.id.win_secondary)
         when (g.mode) {
-            GameMode.RANDOM, GameMode.STORY -> {
+            GameMode.RANDOM -> {
                 primary.text = getString(R.string.new_game)
                 primary.setOnClickListener { nextGame(g) }
+                secondary.text = getString(R.string.home)
+                secondary.setOnClickListener { goHome() }
+            }
+            GameMode.STORY -> {
+                primary.text = getString(R.string.story_back)
+                primary.setOnClickListener { finish() }
                 secondary.text = getString(R.string.home)
                 secondary.setOnClickListener { goHome() }
             }
@@ -896,6 +916,9 @@ class GameActivity : BaseActivity() {
         private const val KIND_RANDOM = "random"
         private const val KIND_DAILY = "daily"
         private const val KIND_CUSTOM = "custom"
+        private const val KIND_STORY = "story"
+        private const val EXTRA_CHAPTER = "chapter"
+        private const val EXTRA_LEVEL = "level"
         private const val STATE_SELECTED = "selected"
         private const val STATE_NOTES = "notes"
         private const val STATE_PAUSED = "paused"
@@ -910,6 +933,14 @@ class GameActivity : BaseActivity() {
             Intent(context, GameActivity::class.java)
                 .putExtra(EXTRA_SLOT, GameStore.Slot.DAILY.name)
                 .putExtra(EXTRA_NEW, KIND_DAILY)
+
+        /** Starts level [level] of story chapter [chapter] (from 0) afresh, from its fixed puzzle. */
+        fun newStory(context: Context, chapter: Int, level: Int): Intent =
+            Intent(context, GameActivity::class.java)
+                .putExtra(EXTRA_SLOT, GameStore.Slot.STORY.name)
+                .putExtra(EXTRA_NEW, KIND_STORY)
+                .putExtra(EXTRA_CHAPTER, chapter)
+                .putExtra(EXTRA_LEVEL, level)
 
         fun newCustom(context: Context, givens: IntArray, solution: IntArray, difficulty: Difficulty): Intent =
             Intent(context, GameActivity::class.java)

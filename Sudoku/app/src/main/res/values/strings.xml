@@ -58,6 +58,8 @@
     <string name="mode_random">Random</string>
     <string name="mode_daily">Daily · %1$s</string>
     <string name="mode_custom">Custom puzzle</string>
+    <string name="mode_story">%1$s · Level %2$d</string>
+    <string name="mode_story_final">%1$s · Final level</string>
     <string name="select_cell_first">Tap a cell first</string>
     <string name="board_incorrect">The grid is full, but some digits are wrong</string>
     <string name="hint_apply">Apply</string>
@@ -90,6 +92,7 @@
     <string name="keep_playing">Keep playing</string>
     <string name="new_game">New game</string>
     <string name="home">Home</string>
+    <string name="story_back">Back to the chapter</string>
     <string name="win_title">Solved</string>
     <string name="win_daily_title">Daily solved</string>
     <string name="win_time">Time</string>
@@ -140,7 +143,11 @@
     <string name="story_locked">Story mode is coming soon</string>
     <string name="chapter_kicker">Chapter %1$s</string>
     <string name="chapter_levels">Levels (%1$d/%2$d)</string>
-    <string name="chapter_map">Level map: %1$s on %2$s. Level 1 is open; the rest are locked.</string>
+    <string name="chapter_map">Level map: %1$s on %2$s; %3$d finished, %4$d ready to play.</string>
+    <string name="level_locked">Finish a level that leads here to open it</string>
+    <string name="level_replace_title">Start this level?</string>
+    <string name="level_replace_message">You\'ll lose your progress on the level you were playing.</string>
+    <string name="level_replace_confirm">Start</string>
     <string name="chapter_progress">%1$d/%2$d</string>
     <string name="chapter_row">Chapter %1$d, %2$s, %3$d of %4$d levels finished</string>
 

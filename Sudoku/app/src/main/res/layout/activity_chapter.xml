@@ -80,7 +80,9 @@
                 android:paddingEnd="20dp"
                 android:paddingBottom="8dp" />
 
+            <!-- Only on chapters that can't be played yet. -->
             <TextView
+                android:id="@+id/footnote"
                 style="@style/Text.Body.Muted"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

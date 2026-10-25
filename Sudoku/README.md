@@ -42,8 +42,16 @@ install over the old one and keep your saved games and statistics.
     `tools/art/paint.py`, one module per chapter;
   - the chapter's title and its part of the story;
   - underneath, a **Levels (finished/total)** header and a node graph of the levels, metro-map style:
-    the routes branch and merge from the entrance down to the chapter's final level. Each chapter's first
-    level is open, though levels can't be played yet.
+    the routes branch and merge from the entrance down to the chapter's final level, marked with a star.
+- **Chapter 1, The Pond, can be played.** Its eleven levels are laid out as designed: level 1, then two
+  routes (2 then 3, or 4 then 5) to level 6, then two more (7 then 8, or 9 then 10) to the final level.
+  Each level is a fixed puzzle (`core/StoryPuzzles.kt`), the same for everyone and solvable with only
+  full houses and hidden singles, as the chapter teaches: Easy, from 40 clues down to 36, except level 6
+  and the final level, which are Medium (32 and 30 clues). Level 1 is open to begin with; finishing a level
+  opens the levels its paths lead to, lights up the paths walked, and counts towards the chapter's
+  Levels (X/Y) and its badge on the chapter list. Story games have their own save slot, so a level in
+  progress is picked up where it was left and never replaces a random game. The other chapters' levels
+  are still to come.
 
 ## Continue where you left off
 
