@@ -55,7 +55,8 @@ class StoryTest : ScreenTest() {
     fun theFirstChapter() {
         val activity = chapter(0)
         assertEquals("Chapter 01", activity.view<TextView>(R.id.kicker).text.toString())
-        assertEquals("The Old Quarter", activity.view<TextView>(R.id.chapter_title).text.toString())
+        assertEquals("The Pond", activity.view<TextView>(R.id.chapter_title).text.toString())
+        assertTrue(activity.view<TextView>(R.id.story).text.startsWith("Anna lives in a hut on stilts"))
         val map = LevelMap.forChapter(0)
         val view = activity.view<LevelMapView>(R.id.map)
         assertEquals(map.levels, view.map!!.levels)
@@ -104,8 +105,25 @@ class StoryTest : ScreenTest() {
             checked++
         }
         assertEquals(5, checked)
-        // The other chapters still have the plain grid.
-        assertEquals(null, chapter(1).view<SquareGlowView>(R.id.glow).art)
+    }
+
+    @Test
+    fun everyChapterHasItsStoryAndPicture() {
+        val pictures = HashSet<List<Int>>()
+        StoryActivity.CHAPTERS.forEachIndexed { index, chapter ->
+            val activity = chapter(index)
+            assertEquals(chapter.title, activity.view<TextView>(R.id.chapter_title).text.toString())
+            assertEquals(activity.getString(chapter.story), activity.view<TextView>(R.id.story).text.toString())
+            val glow = activity.view<SquareGlowView>(R.id.glow)
+            val art = checkNotNull(glow.art)
+            assertEquals(64, art.width)
+            assertEquals(72, art.height)
+            assertEquals(activity.getString(chapter.artDescription), glow.contentDescription)
+            pictures += IntArray(art.width * art.height).also { art.getPixels(it, 0, art.width, 0, 0, art.width, art.height) }.toList()
+            capture(activity, "39_chapter_%d".format(index + 1))
+        }
+        // Nine different pictures.
+        assertEquals(StoryActivity.CHAPTERS.size, pictures.size)
     }
 
     private fun blend(from: Int, to: Int, t: Float) = Color.rgb(
@@ -148,7 +166,7 @@ class StoryTest : ScreenTest() {
         assertEquals("Chapter 06 · Locked", activity.view<TextView>(R.id.kicker).text.toString())
         assertTrue(activity.view<LevelMapView>(R.id.map).open.isEmpty())
         val summary = activity.view<TextView>(R.id.summary).text.toString()
-        assertTrue(summary, summary.endsWith("Finish The Observatory to open this district."))
+        assertTrue(summary, summary.endsWith("Finish The Open Sea to open this chapter."))
         capture(activity, "34_chapter_locked")
     }
 
@@ -166,8 +184,10 @@ class StoryTest : ScreenTest() {
 
     @Test
     fun theGlowIsBrightestNearTheTopRight() {
+        // The grid as it is without a picture: plain white squares under the light.
         val activity = chapter(1)
         val glow = activity.view<SquareGlowView>(R.id.glow)
+        glow.art = null
         val bitmap = Bitmap.createBitmap(glow.width, glow.height, Bitmap.Config.ARGB_8888)
         bitmap.eraseColor(Color.BLACK)
         glow.draw(Canvas(bitmap))

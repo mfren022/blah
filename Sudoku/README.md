@@ -27,15 +27,17 @@ install over the old one and keep your saved games and statistics.
   - **Step** shows the next deduction a person would make, highlighted on the board with every
     candidate pencilled in.
   - **Play it** turns a valid puzzle into a game.
-- **Story mode** (placeholder): *The Nine Districts*, nine chapters. Each chapter lists the techniques
-  it will teach (`StoryActivity.CHAPTERS`), so the generator and grader can target them when the mode is
-  built. Tapping a chapter opens its screen, on the story's deep blue in either theme:
-  - its art, as a fine grid of small squares 1dp apart, lit by a circular gradient that is brightest
-    just left of the top-right corner and fades out by the middle of the screen. Chapter 1's squares
-    show a pastel pixel-art scene, a fishing hut on stilts in a pond at dusk, one square per art pixel
-    (painted by `tools/art/old_quarter.py`); the other chapters' squares are plain white until they
-    get art;
-  - the chapter's title, lesson and techniques;
+- **Story mode** (placeholder): *Anna's Dream*, in nine chapters. Anna mends nets in a fishing village.
+  One summer night she dreams, and a golden fish leads her from the pond through the sleeping village and
+  the harbour, past the lighthouse, over the open sea, up with the kites to the stars, down into the deep,
+  and home at daybreak. Each chapter lists the techniques it will teach (`StoryActivity.CHAPTERS`), so the
+  generator and grader can target them when the mode is built. Tapping a chapter opens its screen, on the
+  story's deep blue in either theme:
+  - its picture, a pastel pixel-art scene shown as a fine grid of small squares 1dp apart, one square per
+    pixel, lit by a circular gradient that is brightest just left of the top-right corner and fades out
+    by the middle of the screen. The golden fish is somewhere in every one. The pictures are painted by
+    `tools/art/paint.py`, one module per chapter;
+  - the chapter's title, its part of the story, and the techniques it teaches;
   - underneath, a node graph of its levels, metro-map style: the routes branch and merge from the
     entrance down to the chapter's final level. Only the first chapter's first level is open, and
     levels can't be played yet.

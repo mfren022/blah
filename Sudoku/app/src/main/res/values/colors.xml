@@ -44,7 +44,7 @@
     <color name="button_danger">#C62828</color>
     <color name="button_danger_ink">#FFFFFF</color>
 
-    <!-- Story: the city at night, light ink on deep blue in either theme. -->
+    <!-- Story: Anna's dream, a night at sea; light ink on deep blue in either theme. -->
     <color name="story_bg">#0A3C8C</color>
     <color name="story_bg_dark">#0B1D42</color>
     <color name="story_ink_muted">#B4C6E8</color>

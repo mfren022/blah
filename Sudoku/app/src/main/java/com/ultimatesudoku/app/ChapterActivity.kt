@@ -13,9 +13,9 @@ import com.ultimatesudoku.app.ui.systemBarInsets
 import com.ultimatesudoku.core.LevelMap
 
 /**
- * One story chapter, on the story's deep blue whatever the theme: its art glowing through a grid of
- * squares (plain white ones until it has art), what it teaches, and underneath, the map of its levels
- * and the routes through them. Levels can't be played until story mode is built.
+ * One story chapter, on the story's deep blue whatever the theme: its picture glowing through a grid of
+ * squares, its part of Anna's dream and what it teaches, and underneath, the map of its levels and the
+ * routes through them. Levels can't be played until story mode is built.
  */
 class ChapterActivity : BaseActivity() {
 
@@ -30,12 +30,12 @@ class ChapterActivity : BaseActivity() {
         val index = intent.getIntExtra(EXTRA_CHAPTER, 0).coerceIn(StoryActivity.CHAPTERS.indices)
         val chapter = StoryActivity.CHAPTERS[index]
         val open = StoryActivity.isOpen(index)
-        if (chapter.art != 0) showArt(chapter)
+        showArt(chapter)
         val number = "%02d".format(index + 1)
         findViewById<TextView>(R.id.kicker).text =
             getString(if (open) R.string.chapter_kicker else R.string.chapter_kicker_locked, number)
         findViewById<TextView>(R.id.chapter_title).text = chapter.title
-        findViewById<TextView>(R.id.lesson).text = chapter.lesson
+        findViewById<TextView>(R.id.story).text = getString(chapter.story)
         findViewById<TextView>(R.id.techniques).text = chapter.techniques.joinToString("  ·  ") { it.title }
 
         val map = LevelMap.forChapter(index)
@@ -55,15 +55,12 @@ class ChapterActivity : BaseActivity() {
         }
     }
 
-    /** Lights the grid with the chapter's art, and starts the title below the picture's brightest part. */
+    /** Lights the grid with the chapter's picture. */
     private fun showArt(chapter: StoryActivity.Chapter) {
         findViewById<SquareGlowView>(R.id.glow).apply {
             art = BitmapFactory.decodeResource(resources, chapter.art, BitmapFactory.Options().apply { inScaled = false })
             contentDescription = getString(chapter.artDescription)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-        }
-        findViewById<View>(R.id.header).apply {
-            setPadding(paddingLeft, resources.getDimensionPixelSize(R.dimen.chapter_picture_space), paddingRight, paddingBottom)
         }
     }
 

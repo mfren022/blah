@@ -7,19 +7,20 @@ import android.widget.TextView
 import com.ultimatesudoku.core.Technique
 
 /**
- * Story mode placeholder. The chapter plan is real data so the mode can be built on it: each
- * chapter names the techniques its puzzles should teach, which the generator and LogicSolver can
- * already target and grade.
+ * Story mode placeholder: Anna's dream, in nine chapters. The chapter plan is real data so the mode
+ * can be built on it: each chapter names the techniques its puzzles should teach, which the generator
+ * and LogicSolver can already target and grade.
  */
 class StoryActivity : BaseActivity() {
 
-    /** A chapter of the story, and its art if it has some yet (a drawable, and words for it). */
+    /** A chapter of the story: what it teaches, its part of Anna's dream, and its picture, with words for it. */
     class Chapter(
         val title: String,
         val lesson: String,
         val techniques: List<Technique>,
-        val art: Int = 0,
-        val artDescription: Int = 0,
+        val story: Int,
+        val art: Int,
+        val artDescription: Int,
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,25 +41,46 @@ class StoryActivity : BaseActivity() {
     }
 
     companion object {
-        /** Until story mode is built, only the first district is open, and only its first level. */
+        /** Until story mode is built, only the first chapter is open, and only its first level. */
         fun isOpen(index: Int) = index == 0
 
         val CHAPTERS = listOf(
             Chapter(
-                "The Old Quarter",
-                "Full houses and hidden singles",
-                listOf(Technique.FULL_HOUSE, Technique.HIDDEN_SINGLE),
-                art = R.drawable.art_old_quarter,
-                artDescription = R.string.art_old_quarter,
+                "The Pond", "Full houses and hidden singles", listOf(Technique.FULL_HOUSE, Technique.HIDDEN_SINGLE),
+                R.string.story_pond, R.drawable.art_pond, R.string.art_pond,
             ),
-            Chapter("Market Street", "Naked singles", listOf(Technique.NAKED_SINGLE)),
-            Chapter("The Harbour", "Pointing and claiming", listOf(Technique.POINTING, Technique.CLAIMING)),
-            Chapter("Twin Bridges", "Naked and hidden pairs", listOf(Technique.NAKED_PAIR, Technique.HIDDEN_PAIR)),
-            Chapter("The Observatory", "Triples and the X-Wing", listOf(Technique.NAKED_TRIPLE, Technique.HIDDEN_TRIPLE, Technique.X_WING)),
-            Chapter("Skyline", "Skyscrapers and kites", listOf(Technique.SKYSCRAPER, Technique.TWO_STRING_KITE)),
-            Chapter("The Gardens", "XY-Wings and XYZ-Wings", listOf(Technique.XY_WING, Technique.XYZ_WING, Technique.W_WING)),
-            Chapter("Deep Water", "Swordfish and coloring", listOf(Technique.SWORDFISH, Technique.SIMPLE_COLORING)),
-            Chapter("The Summit", "Chains and unique rectangles", listOf(Technique.XY_CHAIN, Technique.UNIQUE_RECTANGLE, Technique.JELLYFISH)),
+            Chapter(
+                "The Village", "Naked singles", listOf(Technique.NAKED_SINGLE),
+                R.string.story_village, R.drawable.art_village, R.string.art_village,
+            ),
+            Chapter(
+                "The Harbour", "Pointing and claiming", listOf(Technique.POINTING, Technique.CLAIMING),
+                R.string.story_harbour, R.drawable.art_harbour, R.string.art_harbour,
+            ),
+            Chapter(
+                "The Lighthouse", "Naked and hidden pairs", listOf(Technique.NAKED_PAIR, Technique.HIDDEN_PAIR),
+                R.string.story_lighthouse, R.drawable.art_lighthouse, R.string.art_lighthouse,
+            ),
+            Chapter(
+                "The Open Sea", "Triples and the X-Wing", listOf(Technique.NAKED_TRIPLE, Technique.HIDDEN_TRIPLE, Technique.X_WING),
+                R.string.story_open_sea, R.drawable.art_open_sea, R.string.art_open_sea,
+            ),
+            Chapter(
+                "The Kites", "Skyscrapers and kites", listOf(Technique.SKYSCRAPER, Technique.TWO_STRING_KITE),
+                R.string.story_kites, R.drawable.art_kites, R.string.art_kites,
+            ),
+            Chapter(
+                "The Stars", "XY-Wings and XYZ-Wings", listOf(Technique.XY_WING, Technique.XYZ_WING, Technique.W_WING),
+                R.string.story_stars, R.drawable.art_stars, R.string.art_stars,
+            ),
+            Chapter(
+                "The Deep", "Swordfish and coloring", listOf(Technique.SWORDFISH, Technique.SIMPLE_COLORING),
+                R.string.story_deep, R.drawable.art_deep, R.string.art_deep,
+            ),
+            Chapter(
+                "Daybreak", "Chains and unique rectangles", listOf(Technique.XY_CHAIN, Technique.UNIQUE_RECTANGLE, Technique.JELLYFISH),
+                R.string.story_daybreak, R.drawable.art_daybreak, R.string.art_daybreak,
+            ),
         )
     }
 }

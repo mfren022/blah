@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Room above a chapter's title for its art to show. -->
-    <dimen name="chapter_art_space">96dp</dimen>
-    <!-- For a chapter with a picture: below the hut, where the light has faded. -->
+    <!-- Room above a chapter's title for its picture, whose light has faded by about here. -->
     <dimen name="chapter_picture_space">200dp</dimen>
 </resources>

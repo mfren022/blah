@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- The chapter's art (or a placeholder) as a lit grid of squares, under the status bar too. -->
+        <!-- The chapter's picture as a lit grid of squares, under the status bar too. -->
         <com.ultimatesudoku.app.ui.SquareGlowView
             android:id="@+id/glow"
             android:layout_width="match_parent"
@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingStart="20dp"
-                android:paddingTop="@dimen/chapter_art_space"
+                android:paddingTop="@dimen/chapter_picture_space"
                 android:paddingEnd="20dp">
 
                 <TextView
@@ -56,7 +56,7 @@
                     android:textSize="34sp" />
 
                 <TextView
-                    android:id="@+id/lesson"
+                    android:id="@+id/story"
                     style="@style/Text.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

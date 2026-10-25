@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Short screens get to the map sooner. -->
-    <dimen name="chapter_art_space">16dp</dimen>
     <!-- The picture sits off to the right, clear of the title. -->
     <dimen name="chapter_picture_space">16dp</dimen>
 </resources>

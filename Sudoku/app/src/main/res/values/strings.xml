@@ -16,7 +16,7 @@
     <string name="percent">%1$d%%</string>
     <string name="home_modes">Play</string>
     <string name="home_story">Story mode</string>
-    <string name="home_story_subtitle">The Nine Districts</string>
+    <string name="home_story_subtitle">Anna\'s Dream</string>
     <string name="home_random">Random</string>
     <string name="home_random_subtitle">A fresh puzzle in five difficulties</string>
     <string name="home_daily">Daily challenge</string>
@@ -133,20 +133,40 @@
     <!-- Story -->
     <string name="story_title">Story mode</string>
     <string name="story_soon">Coming soon</string>
-    <string name="story_hero_title">The Nine\nDistricts</string>
-    <string name="story_hero_text">A city laid out on a grid has lost its order. Travel through nine districts, each guarded by a new solving technique, from your first hidden single to the legendary XY-Chain.</string>
+    <string name="story_hero_title">Anna\'s\nDream</string>
+    <string name="story_hero_text">Anna mends nets in a fishing village by the sea. One summer night she falls asleep by her open window, and dreams. Follow her dream through nine chapters, each with a new solving technique, from your first hidden single to the XY-Chain.</string>
     <string name="story_chapters">Chapters</string>
     <string name="story_footnote">Story mode is still being built. Random puzzles, the daily challenge and the solver are ready to play now.</string>
     <string name="story_locked">Story mode is coming soon</string>
     <string name="chapter_kicker">Chapter %1$s</string>
     <string name="chapter_kicker_locked">Chapter %1$s · Locked</string>
     <string name="chapter_levels">Levels</string>
-    <string name="art_old_quarter">A fishing hut on stilts in a pond at dusk, beside a cherry tree in blossom</string>
     <string name="chapter_summary">%1$s · %2$s</string>
     <string name="chapter_open_hint">Each level you finish opens the paths below it.</string>
-    <string name="chapter_locked_hint">Finish %1$s to open this district.</string>
+    <string name="chapter_locked_hint">Finish %1$s to open this chapter.</string>
     <string name="chapter_map_open">Level map: %1$s on %2$s. Level 1 is open; the rest are locked.</string>
     <string name="chapter_map_locked">Level map: %1$s on %2$s, all locked.</string>
+
+    <!-- Anna's dream, chapter by chapter, and words for each chapter's picture. -->
+    <string name="story_pond">Anna lives in a hut on stilts at the edge of the village pond. One summer evening, as she hangs up her nets, a golden fish rises under the lantern, looks straight at her, and is gone. That night she falls asleep by the open window, and dreams.</string>
+    <string name="art_pond">A fishing hut on stilts in a pond at dusk, beside a cherry tree in blossom, as a golden fish leaps under its lantern</string>
+    <string name="story_village">In the dream the village is asleep, and blue. The golden fish swims ahead of her through the air, along lanes hung with drying nets whose knots glow softly, as if someone had counted every one.</string>
+    <string name="art_village">A fishing village asleep under a crescent moon, a net drying on its rack with glowing knots, and a golden fish swimming through the air</string>
+    <string name="story_harbour">At the harbour the boats have slipped their moorings and turn slowly under the moon. Anna climbs into her grandfather\'s old rowing boat, and when the fish leaps, the boat follows it out past the harbour wall.</string>
+    <string name="art_harbour">Fishing boats adrift in a moonlit harbour by the breakwater and its beacon, an old rowing boat among them, and a golden fish leaping over the harbour mouth</string>
+    <string name="story_lighthouse">No keeper has lived in the lighthouse for years, yet tonight its lamp is lit. Its beam swings round and lays a path across the water, straight to the horizon, and Anna rows along it.</string>
+    <string name="art_lighthouse">A striped lighthouse on the rocks at night, its beam swung across the sky and a path of light on the sea, where Anna rows behind a golden fish</string>
+    <string name="story_open_sea">Out on the open sea there is no land in any direction, only the moon and the silver road it lays on the water. A whale rises beside the boat, breathes once, and dives. The golden fish waits just ahead.</string>
+    <string name="art_open_sea">A rowing boat on the moon\'s silver road across the open sea, a whale\'s tail rising beside it and a golden fish just ahead</string>
+    <string name="story_kites">A warm wind blows in from nowhere, carrying every kite the village children ever lost. Anna catches hold of their strings, and the boat lifts off the sea and climbs into the clouds.</string>
+    <string name="art_kites">A crowd of kites lifting a rowing boat above the clouds, Anna holding their strings, and a golden fish flying among them</string>
+    <string name="story_stars">Above the clouds the stars are close enough to touch. Cranes glide past in long white lines, and the stars hang in groups of nine, in patterns Anna almost recognises.</string>
+    <string name="art_stars">Stars in groups of nine above a sea of clouds, a line of cranes gliding past, a golden fish, and Anna\'s boat on the clouds below</string>
+    <string name="story_deep">Then the strings slip through her fingers, and she falls softly through the clouds into the sea. Below the waves it is bright as noon: corals of every colour, a swordfish turning in the light, and the golden fish, leading her down.</string>
+    <string name="art_deep">Sunlit water over a coral reef, with a swordfish, bubbles, and Anna sinking softly behind a golden fish</string>
+    <string name="story_daybreak">The golden fish leads her up through a slow rain of glowing jellyfish, towards a light that grows and grows. Anna wakes to gulls and the first sun on the pond. On her windowsill lies a single golden scale.</string>
+    <string name="art_daybreak">Anna\'s window at sunrise, nine panes looking out over the pond, with a pot of flowers, a lantern and a golden scale on the sill</string>
+
     <plurals name="levels">
         <item quantity="one">%d level</item>
         <item quantity="other">%d levels</item>

@@ -1,29 +1,14 @@
-#!/usr/bin/env python3
 """
-Paints chapter 1's art, The Old Quarter: a fishing hut on stilts in a pond at dusk, in pastels.
-
-The app shows it through the chapter screen's grid of small squares, one square per art pixel,
-anchored to the top-right corner and lit by the same circular gradient as the plain grid. So the
-picture is 64 x 72: as wide as a phone's grid, and tall enough to reach where the light runs out.
-Writes app/src/main/res/drawable-nodpi/art_old_quarter.png. Run from Sudoku/:
-
-    python3 tools/art/old_quarter.py [--preview build/art_preview.png]
-
-The preview shows the art as the app does, on a 411 x 891 dp phone, beside the bare pixels.
+Chapter 1, The Pond: Anna's hut on stilts at the edge of the village pond at dusk, in pastels, with a
+cherry tree in blossom, and the golden fish leaping under the lantern.
 """
-import argparse
 import math
 import random
-from pathlib import Path
 
-from PIL import Image
+from pixels import W, H, Canvas, band, blob, mix, nearest, rgb, golden_fish
 
-W, H = 64, 72
 HORIZON = 34  # the far shore: the pond below it mirrors the scene above
 SUN_X, SUN_Y = 23, 30
-
-def rgb(code):
-    return tuple(int(code[i:i + 2], 16) for i in (1, 3, 5))
 
 # Pastel dusk, top of the sky to the horizon. The deepest tone keeps the app's white back arrow legible.
 SKY = [rgb(c) for c in ("#7B80C6", "#9296D4", "#ACA9E0", "#C7B4E3", "#E0BDDF", "#F1C6D7", "#F9D4CF", "#FEE3D2")]
@@ -59,59 +44,18 @@ BOAT_RIM, BOAT, BOAT_DK = rgb("#FFF4EE"), rgb("#ABDCCB"), rgb("#86C1B0")
 HULL, HULL_DK = rgb("#EFA9A6"), rgb("#D4899A")
 FIREFLY = rgb("#FFF5BE")
 
-BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
-
-img = [[None] * W for _ in range(H)]
-
-def put(x, y, c):
-    if 0 <= x < W and 0 <= y < H:
-        img[y][x] = c
-
-def get(x, y):
-    return img[min(max(y, 0), H - 1)][min(max(x, 0), W - 1)]
-
-def dither(x, y, amount):
-    """True where an ordered dither of [amount] (0 to 1) lands on this pixel."""
-    return amount > (BAYER[y % 4][x % 4] + 0.5) / 16
-
-def band(colours, t, x, y, sharpness=2.5):
-    """A colour from a list of bands at [t] (0 to 1), dithered only near each boundary."""
-    t = min(max(t, 0.0), 1.0) * (len(colours) - 1)
-    i = min(int(t), len(colours) - 2)
-    f = min(max((t - i - 0.5) * sharpness + 0.5, 0.0), 1.0)
-    return colours[i + 1] if dither(x, y, f) else colours[i]
-
-def blob(circles, bottom=H):
-    """Pixels inside any of the circles (cx, cy, r), above [bottom]."""
-    mask = set()
-    for cx, cy, r in circles:
-        for y in range(int(cy - r) - 1, int(cy + r) + 2):
-            for x in range(int(cx - r) - 1, int(cx + r) + 2):
-                if (x - cx) ** 2 + (y - cy) ** 2 <= r * r and y <= bottom:
-                    mask.add((x, y))
-    return mask
-
-def line(x0, y0, x1, y1, c, step=1):
-    n = max(abs(x1 - x0), abs(y1 - y0))
-    for i in range(0, n + 1, step):
-        put(round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n), c)
-
-def mix(a, b, t):
-    return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
-
-def nearest(c, colours):
-    return min(colours, key=lambda p: sum((p[i] - c[i]) ** 2 for i in range(3)))
-
 # ---- Sky ---------------------------------------------------------------------------------------
 
-def sky():
+def sky(cv):
+    put = cv.put
     for y in range(HORIZON):
         for x in range(W):
             put(x, y, band(SKY, y / (HORIZON - 3), x, y, sharpness=3))
     for x, y in ((5, 2), (19, 1), (30, 5), (60, 3), (13, 7)):
         put(x, y, STAR)
 
-def sun(r=4.5):
+def sun(cv, r=4.5):
+    put = cv.put
     for y in range(SUN_Y - 8, SUN_Y + 8):
         for x in range(SUN_X - 8, SUN_X + 8):
             d = math.hypot(x - SUN_X, y - SUN_Y)
@@ -122,7 +66,8 @@ def sun(r=4.5):
             elif d <= r + 2.2 and (x + y) % 2 == 0:
                 put(x, y, SUN_HALO)
 
-def cloud(circles, bottom):
+def cloud(cv, circles, bottom):
+    put = cv.put
     mask = blob(circles, bottom)
     for x, y in mask:
         c = CLOUD
@@ -132,14 +77,16 @@ def cloud(circles, bottom):
             c = CLOUD_SH
         put(x, y, c)
 
-def clouds():
-    cloud([(37, 9, 2.2), (41, 7.5, 3.2), (46, 6.5, 3.4), (51, 7.8, 2.8), (55, 9.2, 1.8)], bottom=10)
-    cloud([(8, 14, 1.8), (11, 12.6, 2.4), (14.5, 14, 1.6)], bottom=15)
+def clouds(cv):
+    put = cv.put
+    cloud(cv, [(37, 9, 2.2), (41, 7.5, 3.2), (46, 6.5, 3.4), (51, 7.8, 2.8), (55, 9.2, 1.8)], bottom=10)
+    cloud(cv, [(8, 14, 1.8), (11, 12.6, 2.4), (14.5, 14, 1.6)], bottom=15)
     for x in range(26, 37):
         if x % 4 != 2:
             put(x, 18, CLOUD_HI if x < 31 else CLOUD)
 
-def birds():
+def birds(cv):
+    put = cv.put
     for bx, by in ((29, 14), (33, 12)):
         put(bx, by, BIRD)
         put(bx - 1, by - 1, BIRD)
@@ -150,29 +97,33 @@ def birds():
 def hill_top(x):
     return 28.6 + 1.6 * math.sin(x / 5.5 + 0.6) + 1.0 * math.sin(x / 2.7 + 2.1) + 0.8 * math.sin(x / 11.5 + 4)
 
-def hills():
+def hills(cv):
+    put = cv.put
     for x in range(W):
         top = round(hill_top(x))
         for y in range(top, HORIZON):
             put(x, y, HILL_HI if y == top else (HILL_SH if y == HORIZON - 1 else HILL))
 
-def far_trees():
+def far_trees(cv):
+    put = cv.put
     for x, r in ((20, 1.4), (23, 1.8), (27, 1.3), (30, 1.7), (34, 1.4), (37, 1.6)):
         for px, py in blob([(x, HORIZON - 1.5, r)], bottom=HORIZON - 1):
             put(px, py, TREE_FAR_HI if py < HORIZON - 2 and px <= x else TREE_FAR)
 
-def bank():
+def bank(cv):
+    put = cv.put
     for x in range(0, 21):
         top = round(31 + (x / 20) ** 2.2 * 3)
         for y in range(top, HORIZON + 1):
             put(x, y, MINT if y == top else (SAGE_DK if y == HORIZON else SAGE))
 
-def blossom_tree():
+def blossom_tree(cv):
+    put = cv.put
     for y in range(21, 32):
         put(8, y, BARK)
         put(9, y, BARK_DK)
-    line(8, 24, 4, 20, BARK)
-    line(9, 23, 13, 19, BARK)
+    cv.line(8, 24, 4, 20, BARK)
+    cv.line(9, 23, 13, 19, BARK)
     canopy = blob([(5, 19, 3.2), (9, 16.5, 3.8), (13, 17.5, 3.4), (16, 20.5, 2.6), (3, 22.5, 2.4),
                    (11, 21.5, 2.8), (7, 22.5, 2.6)])
     random.seed(3)
@@ -198,7 +149,8 @@ PEAK_X, PEAK_Y = 50, 13
 def roof_top(x):
     return PEAK_Y + abs(x - PEAK_X) * (WALL_TOP - 1 - PEAK_Y) / 9
 
-def hut():
+def hut(cv):
+    put = cv.put
     # Chimney behind the right slope, with a wisp of smoke.
     for y in range(14, 19):
         put(54, y, STONE)
@@ -257,7 +209,8 @@ def hut():
     put(42, 25, WOOD_XDK)
     put(41, 24, LIGHT_GLOW)
 
-def deck_and_pier():
+def deck_and_pier(cv):
+    put = cv.put
     for x in range(27, 61):
         put(x, DECK, WOOD_DK if x % 3 == 0 else WOOD_HI)
         put(x, DECK + 1, WOOD_DK)
@@ -265,11 +218,12 @@ def deck_and_pier():
         for y in range(DECK + 2, HORIZON + 3):
             put(px, y, WOOD_XDK)
     # A fishing rod propped at the end of the pier, its line down to a bobber.
-    line(29, 31, 24, 24, WOOD_XDK)
+    cv.line(29, 31, 24, 24, WOOD_XDK)
     for x, y in ((23, 27), (23, 30), (22, 33)):
         put(x, y, CLOUD_HI)
 
-def boat():
+def boat(cv):
+    put = cv.put
     for x in range(11, 18):
         put(x, 36, BOAT_RIM)
     for x in range(10, 19):
@@ -280,8 +234,9 @@ def boat():
 
 # ---- Water -------------------------------------------------------------------------------------
 
-def water():
-    scene = [row[:] for row in img]
+def water(cv):
+    put = cv.put
+    scene = cv.snapshot()
     ripple = (0, 0, 0, 1, 0, 0, 0, -1)
     for y in range(HORIZON, H):
         depth = y - HORIZON
@@ -315,7 +270,8 @@ def water():
     put(20, 37, WATER_HI)
     put(24, 37, WATER_HI)
 
-def lilies():
+def lilies(cv):
+    put = cv.put
     for cx, cy, flower in ((5, 46, True), (12, 50, False), (3, 55, False), (16, 44, False), (9, 60, True),
                            (44, 48, False), (56, 53, True), (38, 57, False), (60, 62, False)):
         for x in range(cx - 1, cx + 2):
@@ -325,7 +281,8 @@ def lilies():
         if flower:
             put(cx, cy - 1, LILY_FLOWER)
 
-def reeds():
+def reeds(cv):
+    put = cv.put
     random.seed(5)
     for base_x, bottom in ((0, HORIZON + 2), (59, HORIZON + 3)):
         for i in range(5):
@@ -337,72 +294,33 @@ def reeds():
                 put(x, bottom - height - 1, CATTAIL)
                 put(x, bottom - height - 2, CATTAIL)
 
-def fireflies():
+def the_golden_fish(cv):
+    """Leaping under the lantern, between the pier's posts, with a ring of ripples where it rose."""
+    golden_fish(cv, 36, 34, leaping=True)
+    for x, y in ((38, 39), (40, 39), (41, 38), (42, 39), (36, 39)):
+        cv.put(x, y, WATER_HI)
+
+def fireflies(cv):
+    put = cv.put
     for x, y in ((5, 26), (16, 28), (61, 24), (38, 26), (33, 23)):
         put(x, y, FIREFLY)
 
 def paint():
-    sky()
-    sun()
-    clouds()
-    birds()
-    hills()
-    far_trees()
-    bank()
-    blossom_tree()
-    hut()
-    deck_and_pier()
-    water()
-    boat()
-    lilies()
-    reeds()
-    fireflies()
-    out = Image.new("RGB", (W, H))
-    for y in range(H):
-        for x in range(W):
-            out.putpixel((x, y), img[y][x] or (255, 0, 255))
-    return out
-
-# ---- Preview -----------------------------------------------------------------------------------
-
-def as_on_a_phone(art, page=(0x0A, 0x3C, 0x8C)):
-    """The art as the app draws it on a 411 x 891 dp phone at 3x: SquareGlowView's grid and light."""
-    width, height = 1233, 2673
-    gap, size = 3, 17
-    pitch = size + gap
-    columns = (width + gap) // pitch
-    left = (width - columns * pitch + gap) // 2
-    cx, cy = width * 0.82, height * 0.03
-    radius = math.hypot(cx - width / 2, cy - height / 2)
-    out = Image.new("RGB", (width, height // 2), page)
-    for row in range(art.height):
-        for column in range(columns):
-            ax = art.width - columns + column
-            if ax < 0:
-                continue
-            x, y = left + column * pitch, left + row * pitch
-            light = 1 - math.hypot(x + size / 2 - cx, y + size / 2 - cy) / radius
-            if light <= 0:
-                continue
-            colour = mix(page, art.getpixel((ax, row)), light)
-            out.paste(colour, (x, y, x + size, min(y + size, out.height)))
-    return out
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
-    parser.add_argument("--preview", help="also write a preview here")
-    args = parser.parse_args()
-    art = paint()
-    target = Path(__file__).resolve().parents[2] / "app/src/main/res/drawable-nodpi/art_old_quarter.png"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    art.save(target, optimize=True)
-    if args.preview:
-        phone = as_on_a_phone(art)
-        bare = art.resize((W * 8, H * 8), Image.NEAREST)
-        sheet = Image.new("RGB", (phone.width + 20 + bare.width, max(phone.height, bare.height)), (128, 128, 128))
-        sheet.paste(phone, (0, 0))
-        sheet.paste(bare, (phone.width + 20, 0))
-        sheet.save(args.preview)
-
-if __name__ == "__main__":
-    main()
+    cv = Canvas()
+    sky(cv)
+    sun(cv)
+    clouds(cv)
+    birds(cv)
+    hills(cv)
+    far_trees(cv)
+    bank(cv)
+    blossom_tree(cv)
+    hut(cv)
+    deck_and_pier(cv)
+    water(cv)
+    boat(cv)
+    lilies(cv)
+    reeds(cv)
+    the_golden_fish(cv)
+    fireflies(cv)
+    return cv.image()
