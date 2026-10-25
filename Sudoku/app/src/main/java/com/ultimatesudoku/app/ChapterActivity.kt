@@ -14,8 +14,8 @@ import com.ultimatesudoku.core.LevelMap
 
 /**
  * One story chapter, on the story's deep blue whatever the theme: its picture glowing through a grid of
- * squares, its part of Anna's dream and what it teaches, and underneath, the map of its levels and the
- * routes through them. Levels can't be played until story mode is built.
+ * squares, its part of Anna's dream, and underneath, how many of its levels are finished and the map of
+ * them and the routes through them. Levels can't be played until story mode is built.
  */
 class ChapterActivity : BaseActivity() {
 
@@ -36,17 +36,12 @@ class ChapterActivity : BaseActivity() {
             getString(if (open) R.string.chapter_kicker else R.string.chapter_kicker_locked, number)
         findViewById<TextView>(R.id.chapter_title).text = chapter.title
         findViewById<TextView>(R.id.story).text = getString(chapter.story)
-        findViewById<TextView>(R.id.techniques).text = chapter.techniques.joinToString("  ·  ") { it.title }
 
         val map = LevelMap.forChapter(index)
+        // Finished out of all: none yet, as levels can't be played until story mode is built.
+        findViewById<TextView>(R.id.levels).text = getString(R.string.chapter_levels, 0, map.levels.size)
         val levels = resources.getQuantityString(R.plurals.levels, map.levels.size, map.levels.size)
         val routes = resources.getQuantityString(R.plurals.routes, map.routes(), map.routes())
-        val hint = if (open) {
-            getString(R.string.chapter_open_hint)
-        } else {
-            getString(R.string.chapter_locked_hint, StoryActivity.CHAPTERS[index - 1].title)
-        }
-        findViewById<TextView>(R.id.summary).text = "${getString(R.string.chapter_summary, levels, routes)}\n$hint"
         findViewById<LevelMapView>(R.id.map).apply {
             this.map = map
             this.open = if (open) setOf(map.entrance.number) else emptySet()

@@ -37,10 +37,10 @@ install over the old one and keep your saved games and statistics.
     pixel, lit by a circular gradient that is brightest just left of the top-right corner and fades out
     by the middle of the screen. The golden fish is somewhere in every one. The pictures are painted by
     `tools/art/paint.py`, one module per chapter;
-  - the chapter's title, its part of the story, and the techniques it teaches;
-  - underneath, a node graph of its levels, metro-map style: the routes branch and merge from the
-    entrance down to the chapter's final level. Only the first chapter's first level is open, and
-    levels can't be played yet.
+  - the chapter's title and its part of the story;
+  - underneath, a **Levels (finished/total)** header and a node graph of the levels, metro-map style:
+    the routes branch and merge from the entrance down to the chapter's final level. Only the first
+    chapter's first level is open, and levels can't be played yet.
 
 ## Continue where you left off
 

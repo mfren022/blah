@@ -140,10 +140,7 @@
     <string name="story_locked">Story mode is coming soon</string>
     <string name="chapter_kicker">Chapter %1$s</string>
     <string name="chapter_kicker_locked">Chapter %1$s · Locked</string>
-    <string name="chapter_levels">Levels</string>
-    <string name="chapter_summary">%1$s · %2$s</string>
-    <string name="chapter_open_hint">Each level you finish opens the paths below it.</string>
-    <string name="chapter_locked_hint">Finish %1$s to open this chapter.</string>
+    <string name="chapter_levels">Levels (%1$d/%2$d)</string>
     <string name="chapter_map_open">Level map: %1$s on %2$s. Level 1 is open; the rest are locked.</string>
     <string name="chapter_map_locked">Level map: %1$s on %2$s, all locked.</string>
 

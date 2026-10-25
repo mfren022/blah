@@ -34,6 +34,13 @@ class StoryTest : ScreenTest() {
     private fun chapter(index: Int) =
         Robolectric.buildActivity(ChapterActivity::class.java, ChapterActivity.open(app, index)).setup().get()
 
+    /** Every TextView under [root], in layout order. */
+    private fun texts(root: View): List<TextView> = when (root) {
+        is TextView -> listOf(root)
+        is ViewGroup -> (0 until root.childCount).flatMap { texts(root.getChildAt(it)) }
+        else -> emptyList()
+    }
+
     private fun findText(root: View, text: String): View? {
         if (root is TextView && root.text.toString() == text) return root
         if (root is ViewGroup) for (i in 0 until root.childCount) findText(root.getChildAt(i), text)?.let { return it }
@@ -61,8 +68,9 @@ class StoryTest : ScreenTest() {
         val view = activity.view<LevelMapView>(R.id.map)
         assertEquals(map.levels, view.map!!.levels)
         assertEquals(setOf(1), view.open)
-        val summary = activity.view<TextView>(R.id.summary).text.toString()
-        assertTrue(summary, summary.startsWith("${map.levels.size} levels · ${map.routes()} routes\nEach level you finish"))
+        // Under the story, only the levels header, counting those finished out of all.
+        assertEquals("Levels (0/${map.levels.size})", activity.view<TextView>(R.id.levels).text.toString())
+        assertEquals(listOf(R.id.kicker, R.id.chapter_title, R.id.story, R.id.levels), texts(activity.view(R.id.header)).map { it.id })
         assertTrue(view.height > 0)
         capture(activity, "33_chapter")
     }
@@ -165,8 +173,7 @@ class StoryTest : ScreenTest() {
         val activity = chapter(5)
         assertEquals("Chapter 06 · Locked", activity.view<TextView>(R.id.kicker).text.toString())
         assertTrue(activity.view<LevelMapView>(R.id.map).open.isEmpty())
-        val summary = activity.view<TextView>(R.id.summary).text.toString()
-        assertTrue(summary, summary.endsWith("Finish The Open Sea to open this chapter."))
+        assertEquals("Levels (0/${LevelMap.forChapter(5).levels.size})", activity.view<TextView>(R.id.levels).text.toString())
         capture(activity, "34_chapter_locked")
     }
 
