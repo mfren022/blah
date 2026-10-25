@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A sheet of paper with a sketch on it and a pencil, inside the adaptive icon's safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Paper, with a shadow -->
+    <path android:fillColor="#FF1D4FC4" android:pathData="M41,32 H67 a5,5 0 0 1 5,5 V73 a5,5 0 0 1 -5,5 H41 a5,5 0 0 1 -5,-5 V37 a5,5 0 0 1 5,-5 Z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M39,30 H65 a5,5 0 0 1 5,5 V71 a5,5 0 0 1 -5,5 H39 a5,5 0 0 1 -5,-5 V35 a5,5 0 0 1 5,-5 Z" />
+    <!-- Sketch -->
+    <path android:pathData="M40,44 c2.5,-4.5 5.5,4.5 8,0 s5.5,4.5 8,0 s5.5,4.5 8,0"
+        android:strokeColor="#FF2F6FEB" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M40,55 H60 M40,65 H52"
+        android:strokeColor="#FFC9D6F2" android:strokeWidth="3.5" android:strokeLineCap="round" />
+    <!-- Pencil: eraser, ferrule, body, wood and graphite -->
+    <path android:pathData="M79,43 L76.53,45.47" android:strokeColor="#FFF28B82" android:strokeWidth="9" />
+    <path android:pathData="M76.53,45.47 L74.76,47.24" android:strokeColor="#FFC5CCD9" android:strokeWidth="9" />
+    <path android:pathData="M74.76,47.24 L62,60" android:strokeColor="#FFFFB020" android:strokeWidth="9" />
+    <path android:fillColor="#FFF6D7A7" android:pathData="M65.18,63.18 L58.82,56.82 L55.99,66.01 Z" />
+    <path android:fillColor="#FF3A3A40" android:pathData="M59.48,64.93 L57.07,62.52 L55.99,66.01 Z" />
+</vector>

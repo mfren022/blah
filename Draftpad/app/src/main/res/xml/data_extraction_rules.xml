@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 and newer: back up and transfer the drafts and settings, but never the GitHub token. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="github.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="github.xml" />
+    </device-transfer>
+</data-extraction-rules>

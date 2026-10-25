@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/chrome"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bar_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp">
+
+        <ImageButton
+            android:id="@+id/drafts"
+            style="@style/BarButton"
+            android:contentDescription="@string/drafts"
+            android:src="@drawable/ic_drafts" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_title"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:textColor="@color/ink"
+            android:textSize="17sp" />
+
+        <ImageButton
+            android:id="@+id/undo"
+            style="@style/BarButton"
+            android:contentDescription="@string/undo"
+            android:src="@drawable/ic_undo" />
+
+        <ImageButton
+            android:id="@+id/redo"
+            style="@style/BarButton"
+            android:contentDescription="@string/redo"
+            android:src="@drawable/ic_redo" />
+
+        <ImageButton
+            android:id="@+id/send"
+            style="@style/BarButton"
+            android:contentDescription="@string/send"
+            android:src="@drawable/ic_send" />
+
+        <ImageButton
+            android:id="@+id/more"
+            style="@style/BarButton"
+            android:contentDescription="@string/more"
+            android:src="@drawable/ic_more" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/hairline"
+        android:background="@color/chrome_line" />
+
+    <com.draftpad.app.SketchView
+        android:id="@+id/sketch"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:contentDescription="@string/canvas" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/hairline"
+        android:background="@color/chrome_line" />
+
+    <!-- Pen colours, then line widths. EditorActivity fills both rows. -->
+    <LinearLayout
+        android:id="@+id/style_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/style_bar_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
+
+        <LinearLayout
+            android:id="@+id/colors"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="7"
+            android:orientation="horizontal" />
+
+        <View
+            android:layout_width="@dimen/hairline"
+            android:layout_height="24dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp"
+            android:background="@color/chrome_line" />
+
+        <LinearLayout
+            android:id="@+id/widths"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:orientation="horizontal" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/tools"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/tool_bar_height"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp" />
+</LinearLayout>

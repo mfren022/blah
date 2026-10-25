@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/dialog_padding"
+    android:paddingTop="8dp"
+    android:paddingEnd="@dimen/dialog_padding">
+
+    <EditText
+        android:id="@+id/text"
+        style="@style/DialogField"
+        android:hint="@string/text_hint"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine|textCapSentences"
+        android:maxLines="6" />
+</FrameLayout>

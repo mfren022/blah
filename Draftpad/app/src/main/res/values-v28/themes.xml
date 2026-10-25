@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Draftpad" parent="Base.Theme.Draftpad">
+        <item name="android:navigationBarColor">@color/chrome</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="Theme.Draftpad.Dialog" parent="Base.Theme.Draftpad.Dialog">
+        <item name="android:dialogCornerRadius">20dp</item>
+    </style>
+</resources>

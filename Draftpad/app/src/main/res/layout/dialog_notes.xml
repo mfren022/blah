@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/dialog_padding"
+    android:paddingTop="8dp"
+    android:paddingEnd="@dimen/dialog_padding">
+
+    <EditText
+        android:id="@+id/title"
+        style="@style/DialogField"
+        android:hint="@string/title_hint"
+        android:importantForAutofill="no"
+        android:inputType="textCapSentences"
+        android:maxLines="1" />
+
+    <EditText
+        android:id="@+id/notes"
+        style="@style/DialogField"
+        android:layout_marginTop="8dp"
+        android:gravity="top|start"
+        android:hint="@string/notes_hint"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine|textCapSentences"
+        android:maxLines="8"
+        android:minLines="3" />
+</LinearLayout>

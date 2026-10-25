@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="bar_height">56dp</dimen>
+    <dimen name="style_bar_height">48dp</dimen>
+    <dimen name="tool_bar_height">56dp</dimen>
+    <dimen name="bar_button">48dp</dimen>
+    <dimen name="hairline">1dp</dimen>
+    <dimen name="dialog_padding">24dp</dimen>
+</resources>

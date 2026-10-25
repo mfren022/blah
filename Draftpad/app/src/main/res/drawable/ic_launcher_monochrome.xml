@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon version of ic_launcher_foreground: one colour, drawn by alpha. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:pathData="M39,30 H65 a5,5 0 0 1 5,5 V71 a5,5 0 0 1 -5,5 H39 a5,5 0 0 1 -5,-5 V35 a5,5 0 0 1 5,-5 Z"
+        android:strokeColor="#FF000000" android:strokeWidth="3" />
+    <path android:pathData="M40,44 c2.5,-4.5 5.5,4.5 8,0 s5.5,4.5 8,0 s5.5,4.5 8,0 M40,55 H60 M40,65 H50"
+        android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M79,43 L62,60" android:strokeColor="#FF000000" android:strokeWidth="9" />
+    <path android:fillColor="#FF000000" android:pathData="M65.18,63.18 L58.82,56.82 L55.99,66.01 Z" />
+</vector>

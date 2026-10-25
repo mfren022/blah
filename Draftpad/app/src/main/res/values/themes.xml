@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Base.Theme.Draftpad" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/chrome</item>
+        <item name="android:colorBackground">@color/chrome</item>
+        <item name="android:statusBarColor">@color/chrome</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Light navigation bar icons need API 27; values-v27 switches to a light bar. -->
+        <item name="android:navigationBarColor">#FF000000</item>
+        <item name="android:colorPrimary">@color/accent</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:colorControlHighlight">@color/pressed</item>
+        <item name="android:textColorPrimary">@color/ink</item>
+        <item name="android:textColorSecondary">@color/ink_muted</item>
+        <item name="android:alertDialogTheme">@style/Theme.Draftpad.Dialog</item>
+    </style>
+
+    <style name="Theme.Draftpad" parent="Base.Theme.Draftpad" />
+
+    <style name="Base.Theme.Draftpad.Dialog" parent="android:Theme.Material.Light.Dialog.Alert">
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:colorPrimary">@color/accent</item>
+        <item name="android:textColorPrimary">@color/ink</item>
+        <item name="android:textColorSecondary">@color/ink_muted</item>
+        <item name="android:buttonBarButtonStyle">@style/DialogButton</item>
+    </style>
+
+    <style name="Theme.Draftpad.Dialog" parent="Base.Theme.Draftpad.Dialog" />
+
+    <style name="DialogButton" parent="android:Widget.Material.Button.Borderless.Colored">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="BarButton">
+        <item name="android:layout_width">@dimen/bar_button</item>
+        <item name="android:layout_height">@dimen/bar_button</item>
+        <item name="android:background">@drawable/bg_bar_button</item>
+        <item name="android:scaleType">center</item>
+        <item name="android:tint">@color/icon_tint</item>
+    </style>
+
+    <style name="DialogField">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:textColorHint">@color/ink_muted</item>
+    </style>
+
+    <style name="DialogLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/ink_muted</item>
+    </style>
+</resources>

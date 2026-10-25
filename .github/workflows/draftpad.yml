@@ -1,0 +1,56 @@
+name: Draftpad APK
+
+on:
+  push:
+    paths:
+      - 'Draftpad/**'
+      - '.github/workflows/draftpad.yml'
+  pull_request:
+    paths:
+      - 'Draftpad/**'
+      - '.github/workflows/draftpad.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Draftpad
+    steps:
+      - uses: actions/checkout@v5
+
+      # Robolectric needs Java 21 to run the UI tests against Android 15.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Core and UI tests
+        run: ./gradlew --no-daemon :core:test :app:testDebugUnitTest
+
+      - name: Build APK
+        run: ./gradlew --no-daemon :app:assembleRelease
+
+      - name: Collect APK
+        run: |
+          mkdir -p dist-ci
+          cp app/build/outputs/apk/release/app-release.apk dist-ci/Draftpad.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --print-certs dist-ci/Draftpad.apk
+          echo "APK size: $(stat -c %s dist-ci/Draftpad.apk) bytes" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Draftpad-apk
+          path: Draftpad/dist-ci/Draftpad.apk
+
+      - name: Upload UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Draftpad-screenshots
+          path: Draftpad/app/build/screenshots/
+          if-no-files-found: ignore

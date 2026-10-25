@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Draftpad</string>
+    <string name="untitled">Untitled sketch</string>
+    <string name="canvas">Sketch canvas</string>
+
+    <!-- Top bar -->
+    <string name="drafts">Drafts</string>
+    <string name="undo">Undo</string>
+    <string name="redo">Redo</string>
+    <string name="send">Share or push</string>
+    <string name="more">More options</string>
+    <string name="back">Back</string>
+
+    <!-- Tools -->
+    <string name="tool_pen">Pen</string>
+    <string name="tool_line">Line</string>
+    <string name="tool_arrow">Arrow</string>
+    <string name="tool_rect">Rectangle</string>
+    <string name="tool_ellipse">Ellipse</string>
+    <string name="tool_text">Text</string>
+    <string name="tool_move">Move and pan</string>
+    <string name="tool_erase">Eraser</string>
+
+    <string name="color_black">Black</string>
+    <string name="color_gray">Grey</string>
+    <string name="color_red">Red</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_green">Green</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_purple">Purple</string>
+    <string name="width_thin">Thin</string>
+    <string name="width_medium">Medium</string>
+    <string name="width_thick">Thick</string>
+
+    <!-- Menus -->
+    <string name="menu_new">New draft</string>
+    <string name="menu_notes">Title and notes…</string>
+    <string name="menu_insert_image">Draw over an image…</string>
+    <string name="menu_replace_image">Replace the image…</string>
+    <string name="menu_remove_image">Remove the image</string>
+    <string name="menu_fit">Fit to screen</string>
+    <string name="menu_grid">Dot grid</string>
+    <string name="menu_clear">Clear canvas</string>
+    <string name="menu_github">GitHub settings…</string>
+    <string name="menu_share_png">Share image…</string>
+    <string name="menu_share_svg">Share image and SVG…</string>
+    <string name="menu_push">Push to %1$s</string>
+    <string name="menu_push_setup">Push to GitHub…</string>
+    <string name="menu_save">Save image to Pictures</string>
+
+    <string name="nothing_to_share">Draw something first.</string>
+    <string name="share_title">Send sketch</string>
+    <string name="saved_to_pictures">Saved to Pictures/Draftpad.</string>
+    <string name="save_failed">Couldn\'t save the image.</string>
+    <string name="image_failed">Couldn\'t open that image.</string>
+    <string name="cleared">Canvas cleared. Undo brings it back.</string>
+    <string name="no_browser">No app here can open links.</string>
+
+    <!-- Dialogs -->
+    <string name="text_title">Text</string>
+    <string name="text_hint">Label</string>
+    <string name="add">Add</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="done">Done</string>
+    <string name="notes_title">Title and notes</string>
+    <string name="title_hint">Title</string>
+    <string name="notes_hint">Notes for Claude: what is this, and what should happen with it?</string>
+
+    <!-- Drafts screen -->
+    <string name="new_draft">New</string>
+    <string name="no_drafts">No drafts yet.\nEverything you draw is kept here.</string>
+    <string name="on_github">On GitHub</string>
+    <string name="delete_title">Delete this draft?</string>
+    <string name="delete_message">“%1$s” will be deleted from this phone. Copies pushed to GitHub stay there.</string>
+
+    <!-- GitHub -->
+    <string name="github_title">Push to GitHub</string>
+    <string name="github_intro">Draftpad commits each sketch to its own folder in a GitHub repository, where Claude Code can open it. Use a fine-grained token that can only reach that repository, with Contents set to Read and write.</string>
+    <string name="github_repo">Repository (owner/name)</string>
+    <string name="github_branch">Branch (blank for the default branch)</string>
+    <string name="github_folder">Folder</string>
+    <string name="github_repo_hint" translatable="false">owner/name</string>
+    <string name="github_token_hint" translatable="false">github_pat_…</string>
+    <string name="github_folder_hint" translatable="false">drafts</string>
+    <string name="github_token">Token</string>
+    <string name="github_create_token">Create a token on GitHub</string>
+    <string name="github_token_steps">On that page, under Repository access pick “Only select repositories” and choose the repository. Contents is already set to Read and write. Generate the token, copy it and paste it here.</string>
+    <string name="github_connect">Connect</string>
+    <string name="github_forget">Forget token</string>
+    <string name="github_checking">Checking…</string>
+    <string name="github_bad_repo">Enter the repository as owner/name.</string>
+    <string name="github_no_token">Paste a token first.</string>
+    <string name="github_connected">Connected to %1$s.</string>
+    <string name="github_cant_push">This token can read %1$s but not push to it. Give it Contents: Read and write.</string>
+    <string name="github_forgotten">Token removed from this phone.</string>
+    <string name="pushing">Pushing to %1$s…</string>
+    <string name="pushed_title">Pushed to GitHub</string>
+    <string name="pushed_message">The sketch is in %1$s on the %2$s branch of %3$s.\n\nTell Claude Code to look there: README.md has your notes, sketch.png the picture and sketch.svg the exact shapes and text.</string>
+    <string name="copy_for_claude">Copy for Claude</string>
+    <string name="claude_prompt">Have a look at my sketch in %1$s (on the %2$s branch of %3$s). README.md has my notes, sketch.png shows it and sketch.svg has the exact shapes and text.</string>
+    <string name="copied">Copied. Paste it into Claude.</string>
+    <string name="view_on_github">View on GitHub</string>
+    <string name="push_failed_title">Couldn\'t push the sketch</string>
+</resources>

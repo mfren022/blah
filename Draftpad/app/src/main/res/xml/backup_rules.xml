@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and older: back up the drafts and settings, but never the GitHub token. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="github.xml" />
+</full-backup-content>
