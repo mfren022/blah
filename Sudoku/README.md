@@ -36,7 +36,7 @@ install over the old one and keep your saved games and statistics.
   that turns blue once the chapter is complete (`data/StoryProgress.kt` keeps the count), and a chevron (a
   locked chapter would show a faint red lock instead). Tapping a
   chapter opens its screen, on the story's deep blue in either theme:
-  - its picture, a pastel pixel-art scene shown as a fine grid of small squares 1dp apart, one square per
+  - its picture, a pixel-art scene shown as a fine grid of small squares 1dp apart, one square per
     pixel, lit by a circular gradient that is brightest just left of the top-right corner and fades out
     by the middle of the screen. The golden fish is somewhere in every one. The pictures are painted by
     `tools/art/paint.py`, one module per chapter;
