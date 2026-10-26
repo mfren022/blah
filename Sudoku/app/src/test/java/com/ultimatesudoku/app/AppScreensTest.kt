@@ -425,7 +425,8 @@ class AppScreensTest : ScreenTest() {
 
     @Test
     fun settings() {
-        val activity = Robolectric.buildActivity(SettingsActivity::class.java).setup().get()
+        val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
+        activity.view<ViewGroup>(R.id.tabs).getChildAt(MainActivity.TAB_SETTINGS).performClick()
         capture(activity, "17_settings")
     }
 
@@ -490,6 +491,8 @@ class AppScreensTest : ScreenTest() {
         assertEquals(SolverActivity::class.java.name, shadow.nextStartedActivity.component?.className)
         activity.view<View>(R.id.tile_strategies).performClick()
         assertEquals(StrategiesActivity::class.java.name, shadow.nextStartedActivity.component?.className)
+        activity.view<View>(R.id.tile_stats).performClick()
+        assertEquals(StatsActivity::class.java.name, shadow.nextStartedActivity.component?.className)
         activity.view<View>(R.id.tile_daily).performClick()
         val daily: Intent = shadow.nextStartedActivity
         assertEquals(GameActivity::class.java.name, daily.component?.className)

@@ -14,6 +14,17 @@ and a placeholder story mode.
 Every build is signed with the same sideloading key (`app/signing/sideload.keystore`), so new versions
 install over the old one and keep your saved games and statistics.
 
+## Home
+
+The home screen has four tabs along the bottom, each with an icon:
+
+- **Play**: the game in progress (see *Continue where you left off*) and the modes below.
+- **Learn**: Strategies.
+- **Records**: Solved boards and Statistics.
+- **Settings**: theme, gameplay and assist switches, and about.
+
+Back on any other tab returns to Play; the tab you're on survives a turn of the phone or a new theme.
+
 ## Modes
 
 - **Random**: choose Easy, Medium, Hard, Expert or Extreme and get a puzzle generated on the phone.
@@ -56,7 +67,7 @@ install over the old one and keep your saved games and statistics.
 
 ## Strategies
 
-**Strategies**, under Learn on the home screen, teaches all 23 techniques the solver knows, simplest
+**Strategies**, on the home screen's Learn tab, teaches all 23 techniques the solver knows, simplest
 first and grouped by tier: Singles, Basic, Intermediate, Advanced and Expert. The list opens with the
 few words every explanation uses (candidate, unit, cells that see each other, R3C5), and marks each
 strategy you've practised with its number on a blue block.
@@ -89,7 +100,7 @@ around it. Back during the growth shrinks it back into the card.
 ## Solved boards
 
 Every board you complete, in any mode, is recorded with its starting combination (the clues), its
-solution, your solve time (pauses excluded), mistakes, hints and when you finished it. **Home →
+solution, your solve time (pauses excluded), mistakes, hints and when you finished it. **Records →
 Solved boards** lists them newest first, with:
 
 - a thumbnail of each starting board's clue pattern, and totals and average time for the list;
@@ -190,8 +201,8 @@ Sudoku/
   core/            Engine: grid, solvers, generator, game model (pure Kotlin + tests)
   app/             Android app
     src/main/java/com/ultimatesudoku/app/
-      *Activity    Home, Random, Game, Solver, Story, Chapter, Strategies, Solved boards,
-                   Statistics, Settings
+      *Activity    Home (with its tabs), Random, Game, Solver, Story, Chapter, Strategies,
+                   Solved boards, Statistics
       data/        Settings, statistics, saved games, story and strategy progress
                    (SharedPreferences); solved boards (SQLite)
       ui/          Custom views: board, keypad, tool buttons, tiles, toggles, dialogs, and the

@@ -131,7 +131,8 @@ class LifecycleTest : ScreenTest() {
 
     @Test
     fun settingsTogglesPersist() {
-        val activity = Robolectric.buildActivity(SettingsActivity::class.java).setup().get()
+        val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
+        (activity.findViewById<android.view.ViewGroup>(R.id.tabs)).getChildAt(MainActivity.TAB_SETTINGS).performClick()
         val row = findText(activity.window.decorView, activity.getString(R.string.settings_check))!!.parent.parent as View
         row.performClick()
         idle(300)

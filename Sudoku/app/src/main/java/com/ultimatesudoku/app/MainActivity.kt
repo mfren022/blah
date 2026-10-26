@@ -10,16 +10,19 @@ import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import com.ultimatesudoku.app.data.GameStore
 import com.ultimatesudoku.app.ui.BoardView
 import com.ultimatesudoku.app.ui.Dialogs
 import com.ultimatesudoku.app.ui.GrowOverlay
+import com.ultimatesudoku.app.ui.TabBar
 import com.ultimatesudoku.app.ui.TileView
 import com.ultimatesudoku.app.ui.appliedSystemBars
 import com.ultimatesudoku.app.ui.formatTime
 import com.ultimatesudoku.app.ui.modeName
 import com.ultimatesudoku.core.Daily
+import com.ultimatesudoku.core.Difficulty
 import com.ultimatesudoku.core.Strategies
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -29,6 +32,11 @@ class MainActivity : BaseActivity() {
 
     /** The continue card growing into the game, while it does. */
     private var growing: GrowOverlay? = null
+
+    private lateinit var tabs: TabBar
+
+    /** The page each tab shows, in tab order: Play, Learn, Records and Settings. */
+    private lateinit var pages: List<View>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,15 +63,39 @@ class MainActivity : BaseActivity() {
             bind(R.drawable.ic_history, getString(R.string.home_history), getString(R.string.home_history_empty))
             setOnClickListener { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) }
         }
+        findViewById<TileView>(R.id.tile_stats).setOnClickListener {
+            startActivity(Intent(this@MainActivity, StatsActivity::class.java))
+        }
         findViewById<View>(R.id.continue_card).setOnClickListener { openContinue() }
         // A picture only: taps on it go to the card.
         findViewById<BoardView>(R.id.continue_board).isEnabled = false
-        findViewById<View>(R.id.button_stats).setOnClickListener {
-            startActivity(Intent(this, StatsActivity::class.java))
-        }
-        findViewById<View>(R.id.button_settings).setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
+        SettingsPanel(this, findViewById(R.id.page_settings)).build()
+
+        pages = listOf(R.id.page_play, R.id.page_learn, R.id.page_records, R.id.page_settings).map { findViewById<View>(it) }
+        tabs = findViewById(R.id.tabs)
+        tabs.setTabs(
+            listOf(
+                TabBar.Tab(R.drawable.ic_play, getString(R.string.tab_play)),
+                TabBar.Tab(R.drawable.ic_school, getString(R.string.tab_learn)),
+                TabBar.Tab(R.drawable.ic_trophy, getString(R.string.tab_records)),
+                TabBar.Tab(R.drawable.ic_settings, getString(R.string.tab_settings)),
+            ),
+        )
+        tabs.onTabSelected = TabBar.OnTabSelectedListener(::showTab)
+        // Back on the same tab after a turn of the phone or a change of theme.
+        showTab(savedInstanceState?.getInt(STATE_TAB, TAB_PLAY) ?: TAB_PLAY)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_TAB, tabs.selected)
+    }
+
+    /** Shows the page of tab [index], from the top. */
+    private fun showTab(index: Int) {
+        tabs.select(index)
+        pages.forEachIndexed { i, page -> page.visibility = if (i == index) View.VISIBLE else View.GONE }
+        findViewById<ScrollView>(R.id.scroll).scrollTo(0, 0)
     }
 
     /** The name as a wordmark: "SUDOKU" in ink and "BLUE" in blue, in capitals however the type renders them. */
@@ -86,6 +118,19 @@ class MainActivity : BaseActivity() {
         bindDaily()
         bindStrategies()
         bindHistory()
+        bindStats()
+    }
+
+    /** How many games have been won, once any have been played. */
+    private fun bindStats() {
+        val records = Difficulty.entries.map { app.stats.record(it) }
+        val started = records.sumOf { it.started }
+        val subtitle = if (started == 0) {
+            getString(R.string.home_stats_empty)
+        } else {
+            resources.getQuantityString(R.plurals.home_stats_summary, started, records.sumOf { it.won }, started)
+        }
+        findViewById<TileView>(R.id.tile_stats).bind(R.drawable.ic_stats, getString(R.string.home_stats), subtitle)
     }
 
     /** How many strategies have been practised, once there are any. */
@@ -109,13 +154,16 @@ class MainActivity : BaseActivity() {
     @Deprecated("Still the back hook for apps not opted in to predictive back")
     override fun onBackPressed() {
         val overlay = growing
-        if (overlay == null) {
-            @Suppress("DEPRECATION")
-            super.onBackPressed()
-        } else if (overlay.isGrowing) {
-            overlay.shrink(::endGrowing)
+        when {
+            // Unless it's done growing and the game is already opening.
+            overlay != null -> if (overlay.isGrowing) overlay.shrink(::endGrowing)
+            // Back from another tab goes to Play before it leaves.
+            tabs.selected != TAB_PLAY -> showTab(TAB_PLAY)
+            else -> {
+                @Suppress("DEPRECATION")
+                super.onBackPressed()
+            }
         }
-        // Otherwise the game is already opening.
     }
 
     private fun bindHistory() {
@@ -246,5 +294,13 @@ class MainActivity : BaseActivity() {
         } else {
             startActivity(GameActivity.newDaily(this))
         }
+    }
+
+    companion object {
+        const val TAB_PLAY = 0
+        const val TAB_LEARN = 1
+        const val TAB_RECORDS = 2
+        const val TAB_SETTINGS = 3
+        private const val STATE_TAB = "tab"
     }
 }

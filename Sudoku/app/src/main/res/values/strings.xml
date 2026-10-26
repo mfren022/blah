@@ -15,7 +15,7 @@
     <string name="home_continue">Continue</string>
     <string name="home_continue_description">Continue %1$s, %2$s: %3$s played, %4$d%% complete</string>
     <string name="percent">%1$d%%</string>
-    <string name="home_modes">Play</string>
+    <string name="home_modes">Modes</string>
     <string name="home_story">Story mode</string>
     <string name="home_story_subtitle">Anna\'s Dream</string>
     <string name="home_random">Random</string>
@@ -24,7 +24,15 @@
     <string name="home_solver">Solver</string>
     <string name="home_solver_subtitle">Solve any puzzle, step by step</string>
     <string name="home_stats">Statistics</string>
-    <string name="home_settings">Settings</string>
+    <string name="home_stats_empty">Wins, streaks and best times, by difficulty</string>
+    <plurals name="home_stats_summary">
+        <item quantity="one">Won %1$d of %2$d game</item>
+        <item quantity="other">Won %1$d of %2$d games</item>
+    </plurals>
+    <string name="tab_play">Play</string>
+    <string name="tab_learn">Learn</string>
+    <string name="tab_records">Records</string>
+    <string name="tab_settings">Settings</string>
     <string name="badge_soon">Soon</string>
     <string name="badge_done">Done</string>
     <string name="badge_resume">Resume</string>
@@ -199,7 +207,6 @@
     <string name="stats_reset_confirm">Reset</string>
 
     <!-- Solved boards -->
-    <string name="home_records">Records</string>
     <string name="home_history">Solved boards</string>
     <string name="home_history_empty">Every finished puzzle, with its start and time</string>
     <string name="home_history_summary">%1$s · %2$s total</string>
@@ -253,7 +260,6 @@
     <string name="win_saved">Saved to solved boards</string>
 
     <!-- Strategies -->
-    <string name="home_learn">Learn</string>
     <string name="home_strategies">Strategies</string>
     <string name="home_strategies_subtitle">%1$d techniques, from singles to chains</string>
     <string name="home_strategies_progress">%1$d of %2$d practised</string>

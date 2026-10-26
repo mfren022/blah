@@ -146,7 +146,11 @@ class ContinueTest : ScreenTest() {
             if (view is ViewGroup) for (i in 0 until view.childCount) collect(view.getChildAt(i))
         }
         collect(activity.window.decorView)
-        assertEquals(listOf("Continue", "Play", "Learn", "Records"), headers.map { it.text.toString() })
+        // The play page's, then the settings page's.
+        assertEquals(
+            listOf("Continue", "Modes", "Appearance", "Gameplay", "Assists", "General", "About"),
+            headers.map { it.text.toString() },
+        )
         for (header in headers) {
             assertTrue(header.isAccessibilityHeading)
             assertEquals(ViewGroup.LayoutParams.MATCH_PARENT, header.layoutParams.width)

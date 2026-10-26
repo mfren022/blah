@@ -47,6 +47,7 @@ class StrategyTest : ScreenTest() {
         val home = Robolectric.buildActivity(MainActivity::class.java).setup()
         val tile = home.get().view<TileView>(R.id.tile_strategies)
         assertTrue(tile.contentDescription.toString(), tile.contentDescription.endsWith("23 techniques, from singles to chains"))
+        home.get().view<android.view.ViewGroup>(R.id.tabs).getChildAt(MainActivity.TAB_LEARN).performClick()
         capture(home.get(), "42_home_learn")
         // Once some are practised, the tile counts them.
         app.strategies.practise(Technique.FULL_HOUSE)
