@@ -260,26 +260,51 @@ class StoryTest : ScreenTest() {
         assertEquals(LevelMapView.Style.METRO, chapter(1).view<LevelMapView>(R.id.map).style)
         val bitmap = drawn(pond)
         val density = pond.resources.displayMetrics.density
+        val page = Palette(pond.context).bg
+        fun darker(by: Float) = Color.rgb(
+            Math.round(Color.red(page) * (1 - by)),
+            Math.round(Color.green(page) * (1 - by)),
+            Math.round(Color.blue(page) * (1 - by)),
+        )
+        val water = darker(0.14f)
+        val land = darker(0.55f)
         fun luminance(c: Int) = Color.red(c) * 0.3 + Color.green(c) * 0.59 + Color.blue(c) * 0.11
-        val page = luminance(Palette(pond.context).bg)
-        /** The pixels within a box [w] by [h] dp around a point. */
-        fun around(x: Float, y: Float, w: Int, h: Int) = (-w / 2..w / 2 step 3).flatMap { dx ->
-            (-h / 2..h / 2 step 3).map { dy ->
-                bitmap.getPixel(
-                    Math.round(x + dx * density).coerceIn(0, bitmap.width - 1),
-                    Math.round(y + dy * density).coerceIn(0, bitmap.height - 1),
-                )
+
+        // Out to the sides, clear of the levels and paths, every tile is one of just two shades.
+        val tile = 16 * density
+        val shades = HashSet<Int>()
+        for (b in 0..(pond.height / (tile / 4)).toInt()) {
+            val y = b * tile / 4
+            if (y < 80 * density || y > pond.height - 80 * density) continue
+            for (a in -60..60) {
+                if (Math.floorMod(a + b, 2) != 0) continue
+                val x = pond.width / 2f + a * tile / 2
+                if (x in 4f..56 * density || x in pond.width - 56 * density..pond.width - 4f) {
+                    shades += bitmap.getPixel(Math.round(x), Math.round(y))
+                }
             }
         }
-        // Every level stands on dark land.
+        assertEquals(setOf(water, land), shades)
+
+        // Every level stands on land, the darkest thing on the map.
         for (level in pond.map!!.levels) {
             val centre = checkNotNull(pond.center(level.number))
-            assertTrue("${level.number}", around(centre.x, centre.y, 120, 60).any { luminance(it) < page * 0.6 })
+            val around = (-60..60 step 3).flatMap { dx ->
+                (-30..30 step 3).map { dy -> bitmap.getPixel(Math.round(centre.x + dx * density), Math.round(centre.y + dy * density)) }
+            }
+            assertEquals("${level.number}", land, around.minBy { luminance(it) })
         }
-        // Between the islands, water paler than the page.
+        // Between the islands, water.
         val two = checkNotNull(pond.center(2))
         val four = checkNotNull(pond.center(4))
-        assertTrue(around((two.x + four.x) / 2, two.y, 12, 6).maxOf { luminance(it) } > page)
+        val between = (-6..6 step 2).flatMap { dx ->
+            (-3..3).map { dy -> bitmap.getPixel(Math.round((two.x + four.x) / 2 + dx * density), Math.round(two.y + dy * density)) }
+        }
+        assertEquals(water, between.minBy { luminance(it) })
+        // Faded into the page above the levels and below them.
+        assertEquals(page, bitmap.getPixel(pond.width / 2, 0))
+        assertEquals(page, bitmap.getPixel(pond.width / 2, pond.height - 1))
+        assertTrue(checkNotNull(pond.center(1)).y > 64 * density)
         // Rows stay level, and the entrance and final level are in the middle.
         assertEquals(two.y, four.y)
         assertEquals(pond.width / 2f, checkNotNull(pond.center(1)).x)

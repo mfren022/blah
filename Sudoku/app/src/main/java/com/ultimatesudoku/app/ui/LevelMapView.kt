@@ -20,14 +20,14 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
- * A chapter's levels as a node graph, the entrance at the top and the chapter's final level, larger and
- * marked with a star, at the bottom. Finished levels are white and the paths on from them drawn bright;
- * levels ready to play are blue and ringed; the rest are drawn locked. In one of two [Style]s:
+ * A chapter's levels as a node graph, like a metro map: square stops in rows and lanes, joined by
+ * right-angled paths. The entrance is at the top and the chapter's final level, drawn larger with a
+ * star, at the bottom. Finished levels are filled, and the paths on from them drawn bright; levels
+ * ready to play are filled blue and ringed; the rest are drawn locked.
  *
- * - [Style.METRO], like a metro map: square stops in rows and lanes, joined by right-angled paths.
- * - [Style.ISLANDS], a pond seen in isometric view, drawn entirely as one grid of shaded diamond
- *   tiles: each level is a block of tiles on a dark island, lit from the top left, in lighter water
- *   with shallows around the shores, and each path is a ford of paler tiles from island to island.
+ * In the [Style.ISLANDS] style the map lies over a landscape drawn as one isometric grid of diamond
+ * tiles in just two shades: water a little darker than the page, and land much darker, an island
+ * around each level. The grid fades into the page above and below the levels.
  */
 class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
 
@@ -42,7 +42,7 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
     var map: LevelMap? = null
         set(value) {
             field = value
-            terrain = null
+            landscape = null
             requestLayout()
             invalidate()
         }
@@ -50,7 +50,7 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
     var style = Style.METRO
         set(value) {
             field = value
-            terrain = null
+            landscape = null
             requestLayout()
             invalidate()
         }
@@ -91,81 +91,56 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
     private val ring = dp(7f)
     private val rowGap = dp(76f)
 
-    /** How far an island level's platform stands above the tiles around it. */
-    private val rise = dp(3f)
+    /** Room above and below the levels for the landscape to fade into the page, and how far it fades. */
+    private val margin = dp(72f)
+    private val fade = dp(64f)
 
     /** The level under the finger, by number, or 0. */
     private var pressed = 0
 
-    /** The island grid, worked out once for the map and the view's size. */
-    private var terrain: Terrain? = null
+    /** The landscape's tiles, worked out once for the map and the view's size. */
+    private var landscape: Landscape? = null
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = MeasureSpec.getSize(widthMeasureSpec)
         val rows = map?.rows ?: 0
-        val content = when {
-            rows == 0 -> 0f
-            style == Style.ISLANDS -> {
-                val th = tileWidth(width) / 2
-                2 * MARGIN_HALF_TILES * th + (rows - 1) * ROW_STEP * th / 2
-            }
-            else -> 2 * ring + finalStop + (rows - 1) * rowGap
-        }
+        var content = if (rows == 0) 0f else 2 * ring + finalStop + (rows - 1) * rowGap
+        if (rows > 0 && style == Style.ISLANDS) content += 2 * margin
         val height = paddingTop + paddingBottom + content.roundToInt()
-        setMeasuredDimension(width, resolveSize(height, heightMeasureSpec))
+        setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), resolveSize(height, heightMeasureSpec))
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        terrain = null
+        landscape = null
     }
 
     /** Where level [number] is drawn: its centre, in this view's pixels. */
     fun center(number: Int): PointF? {
         val level = map?.levels?.firstOrNull { it.number == number } ?: return null
-        return PointF(x(level), y(level))
+        return PointF(x(level.lane), y(level.row))
     }
 
-    /** A point inside level [number]'s stop or block, clear of its number. */
+    /** A point inside level [number]'s stop, near its top left corner and clear of its number. */
     fun fillPoint(number: Int): PointF? {
         val map = map ?: return null
         val level = map.levels.firstOrNull { it.number == number } ?: return null
-        return if (style == Style.ISLANDS) {
-            // On the platform's top, where the tile left of its centre would be.
-            PointF(x(level) - tileWidth(width), y(level) - rise)
-        } else {
-            val inset = half(map, level) - dp(4f)
-            PointF(x(level) - inset, y(level) - inset)
-        }
+        val inset = half(map, level) - dp(4f)
+        return PointF(x(level.lane) - inset, y(level.row) - inset)
     }
 
-    private fun x(level: LevelMap.Level): Float = if (style == Style.ISLANDS) {
-        width / 2f + (level.lane - 1) * LANE_STEP * tileWidth(width) / 2
-    } else {
+    private fun x(lane: Int): Float {
         val inner = width - paddingLeft - paddingRight
         val spread = min(inner * 0.3f, dp(116f))
-        paddingLeft + inner / 2f + (level.lane - 1) * spread
+        return paddingLeft + inner / 2f + (lane - 1) * spread
     }
 
-    private fun y(level: LevelMap.Level): Float = if (style == Style.ISLANDS) {
-        val th = tileWidth(width) / 2
-        paddingTop + MARGIN_HALF_TILES * th + level.row * ROW_STEP * th / 2
-    } else {
-        paddingTop + ring + finalStop / 2 + level.row * rowGap
-    }
+    private fun y(row: Int): Float =
+        paddingTop + (if (style == Style.ISLANDS) margin else 0f) + ring + finalStop / 2 + row * rowGap
 
     private fun half(map: LevelMap, level: LevelMap.Level) = (if (level == map.final) finalStop else stop) / 2
 
-    /** The width of an island tile, about an eighteenth of the view's. */
-    private fun tileWidth(width: Int) = (width / 18f).coerceIn(dp(16f), dp(26f))
-
     override fun onDraw(canvas: Canvas) {
         val map = map ?: return
-        if (style == Style.ISLANDS) drawIslands(canvas, map) else drawMetro(canvas, map)
-    }
-
-    // ---- Metro --------------------------------------------------------------------------------
-
-    private fun drawMetro(canvas: Canvas, map: LevelMap) {
+        if (style == Style.ISLANDS) drawLandscape(canvas, map)
         // Paths run centre to centre under the stops: down, across halfway between the rows, down.
         // Those on from a finished level are walked, and drawn bright.
         track.color = palette.ink
@@ -175,20 +150,20 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
             track.alpha = if (walked) 210 else 70
             val from = map.level(path.from)
             val to = map.level(path.to)
-            val mid = (y(from) + y(to)) / 2
+            val mid = (y(from.row) + y(to.row)) / 2
             route.reset()
-            route.moveTo(x(from), y(from))
-            route.lineTo(x(from), mid)
-            route.lineTo(x(to), mid)
-            route.lineTo(x(to), y(to))
+            route.moveTo(x(from.lane), y(from.row))
+            route.lineTo(x(from.lane), mid)
+            route.lineTo(x(to.lane), mid)
+            route.lineTo(x(to.lane), y(to.row))
             canvas.drawPath(route, track)
         }
         for (level in map.levels) drawStop(canvas, map, level)
     }
 
     private fun drawStop(canvas: Canvas, map: LevelMap, level: LevelMap.Level) {
-        val cx = x(level)
-        val cy = y(level)
+        val cx = x(level.lane)
+        val cy = y(level.row)
         val h = half(map, level)
         val isOpen = level.number in open
         val isFinished = level.number in finished
@@ -219,12 +194,8 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
             canvas.drawRect(cx - h + inset, cy - h + inset, cx + h - inset, cy + h - inset, edge)
             ink = palette.inkMuted
         }
-        drawLabel(canvas, map, level, cx, cy, h * 0.9f, ink)
-    }
-
-    private fun drawLabel(canvas: Canvas, map: LevelMap, level: LevelMap.Level, cx: Float, cy: Float, starSize: Float, ink: Int) {
         if (level == map.final) {
-            val size = starSize.roundToInt()
+            val size = (h * 0.9f).roundToInt()
             finalMark.setBounds((cx - size / 2f).roundToInt(), (cy - size / 2f).roundToInt(), (cx + size / 2f).roundToInt(), (cy + size / 2f).roundToInt())
             finalMark.setTint(ink)
             finalMark.draw(canvas)
@@ -237,277 +208,84 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
         }
     }
 
-    // ---- Islands ------------------------------------------------------------------------------
+    // ---- Landscape ----------------------------------------------------------------------------
 
-    /**
-     * The island grid. Tiles sit on an isometric lattice: tile (i, j) is drawn at the view's centre
-     * column plus (i - j) half tile widths across and (i + j) half tile heights down from the entrance
-     * row. Distances on the ground are measured in i and j, so islands are round on the ground and
-     * ellipses on screen.
-     */
-    private class Terrain(
-        val tileWidth: Float,
-        val xs: FloatArray,
-        val ys: FloatArray,
-        /** Water or land, shaded, before levels and paths. */
-        val base: IntArray,
-        val land: BooleanArray,
-        val fade: FloatArray,
-        /** For a tile in a level's block, the level's number; else 0. */
-        val block: IntArray,
-        /** For a tile in the ring around a block, the level's number; else 0. */
-        val halo: IntArray,
-        /** For a tile on a path, 1 + the path's index in the map; else 0. */
-        val path: IntArray,
-    )
+    /** The landscape's tiles: each one's centre, whether it's land, and how far it has faded. */
+    private class Landscape(val xs: FloatArray, val ys: FloatArray, val land: BooleanArray, val alpha: IntArray)
 
-    private fun drawIslands(canvas: Canvas, map: LevelMap) {
-        val t = terrain ?: buildTerrain(map).also { terrain = it }
-        val tw = t.tileWidth
-        val th = tw / 2
-        // A gap between neighbours, so the tiles read as a grid.
-        val gap = max(1f, dp(1.2f))
+    private fun drawLandscape(canvas: Canvas, map: LevelMap) {
+        val tiles = landscape ?: buildLandscape(map).also { landscape = it }
+        // Diamonds twice as wide as tall, with a hairline of the page between neighbours.
+        val gap = max(1f, dp(1f))
+        val hw = dp(TILE_DP) / 2 - gap * 1.1f
+        val hh = dp(TILE_DP) / 4 - gap * 0.55f
         diamond.reset()
-        diamond.moveTo(0f, -(th / 2 - gap * 0.55f))
-        diamond.lineTo(tw / 2 - gap * 1.1f, 0f)
-        diamond.lineTo(0f, th / 2 - gap * 0.55f)
-        diamond.lineTo(-(tw / 2 - gap * 1.1f), 0f)
+        diamond.moveTo(0f, -hh)
+        diamond.lineTo(hw, 0f)
+        diamond.lineTo(0f, hh)
+        diamond.lineTo(-hw, 0f)
         diamond.close()
-
-        val bg = palette.bg
-        for (k in t.xs.indices) {
-            // Each level's block is drawn whole, below.
-            if (t.block[k] != 0) continue
-            val base = t.base[k]
-            val color = when {
-                t.halo[k] != 0 && t.halo[k] in open -> mix(base, ready, 0.6f)
-                t.path[k] != 0 -> {
-                    // Fords across the water, trails over land: bright once walked.
-                    val walked = map.paths[t.path[k] - 1].from in finished
-                    if (t.land[k]) mix(base, Color.WHITE, if (walked) 0.40f else 0.14f)
-                    else mix(bg, Color.WHITE, if (walked) 0.55f else 0.26f)
-                }
-                else -> base
-            }
-            tilePaint.color = color
-            tilePaint.alpha = (t.fade[k] * 255).roundToInt()
+        // The only two shades: water a little darker than the page, land much darker.
+        val water = mix(palette.bg, Color.BLACK, WATER_SHADE)
+        val land = mix(palette.bg, Color.BLACK, LAND_SHADE)
+        for (k in tiles.xs.indices) {
+            if (tiles.alpha[k] == 0) continue
+            tilePaint.color = if (tiles.land[k]) land else water
+            tilePaint.alpha = tiles.alpha[k]
             canvas.save()
-            canvas.translate(t.xs[k], t.ys[k])
+            canvas.translate(tiles.xs[k], tiles.ys[k])
             canvas.drawPath(diamond, tilePaint)
             canvas.restore()
         }
-        for (level in map.levels) {
-            drawBlock(canvas, level, if (level == map.final) 5 else 3, tw, gap)
-            val ink = when (level.number) {
-                in finished -> palette.onAccent
-                in open -> palette.ink
-                else -> palette.inkMuted
-            }
-            drawLabel(canvas, map, level, x(level), y(level) - rise, th * 2.2f, ink)
-        }
     }
 
     /**
-     * A level's square of [size] by [size] tiles, raised as a platform: its tiles in the level's colour,
-     * the joins between them only a shade darker so its number reads clearly, and its two near sides in
-     * shadow.
+     * Tiles sit on an isometric lattice: tile (i, j) is drawn at the view's centre column plus (i - j)
+     * half tile widths across, and (i + j) half tile heights down. An island is round on the ground, so
+     * on screen an ellipse twice as wide as tall, its shore roughened by noise.
      */
-    private fun drawBlock(canvas: Canvas, level: LevelMap.Level, size: Int, tw: Float, gap: Float) {
-        val pressedHere = pressed == level.number
-        val locked = mix(landLit(palette.bg), Color.WHITE, 0.12f)
-        val top = when (level.number) {
-            in finished -> if (pressedHere) palette.accentPressed else palette.accent
-            in open -> if (pressedHere) readyPressed else ready
-            else -> if (pressedHere) mix(locked, Color.WHITE, 0.12f) else locked
-        }
-        val cx = x(level)
-        val cy = y(level)
-        val hw = size * tw / 2 - gap * 1.1f
-        val hh = size * tw / 4 - gap * 0.55f
-        // The sides first, then the top over them, lifted by the rise.
-        tilePaint.alpha = 255
-        tilePaint.color = mix(top, Color.BLACK, 0.35f)
-        route.reset()
-        route.moveTo(cx - hw, cy - rise)
-        route.lineTo(cx, cy + hh - rise)
-        route.lineTo(cx, cy + hh)
-        route.lineTo(cx - hw, cy)
-        route.close()
-        canvas.drawPath(route, tilePaint)
-        tilePaint.color = mix(top, Color.BLACK, 0.5f)
-        route.reset()
-        route.moveTo(cx, cy + hh - rise)
-        route.lineTo(cx + hw, cy - rise)
-        route.lineTo(cx + hw, cy)
-        route.lineTo(cx, cy + hh)
-        route.close()
-        canvas.drawPath(route, tilePaint)
-        tilePaint.color = mix(top, Color.BLACK, 0.14f)
-        route.reset()
-        route.moveTo(cx, cy - hh - rise)
-        route.lineTo(cx + hw, cy - rise)
-        route.lineTo(cx, cy + hh - rise)
-        route.lineTo(cx - hw, cy - rise)
-        route.close()
-        canvas.drawPath(route, tilePaint)
-        tilePaint.color = top
-        val r = size / 2
-        for (di in -r..r) {
-            for (dj in -r..r) {
-                canvas.save()
-                canvas.translate(cx + (di - dj) * tw / 2, cy - rise + (di + dj) * tw / 4)
-                canvas.drawPath(diamond, tilePaint)
-                canvas.restore()
-            }
-        }
-    }
-
-    private fun buildTerrain(map: LevelMap): Terrain {
-        val tw = tileWidth(width)
+    private fun buildLandscape(map: LevelMap): Landscape {
+        val tw = dp(TILE_DP)
         val th = tw / 2
         val cx = width / 2f
-        val top = paddingTop + MARGIN_HALF_TILES * th
-
-        // Every lattice point whose tile shows in the view.
         val xs = ArrayList<Float>()
         val ys = ArrayList<Float>()
-        val iis = ArrayList<Int>()
-        val js = ArrayList<Int>()
-        val index = HashMap<Long, Int>()
-        val aMax = ceil(width / (tw / 2)).toInt() + 2
-        val bMin = floor((-th - top) / (th / 2)).toInt() - 1
-        val bMax = ceil((height + th - top) / (th / 2)).toInt() + 1
-        for (b in bMin..bMax) {
+        val land = ArrayList<Boolean>()
+        val alpha = ArrayList<Int>()
+        val aMax = ceil(width / tw).toInt() + 2
+        val bMax = ceil(height / (th / 2)).toInt() + 2
+        for (b in -2..bMax) {
             for (a in -aMax..aMax) {
                 if ((a + b) and 1 != 0) continue
                 val x = cx + a * tw / 2
-                val y = top + b * th / 2
+                val y = b * th / 2
                 if (x < -tw || x > width + tw || y < -th || y > height + th) continue
                 val i = (a + b) / 2
                 val j = (b - a) / 2
-                index[key(i, j)] = xs.size
+                val wobble = (smooth(i, j) - 0.5f) * 2 * dp(COAST_WOBBLE_DP)
+                val isLand = map.levels.any { level ->
+                    val size = if (level == map.final) FINAL_ISLAND_DP else ISLAND_DP
+                    val radius = dp(size) * (0.9f + 0.2f * hash(level.number, 0, SALT + 1))
+                    hypot(x - x(level.lane), (y - y(level.row)) * 2) + wobble < radius
+                }
+                // Faded in from the top and out to the bottom, gone a tile short of each edge.
+                var f = ((min(y, height - y) - th) / fade).coerceIn(0f, 1f)
+                f = f * f * (3 - 2 * f)
                 xs += x
                 ys += y
-                iis += i
-                js += j
+                land += isLand
+                alpha += (f * 255).roundToInt()
             }
         }
-        val n = xs.size
-
-        // Each level's spot on the ground.
-        val levelI = map.levels.map { (((it.lane - 1) * LANE_STEP) + it.row * ROW_STEP) / 2 }
-        val levelJ = map.levels.map { (it.row * ROW_STEP - (it.lane - 1) * LANE_STEP) / 2 }
-
-        // Land: a round island around each level, its shore roughened by noise. Its height falls
-        // from 1 at the level to 0 at the shore.
-        val elevation = FloatArray(n)
-        val land = BooleanArray(n)
-        for (k in 0 until n) {
-            var best = -9f
-            val wobble = (smooth(iis[k], js[k]) - 0.5f) * COAST_WOBBLE
-            map.levels.forEachIndexed { l, level ->
-                val radius = if (level == map.final) 4.4f else 3.0f + 0.6f * hash(level.number, 0, SALT + 1)
-                val d = hypot((iis[k] - levelI[l]).toFloat(), (js[k] - levelJ[l]).toFloat())
-                best = max(best, 1 - (d + wobble) / radius)
-            }
-            elevation[k] = best
-            land[k] = best > 0
-        }
-
-        // Water's depth: how many steps it is from the nearest land.
-        val depth = IntArray(n) { if (land[it]) 0 else Int.MAX_VALUE }
-        val queue = ArrayDeque<Int>()
-        for (k in 0 until n) if (land[k]) queue.add(k)
-        while (queue.isNotEmpty()) {
-            val k = queue.removeFirst()
-            for ((di, dj) in NEIGHBOURS) {
-                val m = index[key(iis[k] + di, js[k] + dj)] ?: continue
-                if (depth[m] == Int.MAX_VALUE) {
-                    depth[m] = depth[k] + 1
-                    queue.add(m)
-                }
-            }
-        }
-
-        // Each level's block of tiles, larger for the final one, and the ring around it.
-        val block = IntArray(n)
-        val halo = IntArray(n)
-        map.levels.forEachIndexed { l, level ->
-            val r = if (level == map.final) 2 else 1
-            for (di in -r - 1..r + 1) {
-                for (dj in -r - 1..r + 1) {
-                    val m = index[key(levelI[l] + di, levelJ[l] + dj)] ?: continue
-                    if (max(abs(di), abs(dj)) <= r) block[m] = level.number
-                    else if (halo[m] == 0) halo[m] = level.number
-                }
-            }
-        }
-        for (k in 0 until n) if (block[k] != 0) halo[k] = 0
-
-        // Paths: the tiles along the straight line from one level's centre to the next.
-        val path = IntArray(n)
-        map.paths.forEachIndexed { p, link ->
-            val from = map.level(link.from)
-            val to = map.level(link.to)
-            val ax = x(from)
-            val ay = y(from)
-            val bx = x(to)
-            val by = y(to)
-            for (k in 0 until n) {
-                if (block[k] != 0 || path[k] != 0) continue
-                if (segmentDistance(xs[k], ys[k], ax, ay, bx, by) < tw * PATH_WIDTH) path[k] = p + 1
-            }
-        }
-
-        // Shading: land lit from the top left, darker on the far slopes; water paler in the shallows.
-        val bg = palette.bg
-        val landBase = mix(mix(bg, Color.BLACK, 0.62f), TEAL_DARK, 0.5f)
-        val landLit = landLit(bg)
-        val base = IntArray(n)
-        val fade = FloatArray(n)
-        for (k in 0 until n) {
-            base[k] = if (land[k]) {
-                val h = elevation[k]
-                val toLight = index[key(iis[k] - 1, js[k])]?.let { elevation[it] } ?: h
-                val light = h - toLight
-                var c = mix(landBase, landLit, (0.10f + h * 0.25f + light * 0.9f).coerceIn(0f, 0.75f))
-                if (light < 0) c = mix(c, Color.BLACK, min(0.55f, -light * 0.9f))
-                c
-            } else {
-                val c = when (val d = depth[k]) {
-                    1 -> mix(bg, Color.WHITE, 0.15f)
-                    2 -> mix(bg, Color.WHITE, 0.11f)
-                    else -> mix(bg, Color.WHITE, max(0f, 0.08f - 0.012f * (min(d, 12) - 3)))
-                }
-                val ripple = (hash(iis[k], js[k], 99) - 0.5f) * 0.08f
-                if (ripple > 0) mix(c, Color.WHITE, ripple) else mix(c, Color.BLACK, -ripple)
-            }
-            // Fading out towards the edges, into the page.
-            fade[k] = min(
-                min(xs[k] / (2.5f * tw), (width - xs[k]) / (2.5f * tw)),
-                min(ys[k] / (3 * th), (height - ys[k]) / (3 * th)),
-            ).coerceIn(0f, 1f)
-        }
-        return Terrain(tw, xs.toFloatArray(), ys.toFloatArray(), base, land, fade, block, halo, path)
+        return Landscape(xs.toFloatArray(), ys.toFloatArray(), land.toBooleanArray(), alpha.toIntArray())
     }
-
-    private fun landLit(bg: Int) = mix(mix(bg, Color.WHITE, 0.10f), TEAL_LIT, 0.5f)
 
     private fun levelAt(x: Float, y: Float): LevelMap.Level? {
         val map = map ?: return null
         val reach = dp(6f)
         return map.levels.firstOrNull {
-            val dx = abs(x - x(it))
-            val dy = abs(y - y(it))
-            if (style == Style.ISLANDS) {
-                // Within the level's diamond of tiles, give or take.
-                val size = if (it == map.final) 5 else 3
-                val tw = tileWidth(width)
-                dx / (size * tw / 2 + reach) + dy / (size * tw / 4 + reach) <= 1
-            } else {
-                val h = half(map, it) + reach
-                dx <= h && dy <= h
-            }
+            val h = half(map, it) + reach
+            abs(x - x(it.lane)) <= h && abs(y - y(it.row)) <= h
         }
     }
 
@@ -539,25 +317,21 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
     override fun performClick(): Boolean = super.performClick()
 
     private companion object {
-        /** Half tile widths between lanes, and half tile heights between rows: even, so levels sit on tiles. */
-        const val LANE_STEP = 8
-        const val ROW_STEP = 14
+        /** A tile's width; it's half as tall. */
+        const val TILE_DP = 16f
 
-        /** Half tile heights above the entrance and below the final level. */
-        const val MARGIN_HALF_TILES = 6
+        /** An island's radius on the ground, around a level and around the final level. */
+        const val ISLAND_DP = 56f
+        const val FINAL_ISLAND_DP = 74f
 
-        /** How far noise pushes a shore in or out, in tiles. */
-        const val COAST_WOBBLE = 2.4f
+        /** How far noise pushes a shore in or out. */
+        const val COAST_WOBBLE_DP = 10f
 
-        /** How close to a path's line a tile's centre must be to be part of it, in tile widths. */
-        const val PATH_WIDTH = 0.42f
+        /** How much darker than the page the water is, and the land. */
+        const val WATER_SHADE = 0.14f
+        const val LAND_SHADE = 0.55f
 
         const val SALT = 7
-        val TEAL_DARK = Color.rgb(0x0B, 0x2A, 0x3C)
-        val TEAL_LIT = Color.rgb(0x23, 0x55, 0x66)
-        val NEIGHBOURS = listOf(1 to 0, -1 to 0, 0 to 1, 0 to -1)
-
-        fun key(i: Int, j: Int): Long = (i.toLong() shl 32) or (j.toLong() and 0xFFFFFFFFL)
 
         /** A repeatable random number in 0..1 for a tile. */
         fun hash(i: Int, j: Int, salt: Int): Float {
@@ -580,13 +354,6 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
             val top = hash(i0, j0, SALT) * (1 - ti) + hash(i0 + 1, j0, SALT) * ti
             val bottom = hash(i0, j0 + 1, SALT) * (1 - ti) + hash(i0 + 1, j0 + 1, SALT) * ti
             return top * (1 - tj) + bottom * tj
-        }
-
-        fun segmentDistance(px: Float, py: Float, ax: Float, ay: Float, bx: Float, by: Float): Float {
-            val vx = bx - ax
-            val vy = by - ay
-            val t = (((px - ax) * vx + (py - ay) * vy) / (vx * vx + vy * vy)).coerceIn(0f, 1f)
-            return hypot(px - ax - t * vx, py - ay - t * vy)
         }
 
         /** [a] blended towards [b] by [t], channel by channel. */

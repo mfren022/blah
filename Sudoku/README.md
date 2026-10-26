@@ -60,11 +60,10 @@ Back on any other tab returns to Play; the tab you're on survives a turn of the 
   full houses and hidden singles, as the chapter teaches: Easy, from 40 clues down to 36, except level 6
   and the final level, which are Medium (32 and 30 clues). Level 1 is open to begin with; finishing a level
   opens the levels its paths lead to, lights up the paths walked, and counts towards the chapter's
-  Levels (X/Y) and its badge on the chapter list. Its map is the pond itself, seen in isometric view and
-  drawn entirely as one grid of shaded diamond tiles: each level is a block of tiles on a dark island,
-  lit from the top left, in paler water with shallows around the shores, and each path is a ford of
-  lighter tiles from island to island, bright once walked. Levels ready to play are blue and ringed,
-  finished ones white and the rest raised but dim. Story games have their own save slot, so a level in
+  Levels (X/Y) and its badge on the chapter list. On the map, levels ready to play are blue and ringed,
+  finished ones white and the rest dim, and under it lies the pond: one isometric grid of diamond tiles
+  in just two shades, water a little darker than the page and land much darker, with an island around
+  each level. The grid fades into the page above and below. Story games have their own save slot, so a level in
   progress is picked up where it was left and never replaces a random game. The other chapters' levels
   are still to come.
 
