@@ -233,31 +233,57 @@ class StoryTest : ScreenTest() {
     }
 
     /** The centre of level [number]'s stop on [view], where the map draws it. */
-    private fun stopCentre(view: LevelMapView, number: Int): Pair<Float, Float> {
-        val level = view.map!!.level(number)
-        val density = view.resources.displayMetrics.density
-        val inner = view.width - view.paddingLeft - view.paddingRight
-        val spread = minOf(inner * 0.3f, 116 * density)
-        val x = view.paddingLeft + inner / 2f + (level.lane - 1) * spread
-        val y = view.paddingTop + (7 + 30) * density + level.row * 76 * density
-        return x to y
-    }
-
-    /** Taps level [number] on [view]. */
+    /** Taps level [number] on [view], where the map draws it. */
     private fun tapLevel(view: LevelMapView, number: Int) {
-        val (x, y) = stopCentre(view, number)
-        tap(view, x / view.width, y / view.height)
+        val centre = checkNotNull(view.center(number))
+        tap(view, centre.x / view.width, centre.y / view.height)
     }
 
-    /** The colour level [number]'s stop is filled with on [view], just inside its corner, clear of the number. */
-    private fun stopColour(view: LevelMapView, number: Int): Int {
+    /** What [view] looks like, drawn on the chapter's page. */
+    private fun drawn(view: LevelMapView): Bitmap {
         val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-        bitmap.eraseColor(view.context.getColor(R.color.story_bg))
+        bitmap.eraseColor(Palette(view.context).bg)
         view.draw(Canvas(bitmap))
-        val (x, y) = stopCentre(view, number)
-        val density = view.resources.displayMetrics.density
-        val corner = (if (number == view.map!!.final.number) 30 else 22) * density - 4 * density
-        return bitmap.getPixel(Math.round(x - corner), Math.round(y - corner))
+        return bitmap
+    }
+
+    /** The colour level [number] is filled with on [view], clear of its number. */
+    private fun stopColour(view: LevelMapView, number: Int): Int {
+        val point = checkNotNull(view.fillPoint(number))
+        return drawn(view).getPixel(Math.round(point.x), Math.round(point.y))
+    }
+
+    @Test
+    fun thePondIsDrawnAsIslands() {
+        val pond = chapter(0).view<LevelMapView>(R.id.map)
+        assertEquals(LevelMapView.Style.ISLANDS, pond.style)
+        assertEquals(LevelMapView.Style.METRO, chapter(1).view<LevelMapView>(R.id.map).style)
+        val bitmap = drawn(pond)
+        val density = pond.resources.displayMetrics.density
+        fun luminance(c: Int) = Color.red(c) * 0.3 + Color.green(c) * 0.59 + Color.blue(c) * 0.11
+        val page = luminance(Palette(pond.context).bg)
+        /** The pixels within a box [w] by [h] dp around a point. */
+        fun around(x: Float, y: Float, w: Int, h: Int) = (-w / 2..w / 2 step 3).flatMap { dx ->
+            (-h / 2..h / 2 step 3).map { dy ->
+                bitmap.getPixel(
+                    Math.round(x + dx * density).coerceIn(0, bitmap.width - 1),
+                    Math.round(y + dy * density).coerceIn(0, bitmap.height - 1),
+                )
+            }
+        }
+        // Every level stands on dark land.
+        for (level in pond.map!!.levels) {
+            val centre = checkNotNull(pond.center(level.number))
+            assertTrue("${level.number}", around(centre.x, centre.y, 120, 60).any { luminance(it) < page * 0.6 })
+        }
+        // Between the islands, water paler than the page.
+        val two = checkNotNull(pond.center(2))
+        val four = checkNotNull(pond.center(4))
+        assertTrue(around((two.x + four.x) / 2, two.y, 12, 6).maxOf { luminance(it) } > page)
+        // Rows stay level, and the entrance and final level are in the middle.
+        assertEquals(two.y, four.y)
+        assertEquals(pond.width / 2f, checkNotNull(pond.center(1)).x)
+        assertEquals(pond.width / 2f, checkNotNull(pond.center(11)).x)
     }
 
     @Test
