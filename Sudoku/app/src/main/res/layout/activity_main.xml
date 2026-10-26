@@ -234,6 +234,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
+            android:text="@string/home_learn" />
+
+        <com.ultimatesudoku.app.ui.TileView
+            android:id="@+id/tile_strategies"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp" />
+
+        <com.ultimatesudoku.app.ui.SectionHeader
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
             android:text="@string/home_records" />
 
         <com.ultimatesudoku.app.ui.TileView

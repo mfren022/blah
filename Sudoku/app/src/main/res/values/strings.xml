@@ -251,6 +251,37 @@
     <string name="board_delete_confirm">Delete</string>
     <string name="win_saved">Saved to solved boards</string>
 
+    <!-- Strategies -->
+    <string name="home_learn">Learn</string>
+    <string name="home_strategies">Strategies</string>
+    <string name="home_strategies_subtitle">%1$d techniques, from singles to chains</string>
+    <string name="home_strategies_progress">%1$d of %2$d practised</string>
+    <string name="strategies_title">Strategies</string>
+    <string name="strategies_intro">Every technique the solver knows, from the simplest to the most advanced. Each one explains why it works and how to find it, with real positions to try yourself.</string>
+    <string name="strategies_terms_title">A few words first</string>
+    <string name="strategies_terms">A candidate is a digit that could still go in a cell: a pencil mark. A unit is a row, column or box. Two cells see each other when they share a unit. Cells are named by row and column, so R3C5 is row 3, column 5.</string>
+    <string name="strategy_row">%1$d. %2$s. %3$s</string>
+    <string name="strategy_row_practised">%1$d. %2$s, practised. %3$s</string>
+    <string name="strategy_kicker">%1$s · %2$02d of %3$d</string>
+    <string name="strategy_example">Example %1$d of %2$d</string>
+    <string name="strategy_another">Another</string>
+    <string name="strategy_another_description">Another example</string>
+    <string name="strategy_board">Example position. %1$s</string>
+    <string name="strategy_try">Your turn</string>
+    <string name="strategy_step">Step %1$d of %2$d</string>
+    <string name="strategy_show_me">Show me</string>
+    <string name="strategy_next">Next</string>
+    <string name="strategy_back">Back</string>
+    <string name="strategy_try_another">Next example</string>
+    <string name="strategy_right">Well spotted! %1$s</string>
+    <string name="strategy_wrong">Not that one. Look again, or tap Show me.</string>
+    <string name="strategy_how">How it works</string>
+    <string name="strategy_spot">How to spot it</string>
+    <string name="strategy_previous">Previous strategy: %1$s</string>
+    <string name="strategy_following">Next strategy: %1$s</string>
+    <string name="strategy_previous_label">‹ %1$s</string>
+    <string name="strategy_following_label">%1$s ›</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_appearance">Appearance</string>

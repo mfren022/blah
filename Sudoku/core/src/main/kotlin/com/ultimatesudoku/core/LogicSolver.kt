@@ -99,6 +99,10 @@ class LogicSolver(private val assumeUnique: Boolean = true) {
         return null
     }
 
+    /** A step by [technique] alone, whatever easier ones might do, or null if it finds none. */
+    fun find(technique: Technique, state: LogicState): Step? =
+        finders.firstOrNull { it.first == technique }?.second?.invoke(state)
+
     /** Solves [puzzle] as far as techniques up to [maxTier] allow and reports the hardest one used. */
     fun rate(puzzle: IntArray, maxTier: Int = 5): Rating {
         val state = LogicState(puzzle)
@@ -687,7 +691,7 @@ class LogicSolver(private val assumeUnique: Boolean = true) {
                         Technique.SIMPLE_COLORING,
                         "Follow the $d's that come in pairs: along the chain, either every shaded cell or every " +
                             "outlined cell is $d. ${cellList(elims)} ${if (elims.size == 1) "sees" else "see"} " +
-                            "both colours, so it can't be $d either way.",
+                            "both colours, so ${if (elims.size == 1) "it" else "they"} can't be $d either way.",
                         eliminations = elims.map { Candidate(it, d) },
                         cells = chain,
                         highlights = highlightsA,

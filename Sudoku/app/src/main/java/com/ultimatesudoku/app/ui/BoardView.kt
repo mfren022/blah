@@ -47,6 +47,12 @@ class BoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
     var highlightPeers = true
     var highlightSame = true
 
+    /**
+     * Reports a cell only when the finger lifts where it went down, so a scroll that starts on the board
+     * isn't taken for a tap. Otherwise a cell is reported as soon as it's touched, and dragging selects.
+     */
+    var tapsOnRelease = false
+
     /** Hides the digits, e.g. while the game is paused. */
     var paused = false
         set(value) {
@@ -129,6 +135,14 @@ class BoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
         invalidate()
     }
 
+    /** Marks [cell] as a wrong answer, over whatever the board shows, until the overlay changes. */
+    fun markWrong(cell: Int) {
+        focusCell = cell
+        focusDigit = 0
+        focusIsMistake = true
+        invalidate()
+    }
+
     /** Points at one cell: a wrong digit, or a digit about to be revealed. */
     fun showFocus(cell: Int, digit: Int, mistake: Boolean) {
         clearHint()
@@ -187,6 +201,19 @@ class BoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (!isEnabled) return false
+        if (tapsOnRelease) {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> lastTouched = cellAt(event.x, event.y)
+                MotionEvent.ACTION_UP -> {
+                    val cell = cellAt(event.x, event.y)
+                    if (cell >= 0 && cell == lastTouched) onCellTap?.onCellTapped(cell)
+                    lastTouched = -1
+                    performClick()
+                }
+                MotionEvent.ACTION_CANCEL -> lastTouched = -1
+            }
+            return true
+        }
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                 val cell = cellAt(event.x, event.y)

@@ -17,6 +17,7 @@ import com.ultimatesudoku.app.ui.appliedSystemBars
 import com.ultimatesudoku.app.ui.formatTime
 import com.ultimatesudoku.app.ui.modeName
 import com.ultimatesudoku.core.Daily
+import com.ultimatesudoku.core.Strategies
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -43,6 +44,9 @@ class MainActivity : BaseActivity() {
             bind(R.drawable.ic_grid, getString(R.string.home_solver), getString(R.string.home_solver_subtitle))
             setOnClickListener { startActivity(Intent(this@MainActivity, SolverActivity::class.java)) }
         }
+        findViewById<TileView>(R.id.tile_strategies).setOnClickListener {
+            startActivity(Intent(this@MainActivity, StrategiesActivity::class.java))
+        }
         findViewById<TileView>(R.id.tile_history).apply {
             bind(R.drawable.ic_history, getString(R.string.home_history), getString(R.string.home_history_empty))
             setOnClickListener { startActivity(Intent(this@MainActivity, HistoryActivity::class.java)) }
@@ -64,7 +68,20 @@ class MainActivity : BaseActivity() {
         endGrowing()
         bindContinue()
         bindDaily()
+        bindStrategies()
         bindHistory()
+    }
+
+    /** How many strategies have been practised, once there are any. */
+    private fun bindStrategies() {
+        val total = Strategies.ALL.size
+        val practised = app.strategies.practised().size
+        val subtitle = if (practised == 0) {
+            getString(R.string.home_strategies_subtitle, total)
+        } else {
+            getString(R.string.home_strategies_progress, practised, total)
+        }
+        findViewById<TileView>(R.id.tile_strategies).bind(R.drawable.ic_school, getString(R.string.home_strategies), subtitle)
     }
 
     override fun onStop() {

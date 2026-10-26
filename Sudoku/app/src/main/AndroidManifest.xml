@@ -34,6 +34,8 @@
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".HistoryActivity" android:exported="false" />
         <activity android:name=".SolvedBoardActivity" android:exported="false" />
+        <activity android:name=".StrategiesActivity" android:exported="false" />
+        <activity android:name=".StrategyActivity" android:exported="false" />
     </application>
 
 </manifest>

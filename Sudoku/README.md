@@ -54,6 +54,30 @@ install over the old one and keep your saved games and statistics.
   progress is picked up where it was left and never replaces a random game. The other chapters' levels
   are still to come.
 
+## Strategies
+
+**Strategies**, under Learn on the home screen, teaches all 23 techniques the solver knows, simplest
+first and grouped by tier: Singles, Basic, Intermediate, Advanced and Expert. The list opens with the
+few words every explanation uses (candidate, unit, cells that see each other, R3C5), and marks each
+strategy you've practised with its number on a blue block.
+
+Each strategy has its own page: what it does in a sentence, then a worked example on a real board,
+then **How it works** (why the logic holds) and **How to spot it** (where to look in a puzzle), with
+the strategies either side a tap away. The example is interactive:
+
+- **Your turn**: the board shows where to look, and you tap the cell the strategy fills in or clears
+  candidates from. A wrong cell gets a red mark and a nudge; the right one counts the strategy as
+  practised. **Show me** skips ahead.
+- **Step by step**: three frames build the step up on the board (where to look, the pattern and why
+  it works, then the result, with digits placed or candidates struck out), with Back and Next.
+- **Another example**: every strategy has three, from different puzzles.
+
+The examples come from random puzzles (`core/StrategyExamples.kt`). Beyond the singles, each is a
+position with no single left and where no easier technique could make the same deduction, and its
+pencil marks are exactly what the placed digits leave, so every candidate on show can be checked by
+eye. The walkthroughs (`core/Lessons.kt`) are built from the solver's own step, and the tests check
+every example against the puzzle's solution.
+
 ## Continue where you left off
 
 While a random or custom game is in progress, the home screen's **Continue** card shows a live preview
@@ -119,6 +143,9 @@ Pure Kotlin with no Android code, unit-tested on the JVM.
   or more than the solver knows. Generation is deterministic for a seed, which is how every phone gets
   the same daily puzzle.
 - `Game` holds a game in progress: entries, notes, undo history, mistakes, hints and time, plus saving.
+- `Strategies` holds each technique's explanations and example positions, and `Lessons` turns the
+  solver's step in an example into a challenge and a walkthrough. `LogicSolver.find` runs a single
+  technique on its own.
 - `LevelMap` is a story chapter's levels as a graph: rows from an entrance to a final level, up to three
   lanes, and paths that branch and merge without crossing. Until the levels are designed, each chapter
   gets a placeholder map that is the same every time.
@@ -163,8 +190,10 @@ Sudoku/
   core/            Engine: grid, solvers, generator, game model (pure Kotlin + tests)
   app/             Android app
     src/main/java/com/ultimatesudoku/app/
-      *Activity    Home, Random, Game, Solver, Story, Chapter, Solved boards, Statistics, Settings
-      data/        Settings, statistics and saved games (SharedPreferences); solved boards (SQLite)
+      *Activity    Home, Random, Game, Solver, Story, Chapter, Strategies, Solved boards,
+                   Statistics, Settings
+      data/        Settings, statistics, saved games, story and strategy progress
+                   (SharedPreferences); solved boards (SQLite)
       ui/          Custom views: board, keypad, tool buttons, tiles, toggles, dialogs, and the
                    continue card's grow transition (GrowOverlay)
     src/test/      Robolectric tests that drive every screen and save screenshots
