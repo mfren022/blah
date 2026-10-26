@@ -22,6 +22,8 @@ import com.ultimatesudoku.core.Game
 import com.ultimatesudoku.core.GameMode
 import com.ultimatesudoku.core.Grid
 import com.ultimatesudoku.core.LevelMap
+import kotlin.math.max
+import kotlin.math.min
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -257,6 +259,7 @@ class StoryTest : ScreenTest() {
     fun thePondIsDrawnAsIslands() {
         val pond = chapter(0).view<LevelMapView>(R.id.map)
         assertEquals(LevelMapView.Style.ISLANDS, pond.style)
+        val map = pond.map!!
         val bitmap = drawn(pond)
         val density = pond.resources.displayMetrics.density
         val page = Palette(pond.context).bg
@@ -268,34 +271,52 @@ class StoryTest : ScreenTest() {
         val land = darker(0.14f)
         val water = darker(0.55f)
         fun luminance(c: Int) = Color.red(c) * 0.3 + Color.green(c) * 0.59 + Color.blue(c) * 0.11
+        fun centre(number: Int) = checkNotNull(pond.center(number))
 
-        // Out at the sides, clear of the levels and paths, every tile is one of just two shades: the
-        // river runs across from one side to the other, through the land.
-        val tile = 24 * density
-        val left = HashSet<Int>()
-        val right = HashSet<Int>()
+        // The levels keep to the three lanes, each row level, and the rows are only ever further apart
+        // than on the other chapters' maps: much further, some of them, where the river crosses.
+        assertEquals(3, map.levels.map { centre(it.number).x }.toSet().size)
+        assertEquals(map.rows, map.levels.map { centre(it.number).y }.toSet().size)
+        val lines = (0 until map.rows).map { row -> centre(map.levels.first { it.row == row }.number).y }
+        val gaps = lines.zipWithNext { a, b -> b - a }
+        assertTrue(gaps.all { it >= 76 * density })
+        assertTrue(gaps.any { it > 110 * density })
+        assertTrue(gaps.toSet().size > 3)
+
+        // Clear of the levels and the paths between them, every tile is one of just two shades.
+        val tile = 28 * density
+        fun onPath(x: Float, y: Float) = map.paths.any { path ->
+            val from = centre(path.from)
+            val to = centre(path.to)
+            val mid = (from.y + to.y) / 2
+            val near = 4 * density
+            (Math.abs(x - from.x) < near && y in from.y..mid) ||
+                (Math.abs(y - mid) < near && x in min(from.x, to.x) - near..max(from.x, to.x) + near) ||
+                (Math.abs(x - to.x) < near && y in mid..to.y)
+        }
+        val shades = HashSet<Int>()
         for (b in 0..(pond.height / (tile / 4)).toInt()) {
             val y = b * tile / 4
             if (y < 80 * density || y > pond.height - 80 * density) continue
             for (a in -60..60) {
                 if (Math.floorMod(a + b, 2) != 0) continue
                 val x = pond.width / 2f + a * tile / 2
-                if (x in 4f..28 * density) left += bitmap.getPixel(Math.round(x), Math.round(y))
-                if (x in pond.width - 28 * density..pond.width - 4f) right += bitmap.getPixel(Math.round(x), Math.round(y))
+                if (x < 0 || x >= pond.width) continue
+                if (map.levels.any { Math.abs(x - centre(it.number).x) < 42 * density && Math.abs(y - centre(it.number).y) < 42 * density }) continue
+                if (onPath(x, y)) continue
+                shades += bitmap.getPixel(Math.round(x), Math.round(y))
             }
         }
-        assertEquals(setOf(land, water), left)
-        assertEquals(setOf(land, water), right)
+        assertEquals(setOf(land, water), shades)
 
         // Every level stands on land: just beside its stop there's nothing darker.
-        val map = pond.map!!
         for (level in map.levels) {
-            val centre = checkNotNull(pond.center(level.number))
+            val at = centre(level.number)
             val half = (if (level == map.final) 30 else 22) * density
             val beside = (2..6).flatMap { dx ->
                 (-10..10).flatMap { dy ->
-                    val y = Math.round(centre.y + dy * half / 20)
-                    listOf(bitmap.getPixel(Math.round(centre.x - half - dx * density), y), bitmap.getPixel(Math.round(centre.x + half + dx * density), y))
+                    val y = Math.round(at.y + dy * half / 20)
+                    listOf(bitmap.getPixel(Math.round(at.x - half - dx * density), y), bitmap.getPixel(Math.round(at.x + half + dx * density), y))
                 }
             }
             assertEquals("${level.number}", land, beside.minBy { luminance(it) })
@@ -303,27 +324,9 @@ class StoryTest : ScreenTest() {
         // Faded into the page above the levels and below them.
         assertEquals(page, bitmap.getPixel(pond.width / 2, 0))
         assertEquals(page, bitmap.getPixel(pond.width / 2, pond.height - 1))
-        assertTrue(checkNotNull(pond.center(1)).y > 64 * density)
+        assertTrue(centre(1).y > 64 * density)
 
-        // The levels sit off a strict grid: the rows a varied distance apart, and the route swaying.
-        val drops = map.paths.map { checkNotNull(pond.center(it.to)).y - checkNotNull(pond.center(it.from)).y }
-        assertTrue(drops.toSet().size > 3)
-        assertTrue(map.levels.map { checkNotNull(pond.center(it.number)).x }.toSet().size > 3)
-        // A level straight on below another in its lane keeps to the same line down, and no two stops
-        // come close.
-        for (path in map.paths) {
-            val from = map.level(path.from)
-            val to = map.level(path.to)
-            if (from.lane == to.lane) assertEquals(checkNotNull(pond.center(from.number)).x, checkNotNull(pond.center(to.number)).x)
-        }
-        for (a in map.levels) for (b in map.levels) {
-            if (a.number >= b.number) continue
-            val pa = checkNotNull(pond.center(a.number))
-            val pb = checkNotNull(pond.center(b.number))
-            assertTrue("${a.number} ${b.number}", Math.abs(pa.x - pb.x) > 60 * density || Math.abs(pa.y - pb.y) > 52 * density)
-        }
-
-        // The other chapters keep to the grid.
+        // The other chapters keep to the grid, rows evenly apart.
         val other = chapter(1).view<LevelMapView>(R.id.map)
         assertEquals(LevelMapView.Style.METRO, other.style)
         for (path in other.map!!.paths) {

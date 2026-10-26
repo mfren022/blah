@@ -11,15 +11,14 @@ import android.view.MotionEvent
 import android.view.View
 import com.ultimatesudoku.app.R
 import com.ultimatesudoku.core.LevelMap
-import java.util.PriorityQueue
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.atan2
 import kotlin.math.ceil
-import kotlin.math.floor
+import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -29,12 +28,12 @@ import kotlin.math.sin
  * star, at the bottom. Finished levels are filled, and the paths on from them drawn bright; levels
  * ready to play are filled blue and ringed; the rest are drawn locked.
  *
- * In the [Style.ISLANDS] style the rows are spaced unevenly and the route sways from side to side,
- * and the map lies over a landscape drawn as one isometric grid of diamond tiles in just two shades:
- * land a little darker than the page, and water much darker. A wide river winds across it from one
- * side to the other, a big lake with islands lies low down and another high up, and a couple of ponds
- * are dotted about; every level stands on land, an island where it's in the water. The grid fades
- * into the page above and below the levels.
+ * In the [Style.ISLANDS] style the map lies over a landscape drawn as one isometric grid of diamond
+ * tiles in just two shades: land a little darker than the page, and water much darker. A river winds
+ * down it in wide bends around the levels in the middle lane, one side then the other, and swells
+ * into a lake with an islet wherever it runs on down the middle between them; the rows are further
+ * apart where it crosses from lane to lane. Every level stands on land. The grid fades into the page
+ * above and below the levels.
  */
 class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
 
@@ -149,53 +148,39 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
     /**
      * The line each row of levels sits on, from the top of the view. In the [Style.ISLANDS] style the
-     * rows are a varied distance apart.
+     * rows are further apart, by varied amounts, and much further where the river crosses from lane to
+     * lane between them: where a level in the middle lane is above or below rows with the middle free.
      */
     private fun lines(map: LevelMap): FloatArray {
         val lines = FloatArray(map.rows)
         var y = paddingTop + (if (style == Style.ISLANDS) margin else 0f) + ring + finalStop / 2
         for (row in lines.indices) {
             lines[row] = y
-            y += if (style == Style.ISLANDS) rowGap * (0.88f + 0.5f * hash(row, 21, SALT)) else rowGap
+            y += if (style == Style.METRO) {
+                rowGap
+            } else if (middle(map, row) != middle(map, row + 1)) {
+                rowGap * (1.5625f + 0.375f * hash(row, 21, SALT))
+            } else {
+                rowGap * (1 + 0.15f * hash(row, 21, SALT))
+            }
         }
         return lines
     }
 
-    /**
-     * Levels sit on their row's line, in lanes across the view. In the [Style.ISLANDS] style the route
-     * sways from side to side down the rows, and each level is nudged off its place a little, though
-     * one straight on from a level above it in its lane keeps to the same line down, and the entrance
-     * and final level stay on their rows' lines.
-     */
+    /** Whether there's a level in the middle lane in [row]. */
+    private fun middle(map: LevelMap, row: Int) = map.levels.any { it.row == row && it.lane == 1 }
+
+    /** Levels sit on their row's line, in lanes across the view. */
     private fun layout(map: LevelMap): Layout {
         layout?.let { return it }
         val lines = lines(map)
-        val spots = HashMap<Int, PointF>()
         val inner = width - paddingLeft - paddingRight
-        val spread = min(inner * 0.3f, dp(116f))
-        val phase = hash(0, 22, SALT) * 6.28f
-        // Row by row, so a level's neighbour above is placed before it.
-        for (level in map.levels.sortedBy { it.row }) {
-            val x = paddingLeft + inner / 2f + (level.lane - 1) * spread
-            val y = lines[level.row]
-            if (style == Style.METRO) {
-                spots[level.number] = PointF(x, y)
-                continue
-            }
-            val end = level == map.entrance || level == map.final
-            val dy = if (end) 0f else (hash(level.number, 24, SALT) - 0.5f) * 2 * dp(NUDGE_Y_DP)
-            val above = map.paths.firstOrNull { it.to == level.number && map.level(it.from).lane == level.lane }
-            val across = if (above != null) {
-                spots.getValue(above.from).x
-            } else {
-                val sway = dp(SWAY_DP) * sin(level.row * 1.3f + phase)
-                val dx = if (end) 0f else (hash(level.number, 23, SALT) - 0.5f) * 2 * dp(NUDGE_X_DP)
-                x + sway + dx
-            }
-            spots[level.number] = PointF(across, y + dy)
-        }
+        val spots = map.levels.associate { it.number to PointF(paddingLeft + inner / 2f + (it.lane - 1) * spread(), lines[it.row]) }
         return Layout(lines, spots).also { layout = it }
     }
+
+    /** How far apart the lanes are. */
+    private fun spread() = min((width - paddingLeft - paddingRight) * 0.3f, dp(116f))
 
     private fun half(map: LevelMap, level: LevelMap.Level) = (if (level == map.final) finalStop else stop) / 2
 
@@ -306,11 +291,12 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
      * half tile widths across, and (i + j) half tile heights down. Distances on the ground are measured
      * with screen heights doubled, so round things there are ellipses twice as wide as tall on screen.
      *
-     * The land is all one to begin with. Lakes are laid on it, their shores wavering with the angle
-     * around them and smoothed, and islets set in the big one; then a river is found across the view,
-     * the cheapest way from one side to the other around the levels through ground made rough by
-     * noise, so that it winds, and widened, and its banks smoothed; last, the ground under and around
-     * every level is land.
+     * The land is all one but for the river. Its course comes in from the side of the view beside the
+     * first level in the middle lane, bends wide around that level and every other one in the lane, one
+     * side then the other, and goes out at the side beside the last; or, where the sides of the view are
+     * far off, in at the top and out at the bottom. Tiles near the course are water, and more of them
+     * where it runs on down the middle between bends, where it swells into a lake, lopsided, with an
+     * islet. The shores are smoothed, and last, the ground under and around every level is land.
      */
     private fun buildLandscape(map: LevelMap, layout: Layout): Landscape {
         val tw = dp(TILE_DP)
@@ -358,129 +344,103 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
         }
         val rim = dp(RIM_DP)
 
-        // Lakes: a big one low down, another high up on the other side, and a couple of small ponds.
-        val water = BooleanArray(n)
-        val top = paddingTop + margin
-        val span = height - paddingBottom - margin - top
-        val unit = min(width.toFloat(), span * 0.75f)
-        fun lake(lx: Float, ly: Float, radius: Float, salt: Int, lobes: Int) {
-            for (k in 0 until n) {
-                val angle = atan2((ys[k] - ly) * 2, xs[k] - lx) / (2 * PI.toFloat()) + 0.5f
-                val r = radius * (0.7f + 0.6f * wave(angle * lobes, salt, lobes)) +
-                    (smooth(iis[k], js[k], salt + 1, 3f) - 0.5f) * 0.3f * radius
-                if (ground(k, lx, ly) < r) water[k] = true
+        // The river's course, through points around each level in the middle lane in turn.
+        val mids = map.levels.filter { it.lane == 1 }.sortedBy { it.row }
+        val bend = 1.4f * spread()
+        val firstSide = if (hash(0, 64, SALT) < 0.5f) 1 else -1
+        val beyond = width / 2f + 2 * tw
+        val far = beyond > 2.2f * bend
+        val points = ArrayList<PointF>()
+        for ((q, level) in mids.withIndex()) {
+            val spot = layout.spots.getValue(level.number)
+            val up = if (level.row > 0) layout.lines[level.row] - layout.lines[level.row - 1] else 0f
+            val down = if (level.row + 1 < map.rows) layout.lines[level.row + 1] - layout.lines[level.row] else 0f
+            val side = if (q % 2 == 0) firstSide else -firstSide
+            if (q == 0) points += if (far) PointF(spot.x + side * 2.2f * bend, -3 * th) else PointF(cx + side * beyond, spot.y)
+            for (degrees in (if (q == 0) 0 else -90)..(if (q == mids.lastIndex) 0 else 90) step 30) {
+                val angle = degrees * PI.toFloat() / 180
+                val reach = (if (degrees < 0) up else down) * 0.55f
+                points += PointF(spot.x + side * bend * cos(angle), spot.y + reach * sin(angle))
+            }
+            if (q == mids.lastIndex) points += if (far) PointF(spot.x + side * 2.2f * bend, height + 3 * th) else PointF(cx + side * beyond, spot.y)
+        }
+        // Smoothed into a flowing line, a dozen steps from each point to the next.
+        val course = ArrayList<PointF>()
+        for (s in 0 until points.size - 1) {
+            for (t in 0 until 12) {
+                course += catmullRom(points[max(0, s - 1)], points[s], points[s + 1], points[min(points.size - 1, s + 2)], t / 12f)
             }
         }
-        val bigX = 0.34f * width
-        val bigY = top + 0.70f * span
-        val bigR = 0.46f * unit
-        lake(bigX, bigY, bigR, SALT * 13, 5)
-        lake(0.80f * width, top + 0.18f * span, 0.30f * unit, SALT * 17, 5)
-        for (p in 0 until PONDS) {
-            val px = (0.1f + 0.8f * hash(p, 31, SALT)) * width
-            val py = top + (0.15f + 0.7f * hash(p, 32, SALT)) * span
-            lake(px, py, 0.09f * unit, SALT * 19 + p, 3)
+        points.lastOrNull()?.let { course += it }
+
+        // Between bends, where the river runs on down the middle lane, it swells into a lake, further
+        // to one side than the other, and the other side the next time.
+        val firstLean = if (hash(0, 65, SALT) < 0.5f) 1 else -1
+        val lakes = (0 until mids.size - 1).map { q ->
+            Lake(layout.spots.getValue(mids[q].number).y, layout.spots.getValue(mids[q + 1].number).y, if (q % 2 == 0) firstLean else -firstLean)
+        }
+        val water = BooleanArray(n)
+        val river = dp(RIVER_DP)
+        val swell = dp(LAKE_DP)
+        if (course.isNotEmpty()) {
+            for (k in 0 until n) {
+                var best = Float.MAX_VALUE
+                var along = 0
+                for ((s, p) in course.withIndex()) {
+                    val d = ground(k, p.x, p.y)
+                    if (d < best) {
+                        best = d
+                        along = s
+                    }
+                }
+                val p = course[along]
+                var reach = river * (0.9f + 0.25f * sin(along.toFloat() / course.size * 8 * PI.toFloat() + SALT))
+                for (lake in lakes) {
+                    if (p.y <= lake.top || p.y >= lake.bottom) continue
+                    val t = (p.y - lake.top) / (lake.bottom - lake.top)
+                    val toward = if (xs[k] > p.x) 1 else -1
+                    reach += sin(PI.toFloat() * t).pow(0.8f) * swell * (1 + LEAN * (if (toward == lake.lean) 1 else -1))
+                }
+                if (best < reach) water[k] = true
+            }
+        }
+        // An islet in each lake, clear of the levels.
+        for ((q, lake) in lakes.withIndex()) {
+            val middle = (lake.top + lake.bottom) / 2
+            val islet = (0 until n)
+                .filter { water[it] && abs(ys[it] - middle) < (lake.bottom - lake.top) * 0.22f && clear[it] > rim + 1.2f * tw }
+                .minByOrNull { hash(iis[it], js[it], 70 + q) } ?: continue
+            for (k in 0 until n) if (ground(k, xs[islet], ys[islet]) < 1.2f * tw) water[k] = false
         }
 
         // Shores smoothed: a tile with most of its eight neighbours the other way round goes with them.
-        fun smoothShores() {
-            val was = water.copyOf()
-            for (k in 0 until n) {
-                var wet = 0
-                var around = 0
-                for (d in 0 until 8) {
-                    val m = neighbour(k, d)
-                    if (m < 0) continue
-                    around++
-                    if (was[m]) wet++
-                }
-                if (wet * 2 > around + 2) water[k] = true else if (wet * 2 < around - 2) water[k] = false
-            }
-        }
-        smoothShores()
-        smoothShores()
-
-        // Islets in the big lake, clear of its shores and of the levels.
-        val islets = ArrayList<Int>()
-        val sites = (0 until n)
-            .filter { water[it] && ground(it, bigX, bigY) < bigR * 0.55f && clear[it] > rim + 1.5f * tw }
-            .sortedBy { hash(iis[it], js[it], SALT * 23) }
-        for (c in sites) {
-            if (islets.size >= ISLETS) break
-            if (islets.any { ground(c, xs[it], ys[it]) < 3 * tw }) continue
-            islets += c
-            val r = tw * (0.9f + 0.6f * hash(iis[c], js[c], 25))
-            for (k in 0 until n) if (ground(k, xs[c], ys[c]) < r) water[k] = false
-        }
-
-        // The river: the cheapest way across, from a point on the left side to anywhere on the right.
-        // Ground near a level costs far more, so it goes around them; noise makes it wind.
-        val river = dp(RIVER_DP)
-        val keepOff = rim + river * 0.8f
-        val cost = FloatArray(n) { k ->
-            var c = 1 + 5 * smooth(iis[k], js[k], SALT * 29, 5f)
-            if (clear[k] < keepOff) c += 40 * (1 - clear[k] / keepOff)
-            c
-        }
-        val startY = top + (0.15f + 0.7f * hash(1, 41, SALT)) * span
-        val source = (0 until n).filter { xs[it] < 0 }.minBy { abs(ys[it] - startY) }
-        val dist = FloatArray(n) { Float.MAX_VALUE }
-        val previous = IntArray(n) { -1 }
-        val queue = PriorityQueue<Pair<Float, Int>>(compareBy { it.first })
-        dist[source] = 0f
-        queue += 0f to source
-        var mouth = -1
-        while (queue.isNotEmpty()) {
-            val (d, k) = queue.poll()!!
-            if (d > dist[k]) continue
-            if (xs[k] > width) {
-                mouth = k
-                break
-            }
-            for (e in 0 until 8) {
-                val m = neighbour(k, e)
+        val was = water.copyOf()
+        for (k in 0 until n) {
+            var wet = 0
+            var around = 0
+            for (d in 0 until 8) {
+                val m = neighbour(k, d)
                 if (m < 0) continue
-                val next = d + ground(m, xs[k], ys[k]) / tw * cost[m]
-                if (next < dist[m]) {
-                    dist[m] = next
-                    previous[m] = k
-                    queue += next to m
-                }
+                around++
+                if (was[m]) wet++
             }
+            if (wet * 2 > around + 2) water[k] = true else if (wet * 2 < around - 2) water[k] = false
         }
-        val course = ArrayList<Int>()
-        var k = mouth
-        while (k >= 0) {
-            course += k
-            k = previous[k]
-        }
-        // Widened, more in some reaches than others.
-        for (t in 0 until n) {
-            var best = Float.MAX_VALUE
-            var along = 0
-            for ((s, c) in course.withIndex()) {
-                val d = ground(t, xs[c], ys[c])
-                if (d < best) {
-                    best = d
-                    along = s
-                }
-            }
-            val reach = river * (0.75f + 0.5f * wave(along * 6f / course.size, SALT * 9))
-            if (best < reach) water[t] = true
-        }
-        smoothShores()
 
         // Every level stands on land.
-        for (t in 0 until n) if (clear[t] < rim) water[t] = false
+        for (k in 0 until n) if (clear[k] < rim) water[k] = false
 
         // Faded in from the top and out to the bottom, gone a tile short of each edge.
-        val alpha = IntArray(n) { t ->
-            var f = ((min(ys[t], height - ys[t]) - th) / fade).coerceIn(0f, 1f)
+        val alpha = IntArray(n) { k ->
+            var f = ((min(ys[k], height - ys[k]) - th) / fade).coerceIn(0f, 1f)
             f = f * f * (3 - 2 * f)
             (f * 255).roundToInt()
         }
         return Landscape(xs.toFloatArray(), ys.toFloatArray(), water, alpha)
     }
+
+    /** A lake in the river's course, from [top] to [bottom], swelling further towards [lean]: 1 right, -1 left. */
+    private class Lake(val top: Float, val bottom: Float, val lean: Int)
 
     private fun levelAt(x: Float, y: Float): LevelMap.Level? {
         val map = map ?: return null
@@ -522,21 +482,17 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
     private companion object {
         /** A tile's width; it's half as tall. */
-        const val TILE_DP = 24f
-
-        /** In the islands style, how far the route sways from side to side, and each level is nudged. */
-        const val SWAY_DP = 20f
-        const val NUDGE_X_DP = 14f
-        const val NUDGE_Y_DP = 9f
+        const val TILE_DP = 28f
 
         /** How far the land around a level reaches past its stop, on the ground. */
-        const val RIM_DP = 22f
+        const val RIM_DP = 24f
 
-        /** How far the river reaches either side of its course, on the ground, give or take a quarter. */
-        const val RIVER_DP = 40f
+        /** How far the river reaches either side of its course, on the ground, give or take a little. */
+        const val RIVER_DP = 30f
 
-        const val PONDS = 2
-        const val ISLETS = 2
+        /** How much further a lake reaches at its widest, and how lopsided it is. */
+        const val LAKE_DP = 80f
+        const val LEAN = 0.55f
 
         /** How much darker than the page the land is, and the water. */
         const val LAND_SHADE = 0.14f
@@ -558,28 +514,11 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
             return (h and 0xFFFF) / 65535f
         }
 
-        /** Noise that changes smoothly from tile to tile, over cells of [cell] tiles. */
-        fun smooth(i: Int, j: Int, salt: Int, cell: Float): Float {
-            val fi = i / cell
-            val fj = j / cell
-            val i0 = floor(fi).toInt()
-            val j0 = floor(fj).toInt()
-            var ti = fi - i0
-            var tj = fj - j0
-            ti = ti * ti * (3 - 2 * ti)
-            tj = tj * tj * (3 - 2 * tj)
-            val top = hash(i0, j0, salt) * (1 - ti) + hash(i0 + 1, j0, salt) * ti
-            val bottom = hash(i0, j0 + 1, salt) * (1 - ti) + hash(i0 + 1, j0 + 1, salt) * ti
-            return top * (1 - tj) + bottom * tj
-        }
-
-        /** Noise in one dimension, smooth along [t], and repeating every [period] if there is one. */
-        fun wave(t: Float, salt: Int, period: Int = 0): Float {
-            val i0 = floor(t).toInt()
-            var f = t - i0
-            f = f * f * (3 - 2 * f)
-            fun at(i: Int) = hash(if (period > 0) Math.floorMod(i, period) else i, 0, salt)
-            return at(i0) * (1 - f) + at(i0 + 1) * f
+        /** The point [t] of the way from [p1] to [p2] on a Catmull-Rom spline through all four. */
+        fun catmullRom(p0: PointF, p1: PointF, p2: PointF, p3: PointF, t: Float): PointF {
+            fun at(a: Float, b: Float, c: Float, d: Float) =
+                0.5f * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (3 * b - a - 3 * c + d) * t * t * t)
+            return PointF(at(p0.x, p1.x, p2.x, p3.x), at(p0.y, p1.y, p2.y, p3.y))
         }
 
         /** [a] blended towards [b] by [t], channel by channel. */
