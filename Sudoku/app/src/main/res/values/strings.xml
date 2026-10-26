@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Sudoku</string>
+    <string name="app_name">Sudoku Blue</string>
     <string name="back">Back</string>
     <string name="more">More</string>
     <string name="close">Close</string>
@@ -8,8 +8,9 @@
     <string name="ok">OK</string>
 
     <!-- Home -->
-    <string name="home_kicker">Ultimate</string>
+    <!-- The logo: the name, its last word in blue. -->
     <string name="home_title">Sudoku</string>
+    <string name="home_title_accent">Blue</string>
     <string name="home_tagline">Clean puzzles. Real logic.</string>
     <string name="home_continue">Continue</string>
     <string name="home_continue_description">Continue %1$s, %2$s: %3$s played, %4$d%% complete</string>
@@ -309,6 +310,6 @@
     <string name="settings_haptics">Vibration</string>
     <string name="settings_haptics_summary">A light tick on taps, a buzz on mistakes</string>
     <string name="settings_about">About</string>
-    <string name="settings_about_text">Ultimate Sudoku %1$s. Puzzles are generated on your device, checked for a single solution, and graded by a logic solver that knows 23 techniques. Hints use the same solver.</string>
+    <string name="settings_about_text">Sudoku Blue %1$s. Puzzles are generated on your device, checked for a single solution, and graded by a logic solver that knows 23 techniques. Hints use the same solver.</string>
     <string name="settings_font">Roboto font: SIL Open Font License 1.1</string>
 </resources>

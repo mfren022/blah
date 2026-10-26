@@ -4,6 +4,9 @@ import android.animation.ValueAnimator
 import android.app.ActivityOptions
 import android.content.Intent
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -30,6 +33,7 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setScreen(R.layout.activity_main)
+        showLogo()
 
         findViewById<TileView>(R.id.tile_story).apply {
             bind(R.drawable.ic_book, getString(R.string.home_story), getString(R.string.home_story_subtitle), getString(R.string.badge_soon))
@@ -59,6 +63,18 @@ class MainActivity : BaseActivity() {
         }
         findViewById<View>(R.id.button_settings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
+        }
+    }
+
+    /** The name as a wordmark: "SUDOKU" in ink and "BLUE" in blue, in capitals however the type renders them. */
+    private fun showLogo() {
+        val name = getString(R.string.home_title).uppercase()
+        val accent = getString(R.string.home_title_accent).uppercase()
+        val logo = SpannableString("$name $accent")
+        logo.setSpan(ForegroundColorSpan(palette.userDigit), name.length + 1, logo.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        findViewById<TextView>(R.id.home_title).apply {
+            text = logo
+            contentDescription = getString(R.string.app_name)
         }
     }
 

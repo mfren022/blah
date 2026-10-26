@@ -1,4 +1,4 @@
-# Ultimate Sudoku
+# Sudoku Blue
 
 A clean sudoku app for Android: square edges everywhere, Roboto type, dark blue highlights, and light
 and dark themes. It has random puzzles in five difficulties, a daily challenge, a step-by-step solver,
@@ -9,7 +9,7 @@ and a placeholder story mode.
 1. Download [`dist/Sudoku.apk`](dist/Sudoku.apk) on the phone (on GitHub: open the file, then
    **Download raw file**).
 2. Open it. If Android asks, allow your browser or file manager to install unknown apps.
-3. Launch **Sudoku**. Android 8.0 or newer is required.
+3. Launch **Sudoku Blue**. Android 8.0 or newer is required.
 
 Every build is signed with the same sideloading key (`app/signing/sideload.keystore`), so new versions
 install over the old one and keep your saved games and statistics.

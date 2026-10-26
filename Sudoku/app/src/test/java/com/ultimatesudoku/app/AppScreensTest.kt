@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -13,6 +15,7 @@ import com.ultimatesudoku.app.data.GameStore
 import com.ultimatesudoku.app.data.Settings
 import com.ultimatesudoku.app.ui.BoardView
 import com.ultimatesudoku.app.ui.NumberPadView
+import com.ultimatesudoku.app.ui.Palette
 import com.ultimatesudoku.app.ui.SegmentedView
 import com.ultimatesudoku.core.Difficulty
 import com.ultimatesudoku.core.Game
@@ -61,6 +64,16 @@ class AppScreensTest : ScreenTest() {
     fun home() {
         val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
         assertEquals(View.GONE, activity.view<View>(R.id.continue_card).visibility)
+        // The logo: the app's name, its last word in blue.
+        val logo = activity.view<TextView>(R.id.home_title)
+        assertEquals("SUDOKU BLUE", logo.text.toString())
+        assertEquals("Sudoku Blue", logo.contentDescription)
+        assertEquals("Sudoku Blue", activity.getString(R.string.app_name))
+        val text = logo.text as Spanned
+        val blue = text.getSpans(0, text.length, ForegroundColorSpan::class.java).single()
+        assertEquals(Palette(activity).userDigit, blue.foregroundColor)
+        assertEquals("BLUE", text.substring(text.getSpanStart(blue), text.getSpanEnd(blue)))
+        assertEquals(1, logo.lineCount)
         capture(activity, "01_home")
     }
 
