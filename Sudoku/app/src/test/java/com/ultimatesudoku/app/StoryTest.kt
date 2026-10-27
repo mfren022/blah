@@ -256,13 +256,28 @@ class StoryTest : ScreenTest() {
     }
 
     @Test
-    fun thePondIsDrawnAsIslands() {
-        val pond = chapter(0).view<LevelMapView>(R.id.map)
-        assertEquals(LevelMapView.Style.ISLANDS, pond.style)
-        val map = pond.map!!
-        val bitmap = drawn(pond)
-        val density = pond.resources.displayMetrics.density
-        val page = Palette(pond.context).bg
+    fun everyChaptersMapLiesOverItsOwnLandscape() {
+        val landscapes = HashSet<List<Int>>()
+        for (index in StoryActivity.CHAPTERS.indices) {
+            val view = chapter(index).view<LevelMapView>(R.id.map)
+            assertEquals(index, view.seed)
+            val bitmap = drawn(view)
+            write(bitmap, "42_map_%d".format(index + 1))
+            assertLandscape(view, bitmap, "Chapter ${index + 1}")
+            landscapes += IntArray(bitmap.width * bitmap.height).also { bitmap.getPixels(it, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height) }.toList()
+        }
+        assertEquals(StoryActivity.CHAPTERS.size, landscapes.size)
+    }
+
+    /**
+     * The map in [view], drawn as [bitmap]: levels on the three lanes, each row level and the rows only
+     * ever further apart than the plain spacing, much further where the river crosses; a landscape of
+     * just two shades, with land beside every level; and the page above and below.
+     */
+    private fun assertLandscape(view: LevelMapView, bitmap: Bitmap, chapter: String) {
+        val map = view.map!!
+        val density = view.resources.displayMetrics.density
+        val page = Palette(view.context).bg
         fun darker(by: Float) = Color.rgb(
             Math.round(Color.red(page) * (1 - by)),
             Math.round(Color.green(page) * (1 - by)),
@@ -271,17 +286,14 @@ class StoryTest : ScreenTest() {
         val land = darker(0.14f)
         val water = darker(0.55f)
         fun luminance(c: Int) = Color.red(c) * 0.3 + Color.green(c) * 0.59 + Color.blue(c) * 0.11
-        fun centre(number: Int) = checkNotNull(pond.center(number))
+        fun centre(number: Int) = checkNotNull(view.center(number))
 
-        // The levels keep to the three lanes, each row level, and the rows are only ever further apart
-        // than on the other chapters' maps: much further, some of them, where the river crosses.
-        assertEquals(3, map.levels.map { centre(it.number).x }.toSet().size)
-        assertEquals(map.rows, map.levels.map { centre(it.number).y }.toSet().size)
+        assertEquals(chapter, 3, map.levels.map { centre(it.number).x }.toSet().size)
+        assertEquals(chapter, map.rows, map.levels.map { centre(it.number).y }.toSet().size)
         val lines = (0 until map.rows).map { row -> centre(map.levels.first { it.row == row }.number).y }
         val gaps = lines.zipWithNext { a, b -> b - a }
-        assertTrue(gaps.all { it >= 76 * density })
-        assertTrue(gaps.any { it > 110 * density })
-        assertTrue(gaps.toSet().size > 3)
+        assertTrue(chapter, gaps.all { it >= 76 * density })
+        assertTrue(chapter, gaps.any { it > 110 * density })
 
         // Clear of the levels and the paths between them, every tile is one of just two shades.
         val tile = 28 * density
@@ -295,19 +307,19 @@ class StoryTest : ScreenTest() {
                 (Math.abs(x - to.x) < near && y in mid..to.y)
         }
         val shades = HashSet<Int>()
-        for (b in 0..(pond.height / (tile / 4)).toInt()) {
+        for (b in 0..(view.height / (tile / 4)).toInt()) {
             val y = b * tile / 4
-            if (y < 80 * density || y > pond.height - 80 * density) continue
+            if (y < 80 * density || y > view.height - 80 * density) continue
             for (a in -60..60) {
                 if (Math.floorMod(a + b, 2) != 0) continue
-                val x = pond.width / 2f + a * tile / 2
-                if (x < 0 || x >= pond.width) continue
+                val x = view.width / 2f + a * tile / 2
+                if (x < 0 || x >= view.width) continue
                 if (map.levels.any { Math.abs(x - centre(it.number).x) < 42 * density && Math.abs(y - centre(it.number).y) < 42 * density }) continue
                 if (onPath(x, y)) continue
                 shades += bitmap.getPixel(Math.round(x), Math.round(y))
             }
         }
-        assertEquals(setOf(land, water), shades)
+        assertEquals(chapter, setOf(land, water), shades)
 
         // Every level stands on land: just beside its stop there's nothing darker.
         for (level in map.levels) {
@@ -319,20 +331,24 @@ class StoryTest : ScreenTest() {
                     listOf(bitmap.getPixel(Math.round(at.x - half - dx * density), y), bitmap.getPixel(Math.round(at.x + half + dx * density), y))
                 }
             }
-            assertEquals("${level.number}", land, beside.minBy { luminance(it) })
+            assertEquals("$chapter, ${level.number}", land, beside.minBy { luminance(it) })
         }
         // Faded into the page above the levels and below them.
-        assertEquals(page, bitmap.getPixel(pond.width / 2, 0))
-        assertEquals(page, bitmap.getPixel(pond.width / 2, pond.height - 1))
-        assertTrue(centre(1).y > 64 * density)
+        assertEquals(chapter, page, bitmap.getPixel(view.width / 2, 0))
+        assertEquals(chapter, page, bitmap.getPixel(view.width / 2, view.height - 1))
+        assertTrue(chapter, centre(1).y > 64 * density)
+    }
 
-        // The other chapters keep to the grid, rows evenly apart.
-        val other = chapter(1).view<LevelMapView>(R.id.map)
-        assertEquals(LevelMapView.Style.METRO, other.style)
-        for (path in other.map!!.paths) {
-            val drop = checkNotNull(other.center(path.to)).y - checkNotNull(other.center(path.from)).y
-            assertEquals(76 * density, drop, 0.01f)
-        }
+    @Test
+    fun thePondsRowsAreFurtherApartWhereTheRiverCrosses() {
+        val pond = chapter(0).view<LevelMapView>(R.id.map)
+        val density = pond.resources.displayMetrics.density
+        // The river runs down the middle past rows 1 and 2, and 4 and 5, and bends round 1, 6 and the
+        // final level: the rows either side of each of those are far apart, the others not so far.
+        val lines = listOf(1, 2, 3, 6, 7, 8, 11).map { checkNotNull(pond.center(it)).y }
+        val gaps = lines.zipWithNext { a, b -> (b - a) / density }
+        for (row in listOf(0, 2, 3, 5)) assertTrue("$row", gaps[row] > 118)
+        for (row in listOf(1, 4)) assertTrue("$row", gaps[row] < 88)
     }
 
     @Test

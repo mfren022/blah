@@ -54,6 +54,12 @@ Back on any other tab returns to Play; the tab you're on survives a turn of the 
   - the chapter's title and its part of the story;
   - underneath, a **Levels (finished/total)** header and a node graph of the levels, metro-map style:
     the routes branch and merge from the entrance down to the chapter's final level, marked with a star.
+    The graph lies over a landscape of its own, one isometric grid of diamond tiles in just two shades,
+    land a little darker than the page and water much darker. A river winds down through whichever
+    lane is free in each row, in wide bends around the levels in the middle lane, and swells into a
+    lake wherever it runs on down the middle; where a row has a level in every lane, it leaves by the
+    side above that row and comes back in below. The rows are further apart where it crosses between
+    lanes, every level stands on land, and the grid fades into the page above and below.
 - **Chapter 1, The Pond, can be played.** Its eleven levels are laid out as designed: level 1, then two
   routes (2 then 3, or 4 then 5) to level 6, then two more (7 then 8, or 9 then 10) to the final level.
   Each level is a fixed puzzle (`core/StoryPuzzles.kt`), the same for everyone and solvable with only
@@ -61,13 +67,9 @@ Back on any other tab returns to Play; the tab you're on survives a turn of the 
   and the final level, which are Medium (32 and 30 clues). Level 1 is open to begin with; finishing a level
   opens the levels its paths lead to, lights up the paths walked, and counts towards the chapter's
   Levels (X/Y) and its badge on the chapter list. On the map, levels ready to play are blue and ringed,
-  finished ones white and the rest dim, and under them lies the pond: one isometric grid of diamond
-  tiles in just two shades, land a little darker than the page and water much darker. A river winds
-  down it in wide bends around levels 1, 6 and the final level, one side then the other, swelling into
-  a lopsided lake with an islet wherever it runs on down the middle between them; the rows are further
-  apart where it crosses from lane to lane. Every level stands on land, and the grid fades into the
-  page above and below. Story games have their own save slot, so a level in
-  progress is picked up where it was left and never replaces a random game. The other chapters' levels
+  finished ones white and the rest dim; the pond's river bends around levels 1, 6 and the final level,
+  swelling into a lake with an islet between each bend. Story games have their own save slot, so a
+  level in progress is picked up where it was left and never replaces a random game. The other chapters' levels
   are still to come.
 
 ## Strategies

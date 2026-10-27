@@ -68,7 +68,7 @@ abstract class ScreenTest {
         write(bitmap, name)
     }
 
-    private fun write(bitmap: Bitmap, name: String) {
+    protected fun write(bitmap: Bitmap, name: String) {
         val dir = File(System.getProperty("screenshots.dir") ?: "build/screenshots").apply { mkdirs() }
         File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }

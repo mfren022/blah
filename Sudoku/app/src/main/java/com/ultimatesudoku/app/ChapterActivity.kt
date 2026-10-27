@@ -44,8 +44,8 @@ class ChapterActivity : BaseActivity() {
 
         map = LevelMap.forChapter(index)
         mapView = findViewById(R.id.map)
-        // The Pond's levels are islands in it.
-        if (index == 0) mapView.style = LevelMapView.Style.ISLANDS
+        // Each chapter's landscape is its own.
+        mapView.seed = index
         mapView.map = map
         mapView.onLevelTap = LevelMapView.OnLevelTapListener(::play)
         findViewById<View>(R.id.footnote).visibility = if (StoryPuzzles.playable(index)) View.GONE else View.VISIBLE
