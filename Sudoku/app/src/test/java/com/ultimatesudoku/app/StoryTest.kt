@@ -257,14 +257,15 @@ class StoryTest : ScreenTest() {
 
     @Test
     fun everyChaptersMapLiesOverItsOwnLandscape() {
-        val landscapes = HashSet<List<Int>>()
+        // Told apart by a hash of their pixels: a whole map's pixels are too many to keep nine of.
+        val landscapes = HashSet<Int>()
         for (index in StoryActivity.CHAPTERS.indices) {
             val view = chapter(index).view<LevelMapView>(R.id.map)
             assertEquals(index, view.seed)
             val bitmap = drawn(view)
             write(bitmap, "42_map_%d".format(index + 1))
             assertLandscape(view, bitmap, "Chapter ${index + 1}")
-            landscapes += IntArray(bitmap.width * bitmap.height).also { bitmap.getPixels(it, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height) }.toList()
+            landscapes += IntArray(bitmap.width * bitmap.height).also { bitmap.getPixels(it, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height) }.contentHashCode()
         }
         assertEquals(StoryActivity.CHAPTERS.size, landscapes.size)
     }
