@@ -2692,7 +2692,7 @@ async function start() {
   }
   if (source) {
     MAX_DATA_Z = source.maxZoom;
-    $('sourceLabel').textContent = source.kind === 'live' ? 'Live elevation · AWS Terrain Tiles' : 'Offline terrain sample · sharpest at featured places';
+    $('sourceLabel').textContent = source.kind === 'live' ? 'Live elevation · AWS Terrain Tiles' : 'Offline terrain sample';
     $('placesNote').textContent = source.kind === 'live'
       ? 'Terrain streams live, with roughly 30 m detail across most land.'
       : 'This copy carries a built-in terrain sample: coarse worldwide, about 30 m detail around these places.';
