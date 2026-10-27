@@ -2,9 +2,12 @@ package com.ultimatesudoku.app.ui
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.Shader
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
@@ -87,21 +90,21 @@ class GridMotifView @JvmOverloads constructor(context: Context, attrs: Attribute
  * strength just left of the screen's top-right corner that fades to nothing by the middle of the
  * screen. The gradient is placed on the screen, not on this view, which may run on below it.
  *
- * Each square shows one pixel of [art], whose top-right pixel sits in the top-right square. Without
- * art the squares are plain white, a placeholder.
+ * The [art] lies under the grid, [ART_COLUMNS] by [ART_ROWS] squares' worth of it, its top-right
+ * corner under the top-right square, and each square shows the part of it underneath: one pixel of
+ * pixel art that size, or of a painting some whole number of times larger, the patch it has there,
+ * the gaps between the squares hiding the rest. Without art the squares are plain white, a placeholder.
  */
 class SquareGlowView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
     private val paint = Paint()
-    private var pixels: IntArray? = null
-    private var artWidth = 0
-    private var artHeight = 0
+    private val placement = Matrix()
 
     var art: Bitmap? = null
         set(value) {
             field = value
-            artWidth = value?.width ?: 0
-            artHeight = value?.height ?: 0
-            pixels = value?.let { IntArray(artWidth * artHeight).also { all -> it.getPixels(all, 0, artWidth, 0, 0, artWidth, artHeight) } }
+            paint.shader = value?.let { BitmapShader(it, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP) }
+            // Pixel art's squares stay one flat colour each; a painting is smoothed as it's scaled.
+            paint.isFilterBitmap = value != null && value.width > ART_COLUMNS
             invalidate()
         }
 
@@ -116,7 +119,15 @@ class SquareGlowView @JvmOverloads constructor(context: Context, attrs: Attribut
         val cx = width * CENTRE_X
         val cy = screenHeight * CENTRE_Y
         val radius = hypot(cx - width / 2f, cy - screenHeight / 2f)
-        val pixels = pixels
+        val art = art
+        if (art != null) {
+            // A square's worth of art to each step from square to square, its right edge under the last
+            // column; the gaps between the squares mask it.
+            val scale = pitch.toFloat() / (art.width / ART_COLUMNS)
+            placement.setScale(scale, scale)
+            placement.postTranslate((left + (columns - ART_COLUMNS) * pitch).toFloat(), left.toFloat())
+            paint.shader?.setLocalMatrix(placement)
+        }
         var top = left
         var row = 0
         while (top < height && top < cy + radius) {
@@ -125,15 +136,13 @@ class SquareGlowView @JvmOverloads constructor(context: Context, attrs: Attribut
                 val distance = hypot(x + size / 2f - cx, top + size / 2f - cy) / radius
                 if (distance >= 1f) continue
                 val light = 1f - distance
-                if (pixels == null) {
+                if (art == null) {
                     // Eased, so the light gathers in the corner rather than washing over the screen.
                     paint.color = Color.WHITE
                     paint.alpha = (255 * light * light).roundToInt()
                 } else {
                     // Straight, so the art's colours carry further from the corner.
-                    val ax = artWidth - columns + column
-                    if (ax < 0 || row >= artHeight) continue
-                    paint.color = pixels[row * artWidth + ax]
+                    if (ART_COLUMNS - columns + column < 0 || row >= ART_ROWS) continue
                     paint.alpha = (255 * light).roundToInt()
                 }
                 canvas.drawRect(x.toFloat(), top.toFloat(), (x + size).toFloat(), (top + size).toFloat(), paint)
@@ -143,14 +152,18 @@ class SquareGlowView @JvmOverloads constructor(context: Context, attrs: Attribut
         }
     }
 
-    private companion object {
+    companion object {
+        /** How many squares a chapter's art covers across and down. */
+        const val ART_COLUMNS = 64
+        const val ART_ROWS = 72
+
         /** From one square to the next, setting how dense the grid is; the gap comes out of it. */
-        const val PITCH = 6.5f
-        const val GAP = 1f
+        private const val PITCH = 6.5f
+        private const val GAP = 1f
 
         /** The gradient's centre, as fractions of the screen's width and height. */
-        const val CENTRE_X = 0.82f
-        const val CENTRE_Y = 0.03f
+        private const val CENTRE_X = 0.82f
+        private const val CENTRE_Y = 0.03f
     }
 }
 

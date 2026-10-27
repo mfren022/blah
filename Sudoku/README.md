@@ -47,10 +47,13 @@ Back on any other tab returns to Play; the tab you're on survives a turn of the 
   that turns blue once the chapter is complete (`data/StoryProgress.kt` keeps the count), and a chevron (a
   locked chapter would show a faint red lock instead). Tapping a
   chapter opens its screen, on the story's deep blue in either theme:
-  - its picture, a pixel-art scene shown as a fine grid of small squares 1dp apart, one square per
-    pixel, lit by a circular gradient that is brightest just left of the top-right corner and fades out
-    by the middle of the screen. The golden fish is somewhere in every one. The pictures are painted by
-    `tools/art/paint.py`, one module per chapter;
+  - its picture, seen through a fine grid of small squares 1dp apart that masks it, lit by a circular
+    gradient that is brightest just left of the top-right corner and fades out by the middle of the
+    screen. Each square shows the part of the picture under it: one pixel of a pixel-art scene, or for
+    The Pond, a patch of a painting at twenty times the grid's resolution (1280 x 1440), in smooth shapes
+    with reflections in the water, so the shingles, the net drying on the wall and the fish's scales show
+    within the squares. The golden fish is somewhere in every one. The pictures are painted by
+    `tools/art/paint.py`, one module per chapter, the painting with the help of `tools/art/hd.py`;
   - the chapter's title and its part of the story;
   - underneath, a **Levels (finished/total)** header and a node graph of the levels, metro-map style:
     the routes branch and merge from the entrance down to the chapter's final level, marked with a star.
@@ -219,7 +222,7 @@ Sudoku/
                    continue card's grow transition (GrowOverlay)
     src/test/      Robolectric tests that drive every screen and save screenshots
   tools/sdkless/   SDK-free build (see above)
-  tools/art/       Scripts that paint the story's pixel art (Python with Pillow)
+  tools/art/       Scripts that paint the story's art (Python with Pillow and NumPy)
   dist/Sudoku.apk  The latest signed APK
 ```
 

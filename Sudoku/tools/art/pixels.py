@@ -177,7 +177,9 @@ def reflect(cv, horizon, water, tones, fade=0.55, fade_step=0.025, reach=18, rip
 
 
 def as_on_a_phone(art, page=(0x0A, 0x3C, 0x8C)):
-    """The art as the app draws it on a 411 x 891 dp phone at 3x: SquareGlowView's grid and light."""
+    """The art as the app draws it on a 411 x 891 dp phone at 3x: SquareGlowView's grid and light. The art
+    lies under the grid, a square's worth of it to each step from one square to the next, so each square
+    shows one pixel of pixel art, or the part of a painting under it."""
     width, height = 1233, 2673
     gap, size = 3, 17
     pitch = size + gap
@@ -185,16 +187,18 @@ def as_on_a_phone(art, page=(0x0A, 0x3C, 0x8C)):
     left = (width - columns * pitch + gap) // 2
     cx, cy = width * 0.82, height * 0.03
     radius = math.hypot(cx - width / 2, cy - height / 2)
+    scale = art.width // W
+    under = art.convert("RGB").resize((W * pitch, H * pitch), Image.NEAREST if scale == 1 else Image.LANCZOS)
     out = Image.new("RGB", (width, height // 2), page)
-    for row in range(art.height):
+    for row in range(H):
         for column in range(columns):
-            ax = art.width - columns + column
+            ax = W - columns + column
             if ax < 0:
                 continue
             x, y = left + column * pitch, left + row * pitch
             light = 1 - math.hypot(x + size / 2 - cx, y + size / 2 - cy) / radius
-            if light <= 0:
+            if light <= 0 or y >= out.height:
                 continue
-            colour = mix(page, art.getpixel((ax, row)), light)
-            out.paste(colour, (x, y, x + size, min(y + size, out.height)))
+            square = under.crop((ax * pitch, row * pitch, ax * pitch + size, row * pitch + size))
+            out.paste(Image.blend(Image.new("RGB", square.size, page), square, light), (x, y))
     return out

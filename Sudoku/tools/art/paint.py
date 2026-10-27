@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Paints the story chapters' pixel art into app/src/main/res/drawable-nodpi/, one module per chapter,
-as art_<module>.png. Run from Sudoku/:
+Paints the story chapters' art into app/src/main/res/drawable-nodpi/, one module per chapter: pixel
+art, one pixel to each of the grid's squares, as art_<module>.png; or a painting at a whole multiple of
+the grid's size, which the squares look onto, as art_<module>.webp. Run from Sudoku/:
 
     python3 tools/art/paint.py [chapter ...] [--preview DIR]
 
@@ -20,12 +21,17 @@ CHAPTERS = ["pond", "village", "harbour", "lighthouse", "open_sea", "kites", "st
 RES = Path(__file__).resolve().parents[2] / "app/src/main/res/drawable-nodpi"
 
 
+def bare(art, scale):
+    """The art at [scale] times the grid's size: pixels kept square, a painting smoothly resized."""
+    return art.resize((W * scale, H * scale), Image.NEAREST if art.width == W else Image.LANCZOS)
+
+
 def preview(art):
     phone = as_on_a_phone(art)
-    bare = art.resize((W * 8, H * 8), Image.NEAREST)
-    sheet = Image.new("RGB", (phone.width + 20 + bare.width, max(phone.height, bare.height)), (128, 128, 128))
+    bare_art = bare(art, 8)
+    sheet = Image.new("RGB", (phone.width + 20 + bare_art.width, max(phone.height, bare_art.height)), (128, 128, 128))
     sheet.paste(phone, (0, 0))
-    sheet.paste(bare, (phone.width + 20, 0))
+    sheet.paste(bare_art, (phone.width + 20, 0))
     return sheet
 
 
@@ -34,10 +40,10 @@ def contact_sheet(arts):
     tiles = []
     for art in arts:
         phone = as_on_a_phone(art).resize((411, 445), Image.LANCZOS)
-        bare = art.resize((W * 4, H * 4), Image.NEAREST)
-        tile = Image.new("RGB", (411, 445 + 10 + bare.height), (40, 44, 52))
+        bare_art = bare(art, 4)
+        tile = Image.new("RGB", (411, 445 + 10 + bare_art.height), (40, 44, 52))
         tile.paste(phone, (0, 0))
-        tile.paste(bare, ((411 - bare.width) // 2, 455))
+        tile.paste(bare_art, ((411 - bare_art.width) // 2, 455))
         tiles.append(tile)
     tw, th = tiles[0].size
     sheet = Image.new("RGB", (3 * tw + 40, 3 * th + 40), (40, 44, 52))
@@ -58,7 +64,13 @@ def main():
     arts = []
     for name in names:
         art = importlib.import_module(name).paint()
-        art.save(RES / f"art_{name}.png", optimize=True)
+        # One file per chapter: a painting as WebP, small for its size; pixel art as PNG.
+        painted = art.width > W
+        (RES / f"art_{name}.{'png' if painted else 'webp'}").unlink(missing_ok=True)
+        if painted:
+            art.save(RES / f"art_{name}.webp", "WEBP", quality=92, method=6)
+        else:
+            art.save(RES / f"art_{name}.png", optimize=True)
         arts.append(art)
         if args.preview:
             Path(args.preview).mkdir(parents=True, exist_ok=True)

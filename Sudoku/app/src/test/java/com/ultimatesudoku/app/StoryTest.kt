@@ -137,7 +137,9 @@ class StoryTest : ScreenTest() {
         val activity = chapter(0)
         val glow = activity.view<SquareGlowView>(R.id.glow)
         val art = checkNotNull(glow.art)
-        assertEquals(64, art.width)
+        // A painting twenty times the grid's size each way, which the squares look onto.
+        assertEquals(64 * 20, art.width)
+        assertEquals(72 * 20, art.height)
         assertTrue(glow.contentDescription.isNotEmpty())
         val page = activity.getColor(R.color.story_bg)
         val drawn = Bitmap.createBitmap(glow.width, glow.height, Bitmap.Config.ARGB_8888)
@@ -154,12 +156,16 @@ class StoryTest : ScreenTest() {
         val cx = glow.width * 0.82f
         val cy = screenHeight * 0.03f
         val radius = Math.hypot((cx - glow.width / 2f).toDouble(), (cy - screenHeight / 2f).toDouble()).toFloat()
+        // The painting lies under the grid, a square's worth to each step from square to square, its right
+        // edge under the last column: each square shows the part of it underneath.
+        val perPixel = art.width / 64f / pitch
+        val under = left + (columns - 64) * pitch
         var checked = 0
         for ((column, row) in listOf(columns - 1 to 0, columns - 12 to 3, columns - 10 to 22, columns - 30 to 30, 5 to 60)) {
             val x = left + column * pitch
             val y = left + row * pitch
             val light = 1f - Math.hypot((x + size / 2f - cx).toDouble(), (y + size / 2f - cy).toDouble()).toFloat() / radius
-            val pixel = art.getPixel(art.width - columns + column, row)
+            val pixel = art.getPixel(((x + size / 2 - under) * perPixel).toInt(), ((y + size / 2 - left) * perPixel).toInt())
             val expected = if (light <= 0f) page else blend(page, pixel, light)
             val actual = drawn.getPixel(x + size / 2, y + size / 2)
             for (channel in listOf(Color::red, Color::green, Color::blue)) {
@@ -170,21 +176,36 @@ class StoryTest : ScreenTest() {
             checked++
         }
         assertEquals(5, checked)
+        // Unlike pixel art, a square holds more than one colour, wherever the painting has detail.
+        var detailed = 0
+        for (row in 0 until 72) {
+            for (column in 0 until columns) {
+                val x = left + column * pitch
+                val y = left + row * pitch
+                if (y + size > drawn.height) continue
+                val colours = HashSet<Int>()
+                for (dy in 0 until size step 4) for (dx in 0 until size step 4) colours += drawn.getPixel(x + dx, y + dy)
+                if (colours.size > 4) detailed++
+            }
+        }
+        assertTrue("$detailed squares with detail", detailed > 200)
     }
 
     @Test
     fun everyChapterHasItsStoryAndPicture() {
-        val pictures = HashSet<List<Int>>()
+        val pictures = HashSet<Int>()
         StoryActivity.CHAPTERS.forEachIndexed { index, chapter ->
             val activity = chapter(index)
             assertEquals(chapter.title, activity.view<TextView>(R.id.chapter_title).text.toString())
             assertEquals(activity.getString(chapter.story), activity.view<TextView>(R.id.story).text.toString())
             val glow = activity.view<SquareGlowView>(R.id.glow)
             val art = checkNotNull(glow.art)
-            assertEquals(64, art.width)
-            assertEquals(72, art.height)
+            // Pixel art, one pixel to a square of the 64 by 72 grid, or a painting a whole number of
+            // times larger.
+            assertEquals(0, art.width % 64)
+            assertEquals(art.width / 64 * 72, art.height)
             assertEquals(activity.getString(chapter.artDescription), glow.contentDescription)
-            pictures += IntArray(art.width * art.height).also { art.getPixels(it, 0, art.width, 0, 0, art.width, art.height) }.toList()
+            pictures += IntArray(art.width * art.height).also { art.getPixels(it, 0, art.width, 0, 0, art.width, art.height) }.contentHashCode()
             captureRisen(activity, "39_chapter_%d".format(index + 1))
         }
         // Nine different pictures.
