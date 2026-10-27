@@ -1,14 +1,17 @@
 package com.ultimatesudoku.app
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Insets
+import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.ImageView
+import android.widget.ScrollView
 import android.widget.TextView
 import com.ultimatesudoku.app.data.GameStore
 import com.ultimatesudoku.app.data.Settings
@@ -126,7 +129,7 @@ class StoryTest : ScreenTest() {
         // Its levels can be played, so no word of story mode still being built.
         assertEquals(View.GONE, activity.view<View>(R.id.footnote).visibility)
         assertTrue(view.height > 0)
-        capture(activity, "33_chapter")
+        captureRisen(activity, "33_chapter")
     }
 
     @Test
@@ -182,7 +185,7 @@ class StoryTest : ScreenTest() {
             assertEquals(72, art.height)
             assertEquals(activity.getString(chapter.artDescription), glow.contentDescription)
             pictures += IntArray(art.width * art.height).also { art.getPixels(it, 0, art.width, 0, 0, art.width, art.height) }.toList()
-            capture(activity, "39_chapter_%d".format(index + 1))
+            captureRisen(activity, "39_chapter_%d".format(index + 1))
         }
         // Nine different pictures.
         assertEquals(StoryActivity.CHAPTERS.size, pictures.size)
@@ -219,7 +222,7 @@ class StoryTest : ScreenTest() {
     @Test
     @Config(qualifiers = "w891dp-h411dp-land-xxhdpi")
     fun theArtInLandscape() {
-        capture(chapter(0), "38_chapter_art_landscape")
+        captureRisen(chapter(0), "38_chapter_art_landscape")
     }
 
     @Test
@@ -230,7 +233,7 @@ class StoryTest : ScreenTest() {
             // Its first level ready to play, once levels can be played.
             val map = activity.view<LevelMapView>(R.id.map)
             assertEquals(setOf(map.map!!.entrance.number), map.open)
-            if (index == 5) capture(activity, "34_chapter_6")
+            if (index == 5) captureRisen(activity, "34_chapter_6")
         }
     }
 
@@ -242,6 +245,23 @@ class StoryTest : ScreenTest() {
     }
 
     /** What [view] looks like, drawn on the chapter's page. */
+    /** Scrolls a chapter's screen straight to the bottom. */
+    private fun bottomOf(activity: Activity) {
+        val scroll = activity.view<ScrollView>(R.id.scroll)
+        scroll.scrollTo(0, scroll.getChildAt(0).height)
+    }
+
+    /** Captures [activity] once any scrolling has settled and the land in view on its map has risen. */
+    private fun captureRisen(activity: Activity, name: String) {
+        // A frame of the whole screen first, which takes a smooth scroll where it's going, and brings
+        // into view the land there.
+        idle(500)
+        val screen = activity.window.decorView
+        screen.draw(Canvas(Bitmap.createBitmap(screen.width, screen.height, Bitmap.Config.ARGB_8888)))
+        idle(1500)
+        capture(activity, name)
+    }
+
     private fun drawn(view: LevelMapView): Bitmap {
         val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         bitmap.eraseColor(Palette(view.context).bg)
@@ -260,8 +280,14 @@ class StoryTest : ScreenTest() {
         // Told apart by a hash of their pixels: a whole map's pixels are too many to keep nine of.
         val landscapes = HashSet<Int>()
         for (index in StoryActivity.CHAPTERS.indices) {
-            val view = chapter(index).view<LevelMapView>(R.id.map)
+            val activity = chapter(index)
+            val view = activity.view<LevelMapView>(R.id.map)
             assertEquals(index, view.seed)
+            // All the land seen, the top and then the rest, and risen.
+            drawn(view)
+            bottomOf(activity)
+            drawn(view)
+            idle(2000)
             val bitmap = drawn(view)
             write(bitmap, "42_map_%d".format(index + 1))
             assertLandscape(view, bitmap, "Chapter ${index + 1}")
@@ -271,9 +297,10 @@ class StoryTest : ScreenTest() {
     }
 
     /**
-     * The map in [view], drawn as [bitmap]: levels on the three lanes, each row level and the rows only
-     * ever further apart than the plain spacing, much further where the river crosses; a landscape of
-     * just two shades, with land beside every level; and the page above and below.
+     * The map in [view], drawn as [bitmap] once its land has risen: levels on the three lanes, each row
+     * level and the rows only ever further apart than the plain spacing, much further where the river
+     * crosses; a landscape of land, its two sides and water, with land beside every level; and the page
+     * above and below.
      */
     private fun assertLandscape(view: LevelMapView, bitmap: Bitmap, chapter: String) {
         val map = view.map!!
@@ -284,8 +311,10 @@ class StoryTest : ScreenTest() {
             Math.round(Color.green(page) * (1 - by)),
             Math.round(Color.blue(page) * (1 - by)),
         )
-        val land = darker(0.14f)
-        val water = darker(0.55f)
+        val land = blend(page, Color.WHITE, 0.10f)
+        val left = darker(0.25f)
+        val right = darker(0.42f)
+        val water = darker(0.70f)
         fun luminance(c: Int) = Color.red(c) * 0.3 + Color.green(c) * 0.59 + Color.blue(c) * 0.11
         fun centre(number: Int) = checkNotNull(view.center(number))
 
@@ -296,48 +325,68 @@ class StoryTest : ScreenTest() {
         assertTrue(chapter, gaps.all { it >= 76 * density })
         assertTrue(chapter, gaps.any { it > 110 * density })
 
-        // Clear of the levels and the paths between them, every tile is one of just two shades.
-        val tile = 28 * density
-        fun onPath(x: Float, y: Float) = map.paths.any { path ->
-            val from = centre(path.from)
-            val to = centre(path.to)
-            val mid = (from.y + to.y) / 2
-            val near = 4 * density
-            (Math.abs(x - from.x) < near && y in from.y..mid) ||
-                (Math.abs(y - mid) < near && x in min(from.x, to.x) - near..max(from.x, to.x) + near) ||
-                (Math.abs(x - to.x) < near && y in mid..to.y)
+        // Land lighter than the page, standing in blocks whose sides are in shade where they fall to the
+        // water, much darker than the page.
+        val pixels = IntArray(bitmap.width * bitmap.height).also { bitmap.getPixels(it, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height) }
+        for ((name, shade) in listOf("land" to land, "left side" to left, "right side" to right, "water" to water)) {
+            assertTrue("$chapter, $name", pixels.count { it == shade } > 500)
         }
-        val shades = HashSet<Int>()
-        for (b in 0..(view.height / (tile / 4)).toInt()) {
-            val y = b * tile / 4
-            if (y < 80 * density || y > view.height - 80 * density) continue
-            for (a in -60..60) {
-                if (Math.floorMod(a + b, 2) != 0) continue
-                val x = view.width / 2f + a * tile / 2
-                if (x < 0 || x >= view.width) continue
-                if (map.levels.any { Math.abs(x - centre(it.number).x) < 42 * density && Math.abs(y - centre(it.number).y) < 42 * density }) continue
-                if (onPath(x, y)) continue
-                shades += bitmap.getPixel(Math.round(x), Math.round(y))
-            }
-        }
-        assertEquals(chapter, setOf(land, water), shades)
 
-        // Every level stands on land: just beside its stop there's nothing darker.
+        // Every level stands on land: just beside its stop there's the land's top, and in the hairlines
+        // between tiles the shaded sides of those behind, and nothing darker, as water would be.
         for (level in map.levels) {
             val at = centre(level.number)
             val half = (if (level == map.final) 30 else 22) * density
-            val beside = (2..6).flatMap { dx ->
+            // Up to 5dp out: the ring around a level ready to play is 6dp out and more.
+            val beside = (2..5).flatMap { dx ->
                 (-10..10).flatMap { dy ->
                     val y = Math.round(at.y + dy * half / 20)
                     listOf(bitmap.getPixel(Math.round(at.x - half - dx * density), y), bitmap.getPixel(Math.round(at.x + half + dx * density), y))
                 }
             }
-            assertEquals("$chapter, ${level.number}", land, beside.minBy { luminance(it) })
+            assertEquals("$chapter, ${level.number}", land, beside.maxBy { luminance(it) })
+            // (Halfway down to water, to allow the soft edges between shades.)
+            assertTrue("$chapter, ${level.number}", beside.all { luminance(it) > (luminance(right) + luminance(water)) / 2 })
         }
         // Faded into the page above the levels and below them.
         assertEquals(chapter, page, bitmap.getPixel(view.width / 2, 0))
         assertEquals(chapter, page, bitmap.getPixel(view.width / 2, view.height - 1))
         assertTrue(chapter, centre(1).y > 64 * density)
+    }
+
+    @Test
+    fun theLandRisesOutOfTheWaterAsItComesIntoView() {
+        val activity = chapter(0)
+        val view = activity.view<LevelMapView>(R.id.map)
+        val density = view.resources.displayMetrics.density
+        val side = blend(Palette(activity).bg, Color.BLACK, 0.25f)
+        fun rows(bitmap: Bitmap, top: Int, bottom: Int) =
+            IntArray(bitmap.width * (bottom - top)).also { bitmap.getPixels(it, 0, bitmap.width, 0, top, bitmap.width, bottom - top) }
+        fun sides(bitmap: Bitmap, top: Int, bottom: Int) = rows(bitmap, top, bottom).count { it == side }
+        val shown = Rect().also { view.getLocalVisibleRect(it) }
+        val below = shown.bottom + Math.round(8 * density)
+        assertTrue(below < view.height)
+        // Just come into view, the land lies flat in the water; a moment later it has risen, its sides
+        // in shade showing, where it's in view, and nothing below has moved.
+        val flat = drawn(view)
+        // (Frames of it rising, the part of the map in view, to look at.)
+        for (frame in 1..12) {
+            idle(70)
+            val bitmap = drawn(view)
+            write(Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, shown.bottom), "43_rise_%02d".format(frame))
+        }
+        idle(2000)
+        val risen = drawn(view)
+        assertTrue("${sides(flat, 0, shown.bottom)} flat, ${sides(risen, 0, shown.bottom)} risen in ${shown.toShortString()}", sides(risen, 0, shown.bottom) > sides(flat, 0, shown.bottom) + 1000)
+        val a = rows(risen, below, view.height)
+        val b = rows(flat, below, view.height)
+        val firstDiff = a.indices.firstOrNull { a[it] != b[it] }
+        assertTrue("first change at row ${firstDiff?.let { below + it / view.width }} of ${view.height}, shown ${shown.toShortString()} below $below", firstDiff == null)
+        // Scrolled to, the rest rises too.
+        bottomOf(activity)
+        drawn(view)
+        idle(2000)
+        assertTrue(sides(drawn(view), below, view.height) > sides(risen, below, view.height) + 1000)
     }
 
     @Test
@@ -394,7 +443,7 @@ class StoryTest : ScreenTest() {
         assertEquals(ready, stopColour(view, 6))
         assertTrue(stopColour(view, 5) !in setOf(Palette(activity).accent, ready))
         idle(3000) // until the snack from the shut level has gone
-        capture(activity, "40_pond_progress")
+        captureRisen(activity, "40_pond_progress")
         // On down the right-hand route of the second half, to the final level.
         for (level in listOf(6, 9, 10)) app.story.finish(0, level)
         controller.pause().resume()
@@ -402,7 +451,7 @@ class StoryTest : ScreenTest() {
         assertEquals(activity.getColor(R.color.story_level_ready), stopColour(view, 11))
         assertEquals("Levels (6/11)", activity.view<TextView>(R.id.levels).text.toString())
         activity.view<android.widget.ScrollView>(R.id.scroll).fullScroll(View.FOCUS_DOWN)
-        capture(activity, "41_pond_final_open")
+        captureRisen(activity, "41_pond_final_open")
     }
 
     @Test
@@ -503,13 +552,13 @@ class StoryTest : ScreenTest() {
         app.settings.theme = Settings.Theme.DARK
         val activity = chapter(0)
         assertEquals(activity.getColor(R.color.story_bg_dark), (activity.view<View>(R.id.scroll).background as android.graphics.drawable.ColorDrawable).color)
-        capture(activity, "35_chapter_dark")
+        captureRisen(activity, "35_chapter_dark")
     }
 
     @Test
     @Config(qualifiers = "w891dp-h411dp-land-xxhdpi")
     fun landscape() {
-        capture(chapter(8), "36_chapter_landscape")
+        captureRisen(chapter(8), "36_chapter_landscape")
     }
 
     @Test
@@ -518,6 +567,6 @@ class StoryTest : ScreenTest() {
         val scroll = activity.view<android.widget.ScrollView>(R.id.scroll)
         scroll.fullScroll(View.FOCUS_DOWN)
         idle()
-        capture(activity, "37_chapter_scrolled")
+        captureRisen(activity, "37_chapter_scrolled")
     }
 }

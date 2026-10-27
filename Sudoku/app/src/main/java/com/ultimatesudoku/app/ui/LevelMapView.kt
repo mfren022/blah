@@ -5,10 +5,15 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.animation.ValueAnimator
 import android.graphics.PointF
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewTreeObserver
+import android.view.animation.AnimationUtils
+import android.view.animation.OvershootInterpolator
 import com.ultimatesudoku.app.R
 import com.ultimatesudoku.core.LevelMap
 import kotlin.math.PI
@@ -28,13 +33,14 @@ import kotlin.math.sin
  * star, at the bottom. Finished levels are filled, and the paths on from them drawn bright; levels
  * ready to play are filled blue and ringed; the rest are drawn locked.
  *
- * The map lies over a landscape drawn as one isometric grid of diamond tiles in just two shades: land
- * a little darker than the page, and water much darker. A river winds down it through whichever lane
- * is free in each row, in wide bends around the levels in the middle lane, and swells into a lake
- * wherever it runs on down the middle; where a row has a level in every lane, it leaves by the side
- * above that row and comes back in below. The rows are further apart where it crosses from lane to
- * lane. Every level stands on land, and the grid fades into the page above and below the levels. Each
- * chapter's landscape is its own, by [seed].
+ * The map lies over a landscape drawn as one isometric grid of tiles: water, flat and much darker than
+ * the page, and land, raised in blocks a little lighter than the page, their sides falling to the water
+ * in shade where it meets them. A river winds down it through whichever lane is free in each row, in
+ * wide bends around the levels in the middle lane, and swells into a lake wherever it runs on down the
+ * middle; where a row has a level in every lane, it leaves by the side above that row and comes back in
+ * below. The rows are further apart where it crosses from lane to lane. Every level stands on land, and
+ * the grid fades into the page above and below the levels. The land rises out of the water as it comes
+ * into view. Each chapter's landscape is its own, by [seed].
  */
 class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
 
@@ -315,11 +321,53 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
 
     // ---- Landscape ----------------------------------------------------------------------------
 
-    /** The landscape's tiles: each one's centre, whether it's water, and how far it has faded. */
-    private class Landscape(val xs: FloatArray, val ys: FloatArray, val water: BooleanArray, val alpha: IntArray)
+    /**
+     * The landscape's tiles: each one's centre, where the top of land there stands once risen, whether
+     * it's water, and how far it has faded; and for land, when it began to rise out of the water, or
+     * [NOT_RISEN] while it has yet to come into view.
+     */
+    private class Landscape(val xs: FloatArray, val ys: FloatArray, val water: BooleanArray, val alpha: IntArray) {
+        val rising = LongArray(xs.size) { NOT_RISEN }
+    }
+
+    private val visible = Rect()
+    private val rise = OvershootInterpolator(1.6f)
+    private val scrolled = ViewTreeObserver.OnScrollChangedListener { reveal() }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        viewTreeObserver.addOnScrollChangedListener(scrolled)
+    }
+
+    override fun onDetachedFromWindow() {
+        viewTreeObserver.removeOnScrollChangedListener(scrolled)
+        super.onDetachedFromWindow()
+    }
+
+    /**
+     * Sets the land rising wherever it has come a little way into view, in a wave across, each tile a
+     * moment after those to its left; with animations off, it's simply there.
+     */
+    private fun reveal() {
+        val tiles = landscape ?: return
+        if (!getLocalVisibleRect(visible)) return
+        val now = AnimationUtils.currentAnimationTimeMillis()
+        val inset = dp(16f)
+        var started = false
+        for (k in tiles.xs.indices) {
+            if (tiles.water[k] || tiles.rising[k] != NOT_RISEN) continue
+            if (tiles.ys[k] < visible.top + inset || tiles.ys[k] > visible.bottom - inset) continue
+            val wave = (0.7f * tiles.xs[k] / width + 0.3f * hash(k, 0, salt)) * STAGGER_MS
+            tiles.rising[k] = if (ValueAnimator.areAnimatorsEnabled()) now + wave.toLong() else 0L
+            started = true
+        }
+        if (started) postInvalidateOnAnimation()
+    }
 
     private fun drawLandscape(canvas: Canvas, map: LevelMap, layout: Layout) {
         val tiles = landscape ?: buildLandscape(map, layout).also { landscape = it }
+        // Whatever has come into view since, as when first drawn, or scrolled to.
+        reveal()
         // Diamonds twice as wide as tall, with a hairline of the page between neighbours.
         val gap = max(1f, dp(1f))
         val hw = dp(TILE_DP) / 2 - gap * 1.1f
@@ -330,18 +378,59 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
         diamond.lineTo(0f, hh)
         diamond.lineTo(-hw, 0f)
         diamond.close()
-        // The only two shades: land a little darker than the page, water much darker.
-        val land = mix(palette.bg, Color.BLACK, LAND_SHADE)
+        // Land a little lighter than the page, its sides in shade, lit from the left; water much darker.
+        val top = mix(palette.bg, Color.WHITE, LAND_LIGHT)
+        val left = mix(palette.bg, Color.BLACK, LEFT_SHADE)
+        val right = mix(palette.bg, Color.BLACK, RIGHT_SHADE)
         val water = mix(palette.bg, Color.BLACK, WATER_SHADE)
+        val full = dp(ELEVATION_DP)
+        val now = AnimationUtils.currentAnimationTimeMillis()
+        var rising = false
+        // Back to front, so nearer blocks hide the sides of those behind them.
         for (k in tiles.xs.indices) {
-            if (tiles.alpha[k] == 0) continue
-            tilePaint.color = if (tiles.water[k]) water else land
-            tilePaint.alpha = tiles.alpha[k]
-            canvas.save()
-            canvas.translate(tiles.xs[k], tiles.ys[k])
-            canvas.drawPath(diamond, tilePaint)
-            canvas.restore()
+            val alpha = tiles.alpha[k]
+            if (alpha == 0) continue
+            val x = tiles.xs[k]
+            // The water, and the foot of the land, lie a block's height below the land's risen tops.
+            val ground = tiles.ys[k] + full
+            if (tiles.water[k]) {
+                fillDiamond(canvas, x, ground, water, alpha)
+                continue
+            }
+            val since = tiles.rising[k]
+            val t = if (since == NOT_RISEN) 0f else ((now - since) / RISE_MS.toFloat()).coerceIn(0f, 1f)
+            if (since != NOT_RISEN && t < 1f) rising = true
+            val h = full * rise.getInterpolation(t)
+            val y = ground - h
+            if (h > 0.5f) {
+                // The sides, as rectangles sheared to run along the diamond's lower edges.
+                tilePaint.color = left
+                tilePaint.alpha = alpha
+                canvas.save()
+                canvas.translate(x - hw, y)
+                canvas.skew(0f, hh / hw)
+                canvas.drawRect(0f, 0f, hw, h, tilePaint)
+                canvas.restore()
+                tilePaint.color = right
+                tilePaint.alpha = alpha
+                canvas.save()
+                canvas.translate(x, y + hh)
+                canvas.skew(0f, -hh / hw)
+                canvas.drawRect(0f, 0f, hw, h, tilePaint)
+                canvas.restore()
+            }
+            fillDiamond(canvas, x, y, top, alpha)
         }
+        if (rising) postInvalidateOnAnimation()
+    }
+
+    private fun fillDiamond(canvas: Canvas, x: Float, y: Float, color: Int, alpha: Int) {
+        tilePaint.color = color
+        tilePaint.alpha = alpha
+        canvas.save()
+        canvas.translate(x, y)
+        canvas.drawPath(diamond, tilePaint)
+        canvas.restore()
     }
 
     /**
@@ -547,9 +636,11 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
         // Every level stands on land.
         for (k in 0 until n) if (clear[k] < rim) water[k] = false
 
-        // Faded in from the top and out to the bottom, gone a tile short of each edge.
+        // Faded in from the top and out to the bottom, gone a tile short of each edge, by where the
+        // tiles stand on the ground.
         val alpha = IntArray(n) { k ->
-            var f = ((min(ys[k], height - ys[k]) - th) / fade).coerceIn(0f, 1f)
+            val ground = ys[k] + dp(ELEVATION_DP)
+            var f = ((min(ground, height - ground) - th) / fade).coerceIn(0f, 1f)
             f = f * f * (3 - 2 * f)
             (f * 255).roundToInt()
         }
@@ -615,9 +706,21 @@ class LevelMapView @JvmOverloads constructor(context: Context, attrs: AttributeS
         const val LEAN = 0.55f
         const val SMALL_LAKE = 0.45f
 
-        /** How much darker than the page the land is, and the water. */
-        const val LAND_SHADE = 0.14f
-        const val WATER_SHADE = 0.55f
+        /** How much lighter than the page land is; how much darker its sides are, and the water. */
+        const val LAND_LIGHT = 0.10f
+        const val LEFT_SHADE = 0.25f
+        const val RIGHT_SHADE = 0.42f
+        const val WATER_SHADE = 0.70f
+
+        /** How high the land stands above the water. */
+        const val ELEVATION_DP = 12f
+
+        /** How long the land takes to rise, and over how long a wave of it starts across the view. */
+        const val RISE_MS = 520L
+        const val STAGGER_MS = 260f
+
+        /** When a tile of land began to rise, before it has. */
+        const val NOT_RISEN = Long.MAX_VALUE
 
         /** The Pond's salt for its random numbers; each chapter after it adds 101. */
         const val SALT = 7

@@ -54,12 +54,15 @@ Back on any other tab returns to Play; the tab you're on survives a turn of the 
   - the chapter's title and its part of the story;
   - underneath, a **Levels (finished/total)** header and a node graph of the levels, metro-map style:
     the routes branch and merge from the entrance down to the chapter's final level, marked with a star.
-    The graph lies over a landscape of its own, one isometric grid of diamond tiles in just two shades,
-    land a little darker than the page and water much darker. A river winds down through whichever
-    lane is free in each row, in wide bends around the levels in the middle lane, and swells into a
-    lake wherever it runs on down the middle; where a row has a level in every lane, it leaves by the
-    side above that row and comes back in below. The rows are further apart where it crosses between
-    lanes, every level stands on land, and the grid fades into the page above and below.
+    The graph lies over a landscape of its own, one isometric grid of tiles: water flat and much darker
+    than the page, and land raised in blocks a little lighter than the page, their sides falling in
+    shade to the water, lit from the left. A river winds down through whichever lane is free in each
+    row, in wide bends around the levels in the middle lane, and swells into a lake wherever it runs on
+    down the middle; where a row has a level in every lane, it leaves by the side above that row and
+    comes back in below. The rows are further apart where it crosses between lanes, every level stands
+    on land, and the grid fades into the page above and below. The land rises out of the water as it
+    comes into view, in a wave across the screen, with a little overshoot; with animations turned off,
+    it's simply there.
 - **Chapter 1, The Pond, can be played.** Its eleven levels are laid out as designed: level 1, then two
   routes (2 then 3, or 4 then 5) to level 6, then two more (7 then 8, or 9 then 10) to the final level.
   Each level is a fixed puzzle (`core/StoryPuzzles.kt`), the same for everyone and solvable with only
