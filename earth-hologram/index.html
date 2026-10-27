@@ -511,18 +511,30 @@ const liveSource = {
     return decodeTerrarium(await res.blob());
   },
 };
-// Offline bundle: tiles packed into a few binary files next to the page
+// Offline bundle: tiles laid out in WebP atlases next to the page (tools/build_offline_bundle.py)
 function bundleSource(manifest, base) {
-  const packs = new Map();
-  const pack = (i) => {
-    let p = packs.get(i);
-    if (!p) {
-      p = fetch(base + manifest.packs[i]).then((r) => {
+  const sheets = new Map(), recent = [], keep = COARSE ? 4 : 8, cols = manifest.atlasCols || 8;
+  const sheet = (i) => {
+    let p = sheets.get(i);
+    if (p) {
+      recent.splice(recent.indexOf(i), 1);
+      recent.push(i);
+      return p;
+    }
+    p = fetch(base + manifest.packs[i])
+      .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.arrayBuffer();
-      });
-      p.catch(() => packs.delete(i));
-      packs.set(i, p);
+        return r.blob();
+      })
+      .then((b) => createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }));
+    p.catch(() => { sheets.delete(i); recent.splice(recent.indexOf(i), 1); });
+    sheets.set(i, p);
+    recent.push(i);
+    // keep a few decoded sheets in memory; older ones reload from the HTTP cache
+    if (recent.length > keep) {
+      const old = recent.shift(), op = sheets.get(old);
+      sheets.delete(old);
+      if (op) op.then((bmp) => bmp.close && bmp.close(), () => {});
     }
     return p;
   };
@@ -534,8 +546,8 @@ function bundleSource(manifest, base) {
     async load(z, x, y) {
       const e = manifest.tiles[`${z}/${x}/${y}`];
       if (!e) throw new Error('not in bundle');
-      const buf = await pack(e[0]);
-      return decodeTerrarium(new Blob([new Uint8Array(buf, e[1], e[2])], { type: manifest.mime || 'image/png' }));
+      const bmp = await sheet(e[0]);
+      return readTerrarium(bmp, (e[1] % cols) * 256, Math.floor(e[1] / cols) * 256);
     },
   };
 }
@@ -553,17 +565,22 @@ function getDecodeCtx() {
   }
   return decodeCtx;
 }
+// Read one 256x256 Terrarium tile from an image (at sx, sy) into metres
+function readTerrarium(img, sx, sy) {
+  const ctx = getDecodeCtx();
+  ctx.clearRect(0, 0, 256, 256);
+  ctx.drawImage(img, sx, sy, 256, 256, 0, 0, 256, 256);
+  const px = ctx.getImageData(0, 0, 256, 256).data;
+  const out = new Float32Array(65536);
+  for (let i = 0, j = 0; i < 65536; i++, j += 4) out[i] = px[j] * 256 + px[j + 1] + px[j + 2] / 256 - 32768;
+  return out;
+}
 async function decodeTerrarium(blob) {
   let bmp;
   try { bmp = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
   catch { bmp = await createImageBitmap(blob); }
-  const ctx = getDecodeCtx();
-  ctx.clearRect(0, 0, 256, 256);
-  ctx.drawImage(bmp, 0, 0, 256, 256);
+  const out = readTerrarium(bmp, 0, 0);
   if (bmp.close) bmp.close();
-  const px = ctx.getImageData(0, 0, 256, 256).data;
-  const out = new Float32Array(65536);
-  for (let i = 0, j = 0; i < 65536; i++, j += 4) out[i] = px[j] * 256 + px[j + 1] + px[j + 2] / 256 - 32768;
   return out;
 }
 
@@ -2191,6 +2208,13 @@ function updateLabels() {
   }
 }
 
+// The offline bundle only has fine terrain around the featured places; say so when landing elsewhere.
+function detailNote() {
+  if (!source || source.kind !== 'bundle') return '';
+  const n = 2 ** 11;
+  return source.has(11, Math.floor(cam.X * n), Math.floor(cam.Y * n)) ? '' : 'Terrain here is coarse in this offline copy. The 20 spots under Places have full detail.';
+}
+
 // ---------------------------------------------------------------- UI controller
 const ui = {
   cursorX: -1, cursorY: -1, cursorDirty: false, pinLabel: null, toastTimer: 0, tween: null,
@@ -2204,7 +2228,7 @@ const ui = {
     canvas.classList.toggle('ground', g);
     $('orbitBtn').setAttribute('aria-label', g ? 'Return to orbit' : 'Show the whole globe');
     if (g) {
-      ui.toast(COARSE ? 'Ground view · drag to look around, use the pad to walk' : 'Ground view · drag to look around · W A S D to walk · Esc for orbit', 4200);
+      ui.toast(detailNote() || (COARSE ? 'Ground view · drag to look around, use the pad to walk' : 'Ground view · drag to look around · W A S D to walk · Esc for orbit'), 4600);
       ui.clearSelection();
     } else { nav.joy.x = nav.joy.y = 0; nav.flyHold = 0; }
   },
@@ -2622,7 +2646,7 @@ function frame(now) {
   if (nav.mode === 'ground') updateTape();
   $('compassRose').setAttribute('transform', `rotate(${(-cam.heading / DEG).toFixed(2)} 16 16)`);
   if (frameNo % 6 === 0) updateStatus();
-  if (!booted && meshCount >= 16) {
+  if (!booted && renderList.length > 0 && lastQueued === 0) {
     booted = true;
     $('boot').classList.add('done');
     setTimeout(() => ui.toast(COARSE ? 'Pinch to zoom in · double-tap anywhere to stand there' : 'Scroll to zoom in · double-click anywhere to stand there', 5200), 700);

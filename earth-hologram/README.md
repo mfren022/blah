@@ -57,6 +57,19 @@ OpenStreetMap Nominatim).
 - **Water**: ground below sea level is drawn as sea, except known dry basins (Dead Sea, Death
   Valley, Qattara, Turpan and others). The Caspian Sea is drawn at its own level of −28 m.
 
+## Offline copy
+
+Some places cannot reach the AWS tiles: sandboxed previews, machines without internet.
+`tools/build_offline_bundle.py` packs a terrain sample into `terrain/` next to `index.html`:
+the whole world at coarse detail plus about 30 m detail around every featured place, around
+160 MB as lossless WebP atlases. When the live tiles fail to load, the page switches to that
+folder automatically and tells you where the detail is coarse.
+
+```
+pip install requests numpy pillow
+python3 tools/build_offline_bundle.py
+```
+
 ## Data credits
 
 Elevation data from Terrain Tiles (Mapzen / AWS Open Data), including USGS SRTM, GMTED2010
