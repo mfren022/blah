@@ -82,6 +82,38 @@ boundary, sane ratios, known places inside and outside the boundary, and so on.
 | `meta.csv` | Data month, range of months offered, projection and uncertainty settings |
 | `sources.csv` | Every source cited by the files above |
 
+### How good the data is
+
+- **Price history: strong.** The 1956–2021 yearly averages come from OREB's historical table. Two
+  independent reconstructions matched it year for year, from the table and from two republished
+  copies. Each figure for 2022–2025 comes from an OREB year-end release.
+  - 2022 and 2025 are derived from published figures, as `annual.csv` notes.
+  - In September 2023 OREB switched to CREA-compiled statistics. That shifts the level by about
+    2–3%, well inside the likely range.
+- **Latest month: thin.** `monthly.csv` holds only September 2026 and the same month a year earlier.
+  Adding OREB's other monthly figures sharpens the latest level, and the engine uses a full
+  trailing twelve months as soon as they are there.
+- **CPI: good.** Most years are Statistics Canada's published series. A few early years are
+  reconstructed and marked `low` in `cpi.csv`. Past 2025 the index assumes 2% inflation.
+- **Neighbourhood levels: approximate.** Each of the 195 areas was estimated from general
+  knowledge of Ottawa's market (typical 2021–2025 values) and audited region by region. None is
+  yet checked against census or sales figures, so all are marked `low` with no source. Expect
+  10–20% errors between nearby areas. The likely range and the *How it works* screen say so.
+  Replacing them with 2021 Census dwelling values by neighbourhood (or MLS® district averages)
+  is the most useful improvement. It only needs `neighbourhoods.csv` edited.
+- **Geography: approximate.** The boundary, rivers, highways and postal-area centres are about
+  1 km accurate. The tests check that every village is inside the city and every neighbouring
+  town is outside.
+
+### Limitations
+
+- Area levels are fixed over time. Neighbourhoods that gentrified or slipped relative to the city
+  are shown at today's relative level in every year.
+- Before 1956 the city average follows inflation only. After the latest data it follows an
+  assumed 3.5% a year. Both are labelled in the app and carry wide ranges.
+- Type-of-home ratios are city-wide and fixed over time. Condo apartments have lost ground since
+  2023.
+
 ## Project layout
 
 ```
