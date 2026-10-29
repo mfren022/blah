@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#F3F5F8</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_alt">#EEF1F5</color>
+    <color name="surface_pressed">#E3E8EE</color>
+    <color name="ink">#14202B</color>
+    <color name="ink_muted">#5A6875</color>
+    <color name="ink_faint">#8A96A1</color>
+    <color name="line">#DDE3E9</color>
+    <color name="accent">#1C5DB0</color>
+    <color name="accent_pressed">#164C91</color>
+    <color name="accent_soft">#E3EDFA</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="error">#B3261E</color>
+    <color name="error_soft">#FBE9E7</color>
+    <color name="city_line">#7D8B97</color>
+
+    <!-- What an estimate rests on (see Basis). -->
+    <color name="basis_recent">#1E7D45</color>
+    <color name="basis_annual">#1C5DB0</color>
+    <color name="basis_census">#8A5A00</color>
+    <color name="basis_backcast">#A8441B</color>
+    <color name="basis_projection">#6A3FA0</color>
+
+    <!-- Map. -->
+    <color name="map_land_outside">#E7EAEE</color>
+    <color name="map_water">#9CC3E6</color>
+    <color name="map_road">#FFFFFF</color>
+    <color name="map_road_casing">#A3ADB7</color>
+    <color name="map_boundary">#33414E</color>
+    <color name="map_label">#22303C</color>
+    <color name="map_label_outside">#7C8893</color>
+    <color name="map_label_halo">#E6FFFFFF</color>
+    <color name="marker">#C62828</color>
+
+    <color name="launcher_bg">#1C5DB0</color>
+</resources>

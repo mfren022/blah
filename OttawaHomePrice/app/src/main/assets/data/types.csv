@@ -1,0 +1,9 @@
+# Typical price of each type of home relative to the average over all homes sold in Ottawa (recent years).
+# Held constant over time: condo apartments have slipped relative to the market since 2023 (about 0.65 in
+# 2023, 0.56 in September 2026), townhouses have gained.
+type,label,ratio,basis
+all,All homes,1.0,The average over every home sold
+detached,Detached house,1.20,"Estimate: OREB's freehold class (detached, semi and freehold row) averaged 1.11x the all-homes average in Jan-Aug 2023 and the MLS HPI single-family benchmark is 1.13x the composite; detached alone sits above both"
+semi,Semi-detached,0.92,"Estimate: OREB and CREA don't report semis separately; they sell between townhouses and single-family homes"
+townhouse,Townhouse,0.80,"MLS HPI townhouse benchmark over the all-homes average: 0.76 (Oct 2023), 0.78 (Nov 2023), 0.80 (Sept 2026)"
+condo,Condo apartment,0.62,"OREB condo class over the all-homes average: 0.68 (2018-2020), 0.66 (2022-2023); MLS HPI apartment benchmark over the average: 0.64-0.67 (late 2023), 0.56 (Sept 2026)"

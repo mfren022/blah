@@ -1,0 +1,15 @@
+# Settings for the estimator. Times are fractional years; sigmas are standard deviations of log price
+# (0.10 is roughly +/-10%).
+key,value,note
+data_as_of,2026-09,Latest month of sales data in monthly.csv; today's-dollar figures use this month's CPI
+first_month,1914-01,Earliest month the app offers (the CPI series starts in 1914)
+last_month,2060-12,Latest month the app offers
+future_inflation,0.02,Assumed inflation after the last CPI year (the Bank of Canada target); add cpi_latest_month and cpi_latest to extend the CPI with a monthly value
+projection_growth,0.035,Assumed nominal growth of Ottawa home prices per year after the latest data
+projection_sigma,0.065,Added uncertainty per square-root year of projection
+backcast_real_growth,0.0,Assumed real (after-inflation) growth per year before the earliest price data
+backcast_sigma_per_year,0.008,Added uncertainty per year of back-cast
+sigma_annual,0.04,Uncertainty between yearly averages
+sigma_recent,0.045,Uncertainty over the recent monthly data
+sigma_census,0.12,Uncertainty between census dwelling values
+sigma_type,0.08,Added uncertainty when a property type is chosen (its share varies by area)

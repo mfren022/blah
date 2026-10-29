@@ -1,0 +1,7 @@
+# Monthly average sale price of all homes sold through OREB (all property types) and the number sold.
+# The engine places the latest month by carrying the last yearly average forward at the year-over-year
+# change of the latest months, so each recent month needs the same month a year earlier.
+# Add new months as OREB publishes them (a full trailing twelve months is used when present).
+month,avg_price,units,source,note
+2025-09,692600,1081,ctv_2026_09,"Derived from the September 2026 release: sales down 6.6% and average price down 1% from September 2025"
+2026-09,685640,1010,ctv_2026_09,

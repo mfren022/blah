@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ottawa Home Price</string>
+    <string name="tagline">Average home prices for any Ottawa address, in any month from 1914 to 2060</string>
+    <string name="how_it_works">How it works</string>
+    <string name="search_hint">Address, postal code or neighbourhood</string>
+    <string name="search">Search</string>
+    <string name="clear">Clear</string>
+    <string name="searching">Searching…</string>
+    <string name="recent">Recent</string>
+    <string name="did_you_mean">Pick a match</string>
+    <string name="city_wide">All of Ottawa</string>
+    <string name="city_wide_detail">Search an address or tap the map to estimate a specific spot.</string>
+    <string name="when">When</string>
+    <string name="previous_year">Previous year</string>
+    <string name="previous_month">Previous month</string>
+    <string name="next_month">Next month</string>
+    <string name="next_year">Next year</string>
+    <string name="now">Now</string>
+    <string name="type_of_home">Type of home</string>
+    <string name="history">Price over time</string>
+    <string name="history_hint">Drag along the chart to move through time.</string>
+    <string name="todays_dollars">After inflation</string>
+    <string name="log_scale">Log scale</string>
+    <string name="legend_estimate">This location</string>
+    <string name="legend_city">Ottawa average</string>
+    <string name="legend_range">Likely range</string>
+    <string name="map_title">Prices across Ottawa</string>
+    <string name="map_hint">Tap anywhere in the city to estimate there. Pinch or double-tap to zoom.</string>
+    <string name="map_legend_low">Lower</string>
+    <string name="map_legend_high">Higher than the city average</string>
+    <string name="outside_ottawa">That spot is outside the City of Ottawa.</string>
+    <string name="disclaimer">An estimate of the average price of homes like those around this spot, not an appraisal of a particular property. Figures are approximate, especially before 1956 and after the latest data.</string>
+    <string name="pick_month">Pick a month</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+    <string name="map_point">Point on the map</string>
+    <string name="based_on">Based on</string>
+    <string name="share">Share this estimate</string>
+</resources>

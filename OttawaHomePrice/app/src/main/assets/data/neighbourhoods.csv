@@ -1,0 +1,12 @@
+# PROVISIONAL
+name,aliases,lat,lon,radius_km,factor,confidence,basis,sources
+Glebe,The Glebe,45.4010,-75.6900,0.8,1.75,medium,provisional,provisional
+Westboro,Westboro Village,45.3920,-75.7560,0.9,1.45,medium,provisional,provisional
+Rockcliffe Park,Rockcliffe,45.4510,-75.6800,0.7,3.0,medium,provisional,provisional
+Centretown,,45.4140,-75.6960,0.8,0.80,medium,provisional,provisional
+Vanier,,45.4370,-75.6620,0.9,0.75,medium,provisional,provisional
+Kanata,,45.3090,-75.9000,2.5,1.10,medium,provisional,provisional
+Orléans,Orleans,45.4690,-75.5150,3.0,1.0,medium,provisional,provisional
+Barrhaven,,45.2740,-75.7370,2.5,1.05,medium,provisional,provisional
+Manotick,,45.2260,-75.6830,1.5,1.45,medium,provisional,provisional
+Carp,,45.3490,-76.0390,3.0,1.10,low,provisional,provisional

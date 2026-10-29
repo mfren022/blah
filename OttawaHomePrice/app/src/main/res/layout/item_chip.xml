@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="36dp"
+    android:layout_marginEnd="8dp"
+    android:background="@drawable/bg_chip"
+    android:drawableStart="@drawable/ic_history"
+    android:drawablePadding="6dp"
+    android:drawableTint="@color/ink_faint"
+    android:ellipsize="end"
+    android:gravity="center_vertical"
+    android:maxWidth="220dp"
+    android:maxLines="1"
+    android:paddingStart="10dp"
+    android:paddingEnd="12dp"
+    android:textColor="@color/ink"
+    android:textSize="13sp" />
