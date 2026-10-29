@@ -78,14 +78,17 @@ class Estimator(val data: OttawaData) {
 
     /**
      * Whether [point] belongs to the city, forgiving the simplified boundary where it runs down the
-     * Ottawa River: a point just outside it still counts when it lies within an Ottawa
-     * neighbourhood's own area (Gatineau, across the river, lies within none).
+     * Ottawa River: a point up to [EDGE_SLACK_KM] outside it still counts when it lies in a
+     * neighbourhood that itself sits on the boundary (Champlain Park, say). A big rural area well
+     * inside the line (Cumberland) doesn't stretch it, so the Quebec shore opposite stays out.
      */
     fun inCity(point: LatLon): Boolean {
         if (data.boundary.contains(point)) return true
         if (data.boundary.distanceToEdgeKm(point) > EDGE_SLACK_KM) return false
         val around = locate(point)
-        return around.areaKm <= around.area.radiusKm
+        val centre = around.area.location
+        val centreDepth = if (data.boundary.contains(centre)) data.boundary.distanceToEdgeKm(centre) else 0.0
+        return around.areaKm <= around.area.radiusKm && centreDepth <= EDGE_SLACK_KM
     }
 
     fun typeRatio(type: PropertyType): Double = if (type == PropertyType.ALL) 1.0 else data.types[type]?.ratio ?: 1.0

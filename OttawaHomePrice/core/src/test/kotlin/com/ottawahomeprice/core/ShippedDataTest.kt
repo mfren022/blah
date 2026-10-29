@@ -69,6 +69,13 @@ class ShippedDataTest {
         for (p in listOf(LatLon(45.4600, -75.6900), LatLon(45.4380, -75.7250), LatLon(45.4150, -75.7700), LatLon(45.4300, -75.7400))) {
             assertFalse("$p", estimator.inCity(p))
         }
+        // At Cumberland the river is only about 650 m wide (the ferry landings): Masson-Angers and
+        // the mouth of the Lièvre are Quebec, the Cumberland landing is Ottawa.
+        assertFalse(data.boundary.contains(LatLon(45.5267, -75.4098)))
+        assertFalse(estimator.inCity(LatLon(45.5320, -75.4098)))
+        assertFalse(estimator.inCity(LatLon(45.5300, -75.4200)))
+        assertFalse(estimator.inCity(LatLon(45.5236, -75.4306)))
+        assertTrue(estimator.inCity(LatLon(45.5207, -75.4125)))
     }
 
     @Test
