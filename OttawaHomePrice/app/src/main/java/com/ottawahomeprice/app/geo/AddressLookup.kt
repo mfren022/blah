@@ -114,7 +114,9 @@ class AddressLookup(private val estimator: Estimator, private val providers: Lis
     private fun isOttawa(address: GeocodedAddress): Boolean {
         val province = address.province?.let(Text::normalize)
         if (province != null && (province.startsWith("quebec") || province == "qc")) return false
-        return estimator.inOttawa(address.location, toleranceKm = 0.5)
+        // The service says Ottawa: trust it up to the boundary's accuracy (about a kilometre).
+        if (address.locality?.let(Text::normalize) == "ottawa") return estimator.inOttawa(address.location, toleranceKm = 1.5)
+        return estimator.inCity(address.location)
     }
 
     /** Adds the city when the query names none, so "100 Main St" means Ottawa's. */

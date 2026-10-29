@@ -95,7 +95,7 @@ boundary, sane ratios, known places inside and outside the boundary, and so on.
   trailing twelve months as soon as they are there.
 - **CPI: good.** Most years are Statistics Canada's published series. A few early years are
   reconstructed and marked `low` in `cpi.csv`. Past 2025 the index assumes 2% inflation.
-- **Neighbourhood levels: approximate.** Each of the 195 areas was estimated from general
+- **Neighbourhood levels: approximate.** Each of the 198 areas was estimated from general
   knowledge of Ottawa's market (typical 2021–2025 values) and audited region by region. None is
   yet checked against census or sales figures, so all are marked `low` with no source. Expect
   10–20% errors between nearby areas. The likely range and the *How it works* screen say so.

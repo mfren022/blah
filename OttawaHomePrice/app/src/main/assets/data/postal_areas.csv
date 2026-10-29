@@ -17,10 +17,10 @@ K1N,45.4280,-75.6860,ByWard Market; Lowertown; Sandy Hill; University of Ottawa
 K1P,45.4200,-75.7000,Downtown core / central business district (Sparks; Queen; Albert; Slater)
 K1R,45.4080,-75.7080,Centretown West; Chinatown; Little Italy; LeBreton Flats; Dalhousie
 K1S,45.3970,-75.6850,The Glebe; Old Ottawa South; Old Ottawa East; Carleton University; Dow's Lake
-K1T,45.3500,-75.6250,Greenboro; Hunt Club Park / Hunt Club East; Blossom Park; Sawmill Creek; Leitrim (part)
+K1T,45.3500,-75.6250,Greenboro; Hunt Club Park / Hunt Club East; Blossom Park; Sawmill Creek; Findlay Creek / Leitrim (part)
 K1V,45.3350,-75.6750,Riverside Park; Mooney's Bay; Heron Park; Hunt Club (west of Bank); South Keys; Uplands / Airport; Riverside South
-K1W,45.4470,-75.5080,Orléans south of Innes Rd (Chapel Hill South; Notting Hill); Mer Bleue / Navan Rd area; neighbourhood list is an estimate
-K1X,45.3120,-75.6100,Leitrim; Findlay Creek (part); rural Gloucester south of the airport (Bank St / Albion Rd); estimate
+K1W,45.4470,-75.5080,Orléans south of Innes Rd / Mer Bleue (Renaud Rd; Notting Hill; Chapel Hill South area); neighbourhood list is an estimate
+K1X,45.3120,-75.6100,Rural south Gloucester: Leitrim; Albion Rd (Rideau Carleton Raceway); Findlay Creek (part); Bank St south of the airport; estimate
 K1Y,45.4020,-75.7260,Hintonburg; Mechanicsville; Civic Hospital; Tunney's Pasture; Wellington West
 K1Z,45.3900,-75.7450,Westboro; Wellington Village; Champlain Park; Island Park; Carlington
 K2A,45.3780,-75.7700,Highland Park; McKellar Park; Glabar Park; Carlingwood; Woodroffe North; west Westboro
@@ -36,8 +36,8 @@ K2M,45.2820,-75.8850,Kanata South: Bridlewood; Emerald Meadows; Trailwest
 K2P,45.4140,-75.6900,Centretown (east); Golden Triangle; Elgin St
 K2R,45.2900,-75.8000,Rural / semi-rural Nepean: Cedarhill Estates; Fallowfield Village; Merivale Rd south
 K2S,45.2580,-75.9200,Stittsville (village; Fairwinds; Jackson Trails; Westwood; Fernbank)
-K2T,45.3180,-75.9200,Kanata Lakes; Kanata Town Centre / Campeau Dr; Arcadia; Kanata Centrum area
-K2V,45.2900,-75.9150,Kanata West (Palladium Dr / Canadian Tire Centre); Fernbank Rd area; estimate
+K2T,45.3180,-75.9200,Kanata Lakes; Kanata Town Centre / Campeau Dr (Tanger Outlets); Arcadia; Kanata Centrum area
+K2V,45.2900,-75.9150,Kanata West (Palladium Dr / Canadian Tire Centre); Fernbank Rd area
 K2W,45.3650,-75.9400,Kanata North fringe / rural March (north of Kanata); estimate
 K4A,45.4650,-75.4680,Orléans east: Fallingbrook; Avalon; Springridge; Cardinal Creek; Trim Rd area
 K4B,45.4200,-75.4250,Navan and nearby rural Cumberland

@@ -60,6 +60,18 @@ class ShippedDataTest {
     }
 
     @Test
+    fun theRiverbankCountsAndTheOtherSideDoesnt() {
+        // Neighbourhood centres a little past the simplified river boundary are still Ottawa.
+        for (n in data.neighbourhoods) assertTrue("${n.name}", estimator.inCity(n.location))
+        for ((name, p) in inside) assertTrue(name, estimator.inCity(p))
+        for ((name, p) in outside) assertFalse(name, estimator.inCity(p))
+        // Across the river from downtown, Rockcliffe and Westboro: Quebec.
+        for (p in listOf(LatLon(45.4600, -75.6900), LatLon(45.4380, -75.7250), LatLon(45.4150, -75.7700), LatLon(45.4300, -75.7400))) {
+            assertFalse("$p", estimator.inCity(p))
+        }
+    }
+
+    @Test
     fun annualSeriesIsContinuous() {
         val mls = data.annual.filter { it.kind == AnnualFigure.Kind.MLS }
         val years = mls.map { it.year }

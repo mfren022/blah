@@ -84,7 +84,7 @@ class MainActivity : Activity() {
         estimator = app.estimator
 
         val state = app.state
-        place = state.place?.takeIf { estimator.inOttawa(it.location, toleranceKm = 1.0) }
+        place = state.place?.takeIf { estimator.inOttawa(it.location, toleranceKm = 1.5) }
         location = place?.let { estimator.locate(it.location) }
         month = (state.month ?: currentMonth()).coerceIn(estimator.range)
         type = state.type
@@ -448,7 +448,7 @@ class MainActivity : Activity() {
         map = findViewById(R.id.map)
         map.setEstimator(estimator, app.drawing)
         map.onPointPicked = { point ->
-            if (estimator.inOttawa(point)) {
+            if (estimator.inCity(point)) {
                 choose(app.lookup.mapPlace(point))
             } else {
                 showStatus(getString(R.string.outside_ottawa), error = true)

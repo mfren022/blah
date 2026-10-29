@@ -65,11 +65,28 @@ class Estimator(val data: OttawaData) {
 
     private val typeSigma = data.metaDouble("sigma_type")
 
+    private companion object {
+        /** How far outside the drawn boundary a point in a neighbourhood's area still counts. */
+        const val EDGE_SLACK_KM = 0.6
+    }
+
     fun locate(point: LatLon): LocationEstimate = locations.estimate(point)
 
     /** Whether [point] is inside the City of Ottawa, allowing [toleranceKm] beyond the drawn boundary. */
     fun inOttawa(point: LatLon, toleranceKm: Double = 0.0): Boolean =
         data.boundary.contains(point) || (toleranceKm > 0 && data.boundary.distanceToEdgeKm(point) <= toleranceKm)
+
+    /**
+     * Whether [point] belongs to the city, forgiving the simplified boundary where it runs down the
+     * Ottawa River: a point just outside it still counts when it lies within an Ottawa
+     * neighbourhood's own area (Gatineau, across the river, lies within none).
+     */
+    fun inCity(point: LatLon): Boolean {
+        if (data.boundary.contains(point)) return true
+        if (data.boundary.distanceToEdgeKm(point) > EDGE_SLACK_KM) return false
+        val around = locate(point)
+        return around.areaKm <= around.area.radiusKm
+    }
 
     fun typeRatio(type: PropertyType): Double = if (type == PropertyType.ALL) 1.0 else data.types[type]?.ratio ?: 1.0
 
