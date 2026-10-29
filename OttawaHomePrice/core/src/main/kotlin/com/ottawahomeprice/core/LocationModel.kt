@@ -12,14 +12,18 @@ data class LocationEstimate(
     val factor: Double,
     /** One standard deviation of log(factor). */
     val sigma: Double,
+    /** The closest neighbourhood centre, and how far it is. */
     val nearest: Neighbourhood,
     val nearestKm: Double,
+    /** The neighbourhood the point is most inside: closest relative to each one's size. */
+    val area: Neighbourhood,
+    val areaKm: Double,
     /** The neighbourhoods that shape the estimate, with their share of the weight (largest first). */
     val contributors: List<Pair<Neighbourhood, Double>>,
 ) {
     /** "Westboro", or "near Westboro" when the point is beyond the neighbourhood's usual extent. */
     val areaLabel: String
-        get() = if (nearestKm <= nearest.radiusKm * 1.25) nearest.name else "near ${nearest.name}"
+        get() = if (areaKm <= area.radiusKm * 1.25) area.name else "near ${area.name}"
 }
 
 /**
@@ -69,16 +73,19 @@ class LocationModel(private val places: List<Neighbourhood>) {
         var total = 0.0
         var nearest = 0
         var nearestKm = Double.MAX_VALUE
+        var area = 0
         var closestInRadii = Double.MAX_VALUE
+        val distances = DoubleArray(places.size)
         for (i in places.indices) {
             val dx = xs[i] - px
             val dy = ys[i] - py
             val d = sqrt(dx * dx + dy * dy)
             val r = d * inverseRadii[i]
+            distances[i] = d
             w[i] = weights[i] * kernel(r)
             total += w[i]
             if (d < nearestKm) { nearestKm = d; nearest = i }
-            closestInRadii = min(closestInRadii, r)
+            if (r < closestInRadii) { closestInRadii = r; area = i }
         }
         var mean = 0.0
         for (i in places.indices) mean += w[i] * logFactors[i]
@@ -103,7 +110,7 @@ class LocationModel(private val places: List<Neighbourhood>) {
             .sortedByDescending { it.second }
             .take(4)
 
-        return LocationEstimate(point, exp(mean), sigma, places[nearest], nearestKm, contributors)
+        return LocationEstimate(point, exp(mean), sigma, places[nearest], nearestKm, places[area], distances[area], contributors)
     }
 
     private companion object {

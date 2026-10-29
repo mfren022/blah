@@ -12,8 +12,11 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.HomePrice">
 
+        <!-- The screen lays itself out again on rotation rather than restarting, so a search in
+             flight, its suggestions and the map's zoom survive. -->
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation"
             android:exported="true"
             android:windowSoftInputMode="adjustResize|stateHidden">
             <intent-filter>

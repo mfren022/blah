@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "ottawa-home-price-sdkless"
-include(":androidx-test")
+include(":androidx-test", ":engine")

@@ -1,8 +1,200 @@
-# PROVISIONAL
+# Lines and labels drawn on the offline map, simplified. kind: river, canal, highway, label (inside the city),
+# label_outside (a neighbouring place). Rows of one feature are its points in order.
 feature,kind,lat,lon
-Ottawa River,river,45.47,-76.27
-Ottawa River,river,45.52,-75.95
-Ottawa River,river,45.43,-75.70
-Ottawa River,river,45.53,-75.35
+Ottawa River,river,45.4700,-76.4050
+Ottawa River,river,45.4620,-76.3830
+Ottawa River,river,45.4560,-76.3600
+Ottawa River,river,45.4530,-76.3380
+Ottawa River,river,45.4520,-76.3180
+Ottawa River,river,45.4550,-76.2970
+Ottawa River,river,45.4600,-76.2760
+Ottawa River,river,45.4680,-76.2570
+Ottawa River,river,45.4780,-76.2410
+Ottawa River,river,45.4900,-76.2260
+Ottawa River,river,45.5010,-76.2050
+Ottawa River,river,45.5080,-76.1750
+Ottawa River,river,45.5120,-76.1400
+Ottawa River,river,45.5130,-76.1100
+Ottawa River,river,45.5100,-76.0800
+Ottawa River,river,45.5030,-76.0520
+Ottawa River,river,45.4940,-76.0270
+Ottawa River,river,45.4820,-76.0020
+Ottawa River,river,45.4690,-75.9780
+Ottawa River,river,45.4550,-75.9570
+Ottawa River,river,45.4400,-75.9370
+Ottawa River,river,45.4240,-75.9190
+Ottawa River,river,45.4070,-75.9010
+Ottawa River,river,45.3930,-75.8830
+Ottawa River,river,45.3830,-75.8610
+Ottawa River,river,45.3780,-75.8360
+Ottawa River,river,45.3790,-75.8100
+Ottawa River,river,45.3840,-75.7900
+Ottawa River,river,45.3920,-75.7720
+Ottawa River,river,45.4000,-75.7560
+Ottawa River,river,45.4080,-75.7390
+Ottawa River,river,45.4150,-75.7270
+Ottawa River,river,45.4210,-75.7180
+Ottawa River,river,45.4270,-75.7080
+Ottawa River,river,45.4340,-75.7030
+Ottawa River,river,45.4410,-75.6990
+Ottawa River,river,45.4480,-75.6910
+Ottawa River,river,45.4550,-75.6760
+Ottawa River,river,45.4590,-75.6580
+Ottawa River,river,45.4620,-75.6400
+Ottawa River,river,45.4670,-75.6160
+Ottawa River,river,45.4730,-75.5940
+Ottawa River,river,45.4810,-75.5700
+Ottawa River,river,45.4910,-75.5450
+Ottawa River,river,45.5000,-75.5210
+Ottawa River,river,45.5080,-75.4970
+Ottawa River,river,45.5140,-75.4700
+Ottawa River,river,45.5190,-75.4460
+Ottawa River,river,45.5250,-75.4250
+Ottawa River,river,45.5300,-75.4050
+Ottawa River,river,45.5350,-75.3810
+Ottawa River,river,45.5380,-75.3580
+Ottawa River,river,45.5400,-75.3360
+Ottawa River,river,45.5450,-75.3150
+Ottawa River,river,45.5510,-75.2950
+Ottawa River,river,45.5560,-75.2750
+Rideau River,river,44.9830,-75.7970
+Rideau River,river,44.9980,-75.7790
+Rideau River,river,45.0150,-75.7620
+Rideau River,river,45.0350,-75.7420
+Rideau River,river,45.0550,-75.7220
+Rideau River,river,45.0750,-75.7010
+Rideau River,river,45.0950,-75.6810
+Rideau River,river,45.1130,-75.6650
+Rideau River,river,45.1300,-75.6560
+Rideau River,river,45.1500,-75.6680
+Rideau River,river,45.1700,-75.6800
+Rideau River,river,45.1900,-75.6850
+Rideau River,river,45.2100,-75.6800
+Rideau River,river,45.2270,-75.6750
+Rideau River,river,45.2450,-75.6900
+Rideau River,river,45.2620,-75.7000
+Rideau River,river,45.2820,-75.7060
+Rideau River,river,45.3000,-75.7050
+Rideau River,river,45.3180,-75.7050
+Rideau River,river,45.3360,-75.7020
+Rideau River,river,45.3520,-75.6950
+Rideau River,river,45.3650,-75.6930
+Rideau River,river,45.3720,-75.6970
+Rideau River,river,45.3800,-75.6900
+Rideau River,river,45.3850,-75.6780
+Rideau River,river,45.3920,-75.6680
+Rideau River,river,45.4000,-75.6670
+Rideau River,river,45.4080,-75.6710
+Rideau River,river,45.4140,-75.6670
+Rideau River,river,45.4200,-75.6660
+Rideau River,river,45.4260,-75.6690
+Rideau River,river,45.4310,-75.6720
+Rideau River,river,45.4360,-75.6780
+Rideau River,river,45.4390,-75.6860
+Rideau River,river,45.4398,-75.6953
+Rideau Canal,canal,45.3712,-75.6985
+Rideau Canal,canal,45.3765,-75.7020
+Rideau Canal,canal,45.3830,-75.7040
+Rideau Canal,canal,45.3890,-75.7030
+Rideau Canal,canal,45.3940,-75.7015
+Rideau Canal,canal,45.3965,-75.6975
+Rideau Canal,canal,45.3972,-75.6930
+Rideau Canal,canal,45.3960,-75.6870
+Rideau Canal,canal,45.3975,-75.6815
+Rideau Canal,canal,45.4030,-75.6810
+Rideau Canal,canal,45.4075,-75.6830
+Rideau Canal,canal,45.4140,-75.6860
+Rideau Canal,canal,45.4175,-75.6880
+Rideau Canal,canal,45.4210,-75.6905
+Rideau Canal,canal,45.4235,-75.6925
+Rideau Canal,canal,45.4255,-75.6948
+Rideau Canal,canal,45.4275,-75.6965
+Rideau Canal,canal,45.4292,-75.6982
+Hwy 417,highway,45.4080,-76.2760
+Hwy 417,highway,45.3960,-76.2400
+Hwy 417,highway,45.3750,-76.1800
+Hwy 417,highway,45.3540,-76.1200
+Hwy 417,highway,45.3330,-76.0600
+Hwy 417,highway,45.3140,-76.0000
+Hwy 417,highway,45.3040,-75.9700
+Hwy 417,highway,45.2995,-75.9500
+Hwy 417,highway,45.3000,-75.9270
+Hwy 417,highway,45.3085,-75.9050
+Hwy 417,highway,45.3175,-75.8795
+Hwy 417,highway,45.3270,-75.8400
+Hwy 417,highway,45.3375,-75.8100
+Hwy 417,highway,45.3520,-75.7820
+Hwy 417,highway,45.3720,-75.7500
+Hwy 417,highway,45.3920,-75.7280
+Hwy 417,highway,45.4060,-75.7060
+Hwy 417,highway,45.4105,-75.6930
+Hwy 417,highway,45.4150,-75.6800
+Hwy 417,highway,45.4195,-75.6685
+Hwy 417,highway,45.4215,-75.6400
+Hwy 417,highway,45.4280,-75.6070
+Hwy 417,highway,45.4150,-75.5750
+Hwy 417,highway,45.4000,-75.5400
+Hwy 417,highway,45.3800,-75.4900
+Hwy 417,highway,45.3600,-75.4300
+Hwy 417,highway,45.3380,-75.3550
+Hwy 417,highway,45.3360,-75.3220
+Hwy 416,highway,45.3375,-75.8100
+Hwy 416,highway,45.3270,-75.8010
+Hwy 416,highway,45.3150,-75.7930
+Hwy 416,highway,45.3000,-75.7870
+Hwy 416,highway,45.2830,-75.7800
+Hwy 416,highway,45.2650,-75.7720
+Hwy 416,highway,45.2450,-75.7610
+Hwy 416,highway,45.2250,-75.7490
+Hwy 416,highway,45.2050,-75.7370
+Hwy 416,highway,45.1830,-75.7250
+Hwy 416,highway,45.1600,-75.7130
+Hwy 416,highway,45.1400,-75.7020
+Hwy 416,highway,45.1200,-75.6960
+Hwy 416,highway,45.1000,-75.6930
+Hwy 416,highway,45.0860,-75.6910
+Hwy 174 / Ottawa Rd 174,highway,45.4280,-75.6070
+Hwy 174 / Ottawa Rd 174,highway,45.4370,-75.5960
+Hwy 174 / Ottawa Rd 174,highway,45.4470,-75.5820
+Hwy 174 / Ottawa Rd 174,highway,45.4580,-75.5650
+Hwy 174 / Ottawa Rd 174,highway,45.4680,-75.5450
+Hwy 174 / Ottawa Rd 174,highway,45.4760,-75.5270
+Hwy 174 / Ottawa Rd 174,highway,45.4820,-75.5070
+Hwy 174 / Ottawa Rd 174,highway,45.4880,-75.4870
+Hwy 174 / Ottawa Rd 174,highway,45.4950,-75.4670
+Hwy 174 / Ottawa Rd 174,highway,45.5020,-75.4460
+Hwy 174 / Ottawa Rd 174,highway,45.5090,-75.4250
+Hwy 174 / Ottawa Rd 174,highway,45.5150,-75.4050
+Hwy 174 / Ottawa Rd 174,highway,45.5200,-75.3850
+Hwy 174 / Ottawa Rd 174,highway,45.5250,-75.3600
+Hwy 174 / Ottawa Rd 174,highway,45.5300,-75.3320
+Hwy 7,highway,45.2995,-75.9500
+Hwy 7,highway,45.2900,-75.9620
+Hwy 7,highway,45.2780,-75.9760
+Hwy 7,highway,45.2650,-75.9900
+Hwy 7,highway,45.2520,-76.0040
+Hwy 7,highway,45.2390,-76.0190
+Hwy 7,highway,45.2260,-76.0340
+Hwy 7,highway,45.2130,-76.0500
+Hwy 7,highway,45.2010,-76.0640
 Parliament Hill,label,45.4236,-75.7009
+Kanata,label,45.3088,-75.8987
+Orléans,label,45.4680,-75.5170
+Barrhaven,label,45.2710,-75.7370
+Stittsville,label,45.2590,-75.9220
+Manotick,label,45.2268,-75.6833
+Riverside South,label,45.2700,-75.6850
+Ottawa Airport (YOW),label,45.3225,-75.6692
+Carp,label,45.3483,-76.0420
+Constance Bay,label,45.4930,-76.0900
+Richmond,label,45.1927,-75.8375
+Metcalfe,label,45.2330,-75.4670
+Cumberland,label,45.5160,-75.4070
+Navan,label,45.4190,-75.4250
+North Gower,label,45.1310,-75.7160
+Greely,label,45.2630,-75.5560
+Osgoode,label,45.1470,-75.6000
 Gatineau,label_outside,45.4765,-75.7013
+Arnprior,label_outside,45.4347,-76.3548
+Rockland,label_outside,45.5459,-75.2928
+Kemptville,label_outside,45.0164,-75.6386

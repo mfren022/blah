@@ -167,6 +167,7 @@ class MainActivity : Activity() {
         }
         go.setOnClickListener { search(input.text.toString()) }
         clear.setOnClickListener {
+            cancelSearch()
             input.setText("")
             hideStatus()
             suggestions.visibility = View.GONE
@@ -251,6 +252,12 @@ class MainActivity : Activity() {
         }
     }
 
+    /** Forgets a search still running, so its answer can't replace what the user did since. */
+    private fun cancelSearch() {
+        searchGeneration++
+        go.isEnabled = true
+    }
+
     private fun sectionLabel(text: String) = TextView(this).apply {
         this.text = text
         setTextColor(getColor(R.color.ink_muted))
@@ -287,6 +294,7 @@ class MainActivity : Activity() {
 
     /** Makes [p] the current place and remembers it (unless it was just a tap on the map). */
     private fun choose(p: Place) {
+        cancelSearch()
         place = p
         location = estimator.locate(p.location)
         app.state.place = p
@@ -375,7 +383,12 @@ class MainActivity : Activity() {
         AlertDialog.Builder(this)
             .setTitle(R.string.pick_month)
             .setView(layout)
-            .setPositiveButton(R.string.ok) { _, _ -> setMonth(Month.of(yearPicker.value, monthPicker.value)) }
+            .setPositiveButton(R.string.ok) { _, _ ->
+                // A number typed on the keyboard is only taken in when the picker loses focus.
+                monthPicker.clearFocus()
+                yearPicker.clearFocus()
+                setMonth(Month.of(yearPicker.value, monthPicker.value))
+            }
             .setNegativeButton(R.string.cancel, null)
             .show()
     }

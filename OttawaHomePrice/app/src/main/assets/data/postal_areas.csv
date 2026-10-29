@@ -1,7 +1,46 @@
-# PROVISIONAL
+# Postal Forward Sortation Areas (first three characters of a postal code) serving the City of Ottawa, with the
+# approximate centre of each one's populated area. K0A is the large rural area; its centre is only a fallback.
 fsa,lat,lon,area
-K1S,45.3990,-75.6880,Glebe; Old Ottawa South
-K2J,45.2700,-75.7400,Barrhaven
-K1L,45.4380,-75.6600,Vanier
-K1Y,45.4000,-75.7300,Hintonburg; Civic Hospital
-K2K,45.3450,-75.9250,Kanata North
+K0A,45.1930,-75.8380,Rural Ottawa outside the urban FSAs: Carp; Dunrobin; Constance Bay; Woodlawn; Fitzroy Harbour; Kinburn; Galetta; Ashton; Munster; Richmond; North Gower; Kars; Osgoode; Metcalfe; Vernon; Kenmore; Edwards; Carlsbad Springs; Vars; Sarsfield. Spans the whole rural city and also places outside Ottawa; so this centroid is only a representative point (Richmond)
+K0G,44.9820,-75.7970,Burritts Rapids (believed K0G 1B0) and possibly a few far-south rural addresses near the North Grenville line; mostly an FSA outside Ottawa
+K1A,45.4215,-75.7000,Government of Canada only (Parliament Hill; federal buildings such as Tunney's Pasture; Rideau Hall); not a residential FSA
+K1B,45.4300,-75.5700,Blackburn Hamlet; Pineview; Innes Rd / Star Top Rd / Cyrville industrial area
+K1C,45.4730,-75.5300,Orléans west: Convent Glen; Orléans Wood; Queenswood Heights (west); Place d'Orléans; Hiawatha Park
+K1E,45.4660,-75.5000,Orléans central: Chapel Hill; Chatelaine Village; Queenswood Heights (east); Orléans town centre (Centrum)
+K1G,45.4000,-75.6280,Elmvale Acres; Hawthorne Meadows; Russell Heights; Sheffield Glen; Riverview (east); Tremblay Rd / Ottawa train station; Russell Rd industrial
+K1H,45.3900,-75.6600,Alta Vista; Riverview Park; Billings Bridge; Faircrest Heights; Playfair Park; Applewood Acres; General Hospital / CHEO
+K1J,45.4450,-75.6050,Beacon Hill; Cardinal Heights; Rothwell Heights; Carson Grove; Ogilvie Rd (Gloucester)
+K1K,45.4300,-75.6450,Overbrook; Castle Heights; Forbes; Manor Park; Viscount Alexander Park; St. Laurent Centre / Montfort
+K1L,45.4370,-75.6630,Vanier (Eastview); Cummings
+K1M,45.4460,-75.6830,Rockcliffe Park; New Edinburgh; Lindenlea
+K1N,45.4280,-75.6860,ByWard Market; Lowertown; Sandy Hill; University of Ottawa
+K1P,45.4200,-75.7000,Downtown core / central business district (Sparks; Queen; Albert; Slater)
+K1R,45.4080,-75.7080,Centretown West; Chinatown; Little Italy; LeBreton Flats; Dalhousie
+K1S,45.3970,-75.6850,The Glebe; Old Ottawa South; Old Ottawa East; Carleton University; Dow's Lake
+K1T,45.3500,-75.6250,Greenboro; Hunt Club Park / Hunt Club East; Blossom Park; Sawmill Creek; Leitrim (part)
+K1V,45.3350,-75.6750,Riverside Park; Mooney's Bay; Heron Park; Hunt Club (west of Bank); South Keys; Uplands / Airport; Riverside South
+K1W,45.4470,-75.5080,Orléans south of Innes Rd (Chapel Hill South; Notting Hill); Mer Bleue / Navan Rd area; neighbourhood list is an estimate
+K1X,45.3120,-75.6100,Leitrim; Findlay Creek (part); rural Gloucester south of the airport (Bank St / Albion Rd); estimate
+K1Y,45.4020,-75.7260,Hintonburg; Mechanicsville; Civic Hospital; Tunney's Pasture; Wellington West
+K1Z,45.3900,-75.7450,Westboro; Wellington Village; Champlain Park; Island Park; Carlington
+K2A,45.3780,-75.7700,Highland Park; McKellar Park; Glabar Park; Carlingwood; Woodroffe North; west Westboro
+K2B,45.3570,-75.7950,Britannia; Bayshore; Lincoln Heights; Pinecrest; Queensway Terrace North; Britannia Heights
+K2C,45.3640,-75.7350,Copeland Park; Central Park; Bel-Air Heights; Carleton Heights; Courtland Park
+K2E,45.3400,-75.7280,Merivale Rd corridor: Fisher Heights; City View; Parkwood Hills; Merivale Gardens; Grenfell Glen; Pineglen; Colonnade business park
+K2G,45.3400,-75.7650,Centrepointe; Craig Henry; Tanglewood; Manordale; Leslie Park; Crestview; Algonquin College
+K2H,45.3320,-75.8180,Bells Corners; Lynwood Village; Arbeatha Park; Westcliffe Estates; Qualicum; Graham Park; Briargreen
+K2J,45.2700,-75.7400,Barrhaven: Longfields; Davidson Heights; Stonebridge; Half Moon Bay; Chapman Mills; Barrhaven Centre
+K2K,45.3400,-75.9150,Kanata North: Beaverbrook; Brookside; Morgan's Grant; March Rd tech park
+K2L,45.2980,-75.8850,Kanata: Katimavik-Hazeldean; Glen Cairn
+K2M,45.2820,-75.8850,Kanata South: Bridlewood; Emerald Meadows; Trailwest
+K2P,45.4140,-75.6900,Centretown (east); Golden Triangle; Elgin St
+K2R,45.2900,-75.8000,Rural / semi-rural Nepean: Cedarhill Estates; Fallowfield Village; Merivale Rd south
+K2S,45.2580,-75.9200,Stittsville (village; Fairwinds; Jackson Trails; Westwood; Fernbank)
+K2T,45.3180,-75.9200,Kanata Lakes; Kanata Town Centre / Campeau Dr; Arcadia; Kanata Centrum area
+K2V,45.2900,-75.9150,Kanata West (Palladium Dr / Canadian Tire Centre); Fernbank Rd area; estimate
+K2W,45.3650,-75.9400,Kanata North fringe / rural March (north of Kanata); estimate
+K4A,45.4650,-75.4680,Orléans east: Fallingbrook; Avalon; Springridge; Cardinal Creek; Trim Rd area
+K4B,45.4200,-75.4250,Navan and nearby rural Cumberland
+K4C,45.5120,-75.4050,Cumberland village and nearby rural Cumberland
+K4M,45.2250,-75.6850,Manotick (village; Mahogany; Manotick Estates)
+K4P,45.2620,-75.5560,Greely and the Greely estate lots

@@ -85,6 +85,25 @@ class CityIndexTest {
     }
 
     @Test
+    fun aDecemberReleasedWithTheYearEndFiguresStillCounts() {
+        // The 2025 annual average and December 2025 (5% up on December 2024) arrive together.
+        val rows = "month,avg_price,units,source,note\n2024-12,600000,800,s,\n2025-12,630000,840,s,"
+        val idx = CityIndex(TestData.data("monthly.csv" to rows))
+        val december = Month.of(2025, 12)
+        assertEquals(ln(650000.0) + ln(1.05) * (december.time - 2025.5), idx.logPrice(december.time), 1e-9)
+        assertEquals(december, idx.lastDataMonth)
+        assertEquals(Basis.RECENT, idx.basis(Month.of(2025, 10)))
+    }
+
+    @Test
+    fun withoutMonthsTheDataEndsInJune() {
+        // The last yearly average sits at mid-year: June is the last month at or before it.
+        assertEquals(Month.of(2025, 6), index.lastDataMonth)
+        assertEquals(Basis.ANNUAL, index.basis(Month.of(2025, 6)))
+        assertEquals(Basis.PROJECTION, index.basis(Month.of(2025, 7)))
+    }
+
+    @Test
     fun partialYearOfMonthsStillCounts() {
         val rows = "month,avg_price,units,source,note\n" + (1..5).joinToString("\n") { "2026-0$it,700000,,s," }
         val idx = CityIndex(TestData.data("monthly.csv" to rows))

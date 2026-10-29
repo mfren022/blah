@@ -83,18 +83,38 @@ class PlaceIndex(private val neighbourhoods: List<Neighbourhood>, postalAreas: L
         return results.sortedWith(compareByDescending<Match> { it.score }.thenBy { it.label }).take(limit)
     }
 
-    /** A neighbourhood named anywhere in a full address ("12 Main St, Old Ottawa East"), longest name first. */
+    /**
+     * A neighbourhood named anywhere in a full address ("12 Main St, Old Ottawa East"), longest name
+     * first. A name that is part of a street name ("Richmond Rd", "Carp Road") doesn't count: those
+     * roads run far from the places they're named after.
+     */
     fun neighbourhoodIn(query: String): Neighbourhood? {
-        val padded = " ${Text.normalize(query)} "
+        val words = Text.normalize(query).split(' ').filter { it.isNotEmpty() }
         var best: Neighbourhood? = null
         var bestLength = 0
         for (entry in entries) for (name in entry.names) {
-            if (name.length >= 4 && name.length > bestLength && padded.contains(" $name ")) {
+            if (name.length < 4 || name.length <= bestLength) continue
+            val nameWords = name.split(' ')
+            for (start in 0..words.size - nameWords.size) {
+                if (words.subList(start, start + nameWords.size) != nameWords) continue
+                val next = words.getOrNull(start + nameWords.size)
+                if (next != null && next in STREET_TYPES) continue
                 best = entry.place
                 bestLength = name.length
+                break
             }
         }
         return best
+    }
+
+    private companion object {
+        /** Words that make the name before them part of a street name. */
+        val STREET_TYPES = setOf(
+            "rd", "road", "st", "street", "ave", "av", "avenue", "blvd", "boulevard", "dr", "drive", "cres",
+            "crescent", "cr", "crt", "ct", "court", "pl", "place", "way", "ln", "lane", "pkwy", "parkway", "hwy",
+            "highway", "terr", "terrace", "line", "side", "sideroad", "station", "private", "pvt", "circle",
+            "gate", "grove", "trail", "row", "ridge", "rue", "ch", "chemin", "promenade", "prom",
+        )
     }
 
     private fun score(q: String, queryWords: List<String>, name: String): Double = when {

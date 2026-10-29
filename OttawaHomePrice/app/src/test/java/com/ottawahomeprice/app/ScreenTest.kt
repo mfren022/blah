@@ -96,12 +96,15 @@ abstract class ScreenTest {
     protected class FakeGeocoder(
         private val answers: Map<String, List<GeocodedAddress>>,
         private val offline: Boolean = false,
+        /** When set, each search waits for it, like a slow network. */
+        private val gate: java.util.concurrent.CountDownLatch? = null,
     ) : GeocodingProvider {
         override val name = "fake"
-        val queries = ArrayList<String>()
+        val queries = java.util.Collections.synchronizedList(ArrayList<String>())
 
         override fun search(query: String): List<GeocodedAddress> {
             queries += query
+            gate?.await(10, java.util.concurrent.TimeUnit.SECONDS)
             if (offline) throw IOException("offline")
             return answers.entries.firstOrNull { query.startsWith(it.key) }?.value ?: emptyList()
         }

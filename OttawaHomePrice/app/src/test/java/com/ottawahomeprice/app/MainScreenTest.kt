@@ -149,6 +149,40 @@ class MainScreenTest : ScreenTest() {
     }
 
     @Test
+    fun aSlowSearchDoesntUndoALaterPick() {
+        val gate = java.util.concurrent.CountDownLatch(1)
+        val slow = FakeGeocoder(
+            mapOf("100 Main St" to listOf(GeocodedAddress("100 Main St, Ottawa, ON", LatLon(45.4085, -75.6765), "Ottawa", "Ontario"))),
+            gate = gate,
+        )
+        useGeocoder(slow)
+        val activity = launch()
+        val input = activity.view<EditText>(R.id.search_input)
+        input.requestFocus()
+        input.setText("100 Main St")
+        activity.view<View>(R.id.search_go).performClick()
+        waitFor { slow.queries.isNotEmpty() }
+        assertFalse(activity.view<View>(R.id.search_go).isEnabled)
+
+        // Meanwhile the user picks a suggestion instead.
+        input.requestFocus()
+        input.setText("K2J")
+        idle()
+        activity.view<LinearLayout>(R.id.suggestions).getChildAt(0).performClick()
+        idle()
+        val picked = activity.currentPlace!!
+        assertEquals("K2J", picked.title)
+        assertTrue(activity.view<View>(R.id.search_go).isEnabled)
+
+        // The search finishes late: ignored.
+        gate.countDown()
+        app.lookups.submit {}.get(10, java.util.concurrent.TimeUnit.SECONDS)
+        idle()
+        assertEquals(picked, activity.currentPlace)
+        assertEquals(picked, app.state.place)
+    }
+
+    @Test
     fun withoutANetworkAnAddressFallsBackToItsPostalCodeOrNeighbourhood() {
         useGeocoder(FakeGeocoder(emptyMap(), offline = true))
         val activity = launch()

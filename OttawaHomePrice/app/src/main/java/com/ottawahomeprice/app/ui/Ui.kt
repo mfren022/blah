@@ -48,13 +48,12 @@ private fun systemBarInsets(insets: WindowInsets): IntArray = if (Build.VERSION.
     intArrayOf(insets.systemWindowInsetLeft, insets.systemWindowInsetTop, insets.systemWindowInsetRight, insets.systemWindowInsetBottom)
 }
 
-/** Dark status and navigation bar icons on the light theme (navigation needs Android 8.1). */
+/** Dark status and navigation bar icons on the light theme. */
 @Suppress("DEPRECATION")
 fun Activity.styleSystemBars() {
     if (isNight) return
-    var flags = window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-    if (Build.VERSION.SDK_INT >= 27) flags = flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-    window.decorView.systemUiVisibility = flags
+    window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or
+        View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
 }
 
 /** [color] with its alpha replaced by [alpha] (0..1). */

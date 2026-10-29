@@ -3,7 +3,7 @@
 // version and signing details from app/build.gradle.kts, so the two builds cannot drift apart.
 //
 //   gradle -p tools/sdkless assembleApk   # build/outputs/OttawaHomePrice.apk
-//   gradle -p tools/sdkless test          # engine tests + Robolectric UI tests (with screenshots)
+//   gradle -p tools/sdkless test          # engine tests (engine/) + Robolectric UI tests (with screenshots)
 //
 // Tools come from public mirrors that stay reachable when dl.google.com is not:
 //   android.jar  platform 35 stubs (with resources.arsc) from the Sable/android-platforms repository
@@ -42,7 +42,6 @@ plugins {
 
 val projectRoot: File = rootDir.resolve("../..").canonicalFile
 val appDir = projectRoot.resolve("app")
-val coreDir = projectRoot.resolve("core")
 
 // ---- Configuration shared with the Android Gradle Plugin build -------------------------------
 
@@ -195,12 +194,12 @@ kotlin {
 
 sourceSets {
     main {
-        kotlin.srcDirs(coreDir.resolve("src/main/kotlin"), mainDir.resolve("java"))
+        kotlin.srcDirs(mainDir.resolve("java"))
         java.setSrcDirs(listOf(files(rSources).builtBy(linkResources)))
         resources.setSrcDirs(emptyList<File>())
     }
     test {
-        kotlin.srcDirs(coreDir.resolve("src/test/kotlin"), appDir.resolve("src/test/java"))
+        kotlin.srcDirs(appDir.resolve("src/test/java"))
         java.setSrcDirs(emptyList<File>())
     }
 }
@@ -215,6 +214,8 @@ val androidJarFiles = files(androidJar).builtBy(downloadAndroidJar)
 extra["androidJar"] = androidJarFiles
 
 dependencies {
+    // The engine is a module of its own (engine/), as in the Android Gradle Plugin build.
+    implementation(project(":engine"))
     compileOnly(androidJarFiles)
     testCompileOnly(androidJarFiles)
     // AGP puts android.jar on the unit-test classpath too; Robolectric resolves types from it.
@@ -254,8 +255,6 @@ tasks.test {
     // Robolectric downloads its Android runtime jars itself; use the same mirror as the build.
     systemProperty("robolectric.dependency.repo.url", "https://maven-central.storage-download.googleapis.com/maven2")
     systemProperty("screenshots.dir", layout.buildDirectory.dir("screenshots").get().asFile.path)
-    // The engine tests read the data the app ships, straight from its assets.
-    systemProperty("data.dir", assetsDir.resolve("data").path)
     maxHeapSize = "3g"
     testLogging {
         events("failed")

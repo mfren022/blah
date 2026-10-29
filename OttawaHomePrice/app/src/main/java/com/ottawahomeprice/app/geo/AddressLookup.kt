@@ -65,8 +65,10 @@ class AddressLookup(private val estimator: Estimator, private val providers: Lis
         }
 
         // A bare postal code goes out in its standard form ("K1S 5B6").
-        val online = if (postalOnly && postal?.full != null) postal.full else withCity(query)
+        val fullPostal = postal?.full
+        val online = if (postalOnly && fullPostal != null) fullPostal else withCity(query)
         var unreachable = false
+        var answered = false
         var outside: String? = null
         for (provider in providers) {
             val results = try {
@@ -79,6 +81,7 @@ class AddressLookup(private val estimator: Estimator, private val providers: Lis
                 unreachable = true
                 continue
             }
+            answered = true
             val inside = results.filter { isOttawa(it) }
             if (inside.isNotEmpty()) return LookupResult.Found(dedupe(inside).map { searchPlace(it) })
             if (results.isNotEmpty() && outside == null) outside = results.first().label
@@ -95,7 +98,7 @@ class AddressLookup(private val estimator: Estimator, private val providers: Lis
             return LookupResult.Found(listOf(neighbourhoodPlace(it.name, it.location, approximate = true)))
         }
         outside?.let { return LookupResult.OutsideOttawa(it) }
-        if (unreachable) {
+        if (unreachable && !answered) {
             return LookupResult.NotFound(
                 "Couldn't reach the address search. Check your connection, or search a postal code or " +
                     "neighbourhood, or tap the map.",

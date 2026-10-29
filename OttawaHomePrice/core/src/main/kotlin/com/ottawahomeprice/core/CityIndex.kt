@@ -69,8 +69,8 @@ class CityIndex(data: OttawaData) {
     private val first = knots.first()
     private val last = knots.last()
 
-    /** The month of the last data point; later months are projections. */
-    val lastDataMonth: Month = Month.containing(last.time)
+    /** The last month whose middle is at or before the last data point; later months are projections. */
+    val lastDataMonth: Month = Month(Math.floor(last.time * 12 - 0.5 + 1e-9).toInt())
 
     /** Fractional years of the knots and their prices, for tests and the methodology screen. */
     val knotTimes: List<Double> get() = knots.map { it.time }
@@ -82,6 +82,7 @@ class CityIndex(data: OttawaData) {
         }.toMutableList()
         require(knots.isNotEmpty()) { "annual.csv is empty" }
         val lastYear = data.annual.last { it.kind == AnnualFigure.Kind.MLS }.year
+        val lastYearTime = lastYear + 0.5
 
         // Months after the last full year. A trailing twelve-month average (free of the spring
         // peak) sits at its centre, or failing a full year, the plain average of the months there
@@ -89,7 +90,9 @@ class CityIndex(data: OttawaData) {
         // year-over-year change of the latest months, which is also free of seasonality.
         val byMonth = data.monthly.associateBy { it.month }
         val latest = data.monthly.lastOrNull()?.month
-        if (latest != null && latest.year > lastYear) {
+        // Months past the middle of the last full year, which is where its average sits (a
+        // December released with the year-end figures counts too).
+        if (latest != null && latest.time > lastYearTime + 1.0 / 24) {
             val trailing = (0 until 12).mapNotNull { byMonth[latest - it] }
             val sinceLastYear = data.monthly.filter { it.month.year > lastYear }
             if (trailing.size == 12) {

@@ -82,6 +82,16 @@ class AddressLookupTest : ScreenTest() {
     }
 
     @Test
+    fun saysUnreachableOnlyWhenNoServiceAnswered() {
+        // The phone has no geocoder, but OpenStreetMap answers: a spelling problem, not a network one.
+        val noGeocoder = FakeGeocoder(emptyMap(), offline = true)
+        val result = lookupWith(noGeocoder, FakeGeocoder(emptyMap())).lookup("qwertyuiop street") as LookupResult.NotFound
+        assertTrue(result.message, result.message.contains("No Ottawa address matches"))
+        val offline = lookupWith(noGeocoder, FakeGeocoder(emptyMap(), offline = true)).lookup("qwertyuiop street") as LookupResult.NotFound
+        assertTrue(offline.message, offline.message.contains("Couldn't reach"))
+    }
+
+    @Test
     fun emptyAndUnknown() {
         assertTrue(lookupWith().lookup(" ") is LookupResult.NotFound)
         val result = lookupWith(FakeGeocoder(emptyMap())).lookup("qwertyuiop street")

@@ -56,6 +56,17 @@ class LocationModelTest {
     }
 
     @Test
+    fun theAreaIsTheOneThePointIsMostInside() {
+        // 1.2 km from a small neighbourhood's centre, 3 km from a big village's: in the village.
+        val small = place("Small", 45.40, -75.70, 1.0, radius = 0.5)
+        val village = place("Village", 45.40, -75.7536, 1.0, radius = 4.0)
+        val e = LocationModel(listOf(small, village)).estimate(LatLon(45.40, -75.7153))
+        assertEquals("Small", e.nearest.name)
+        assertEquals("Village", e.area.name)
+        assertEquals("Village", e.areaLabel)
+    }
+
+    @Test
     fun lowConfidenceAnchorsCountLess() {
         val sure = place("Sure", 45.40, -75.70, 2.0, confidence = Confidence.HIGH)
         val guess = place("Guess", 45.40, -75.68, 0.5, confidence = Confidence.LOW)

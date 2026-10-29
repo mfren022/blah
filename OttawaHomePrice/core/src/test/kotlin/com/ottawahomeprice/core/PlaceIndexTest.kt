@@ -54,5 +54,9 @@ class PlaceIndexTest {
         assertEquals("Old Ottawa East", index.neighbourhoodIn("12 Main St, Old Ottawa East, Ottawa")?.name)
         assertEquals("Vanier", index.neighbourhoodIn("300 Montreal Rd, Eastview")?.name)
         assertNull(index.neighbourhoodIn("12 Main Street"))
+        // Part of a street name: no.
+        assertNull(index.neighbourhoodIn("1000 Vanier Pkwy"))
+        assertNull(index.neighbourhoodIn("200 Westboro Road"))
+        assertEquals("Westboro", index.neighbourhoodIn("200 Main St, Westboro")?.name)
     }
 }
