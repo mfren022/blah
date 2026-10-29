@@ -252,6 +252,8 @@ val robolectricConfig = tasks.register("robolectricConfig") {
 sourceSets.test.get().resources.srcDir(files(layout.buildDirectory.dir("generated/robolectric")).builtBy(robolectricConfig))
 
 tasks.test {
+    // Robolectric reads the assets straight from the source folder, so they are an input here.
+    if (assetsDir.isDirectory) inputs.dir(assetsDir)
     // Robolectric downloads its Android runtime jars itself; use the same mirror as the build.
     systemProperty("robolectric.dependency.repo.url", "https://maven-central.storage-download.googleapis.com/maven2")
     systemProperty("screenshots.dir", layout.buildDirectory.dir("screenshots").get().asFile.path)

@@ -37,6 +37,8 @@ class PlaceIndexTest {
         assertEquals("Westboro", index.search("west").first().label)
         assertEquals("Westboro", index.search("Westboro Beach").first().label)
         assertEquals("Old Ottawa East", index.search("ottawa east").first().label)
+        // An exact alias still wins over a mere prefix of a name.
+        assertEquals("Vanier", index.search("eastview").first().label)
         assertTrue(index.search("x").isEmpty())
         assertTrue(index.search("zzzz").isEmpty())
     }

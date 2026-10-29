@@ -17,5 +17,7 @@ dependencies {
 
 tasks.test {
     // The engine tests read the data the app ships, straight from its assets.
-    systemProperty("data.dir", rootProject.file("app/src/main/assets/data").path)
+    val dataDir = rootProject.file("app/src/main/assets/data")
+    inputs.dir(dataDir)
+    systemProperty("data.dir", dataDir.path)
 }

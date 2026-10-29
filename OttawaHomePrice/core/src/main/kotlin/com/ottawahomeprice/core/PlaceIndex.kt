@@ -62,7 +62,8 @@ class PlaceIndex(private val neighbourhoods: List<Neighbourhood>, postalAreas: L
     fun postalMatch(query: String): Match? {
         val code = PostalCode.find(query) ?: return null
         val area = postal[code.fsa] ?: return null
-        return Match(code.full ?: code.fsa, "Postal area ${area.fsa}: ${area.area}", area.location, Kind.POSTAL_AREA, 100.0)
+        // Only the area is known offline, so the match is the area, even for a full postal code.
+        return Match(area.fsa, "Postal area ${area.fsa}: ${area.area}", area.location, Kind.POSTAL_AREA, 100.0)
     }
 
     /** Best neighbourhood and postal-area matches for what the user has typed so far. */
@@ -73,8 +74,12 @@ class PlaceIndex(private val neighbourhoods: List<Neighbourhood>, postalAreas: L
         postalMatch(query)?.let { results += it }
         val queryWords = q.split(' ')
         for (entry in entries) {
+            // The neighbourhood's own name ranks a little above other names it goes by.
             var best = 0.0
-            for (name in entry.names) best = maxOf(best, score(q, queryWords, name))
+            entry.names.forEachIndexed { i, name ->
+                val score = score(q, queryWords, name)
+                if (score > 0) best = maxOf(best, if (i == 0) score else score - ALIAS_PENALTY)
+            }
             if (best > 0) {
                 val n = entry.place
                 results += Match(n.name, "Neighbourhood", n.location, Kind.NEIGHBOURHOOD, best)
@@ -108,6 +113,8 @@ class PlaceIndex(private val neighbourhoods: List<Neighbourhood>, postalAreas: L
     }
 
     private companion object {
+        const val ALIAS_PENALTY = 3.0
+
         /** Words that make the name before them part of a street name. */
         val STREET_TYPES = setOf(
             "rd", "road", "st", "street", "ave", "av", "avenue", "blvd", "boulevard", "dr", "drive", "cres",

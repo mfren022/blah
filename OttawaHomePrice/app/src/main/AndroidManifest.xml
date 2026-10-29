@@ -4,9 +4,10 @@
     <!-- Only used to look up typed addresses (the phone's geocoder, or OpenStreetMap's Nominatim). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- No backups: recent searches (addresses) stay on the phone, as the How it works screen says. -->
     <application
         android:name=".HomePriceApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="false"

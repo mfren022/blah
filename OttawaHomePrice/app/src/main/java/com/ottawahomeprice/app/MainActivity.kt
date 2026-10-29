@@ -185,7 +185,7 @@ class MainActivity : Activity() {
         for (m in matches) {
             val place = Place(
                 title = m.label,
-                detail = if (m.kind == PlaceIndex.Kind.POSTAL_AREA) m.detail else "Centre of the neighbourhood",
+                detail = if (m.kind == PlaceIndex.Kind.POSTAL_AREA) "Centre of " + m.detail.replaceFirstChar { it.lowercaseChar() } else "Centre of the neighbourhood",
                 location = m.location,
                 source = if (m.kind == PlaceIndex.Kind.POSTAL_AREA) Place.Source.POSTAL_AREA else Place.Source.NEIGHBOURHOOD,
             )
@@ -495,7 +495,7 @@ class MainActivity : Activity() {
         (basis.background.mutate() as? GradientDrawable)?.setColor(withAlpha(basisColor, 0.12f))
 
         findViewById<TextView>(R.id.comparison).text = if (p == null && type == PropertyType.ALL) {
-            "The average over every home sold in the city that month."
+            "Ottawa's estimated average over all homes sold (MLS®), smoothed through the year."
         } else {
             Format.versusAverage(e.relative) + " (" + Format.money(e.cityAverage) + ")"
         }

@@ -3,7 +3,7 @@
     <string name="app_name">Ottawa Home Price</string>
     <string name="tagline">Average home prices for any Ottawa address, in any month from 1914 to 2060</string>
     <string name="how_it_works">How it works</string>
-    <string name="search_hint">Address, postal code or neighbourhood</string>
+    <string name="search_hint">Address, postal code or area</string>
     <string name="search">Search</string>
     <string name="clear">Clear</string>
     <string name="searching">Searching…</string>

@@ -71,8 +71,9 @@ class MethodologyActivity : Activity() {
                     "which keeps the spring peak and winter lull out of it. " else "") +
                 (if (census.isNotEmpty()) "Before that, census dwelling values from ${census.joinToString(", ") { it.year.toString() }} " +
                     "extend it to ${firstData.year}. " else "") +
-                "Earlier months are carried back with Canada's consumer price index, assuming home prices " +
-                "kept pace with inflation (low confidence). Months after ${index.lastDataMonth.label()} are " +
+                "Months before ${firstData.label()} are carried back with Canada's consumer price index, " +
+                "assuming home prices kept pace with inflation (low confidence). Months after " +
+                "${index.lastDataMonth.label()} are " +
                 "projected at $growth% a year, a long-run assumption, not a market forecast.",
         )
         val sourced = data.neighbourhoods.count { it.sources.isNotEmpty() }
@@ -108,10 +109,12 @@ class MethodologyActivity : Activity() {
                 "projected months), of the area's level (more where neighbourhoods disagree or are far " +
                 "away) and of the type ratio.",
         )
+        val lastCpiYear = data.cpi.keys.max()
         section(
             "Inflation",
             "‘After inflation’ restates prices in ${estimator.referenceMonth.label()} dollars using " +
-                "Statistics Canada's consumer price index; future months assume $inflation% inflation a year.",
+                "Statistics Canada's consumer price index, yearly to $lastCpiYear. Months after the middle of " +
+                "$lastCpiYear (${estimator.referenceMonth.label()} among them) assume $inflation% inflation a year.",
         )
         section(
             "Data sources",
@@ -121,10 +124,11 @@ class MethodologyActivity : Activity() {
         )
         section(
             "Privacy",
-            "Everything is calculated on your phone. Only an address you search for leaves it: it goes to " +
-                "your phone's geocoding service (usually Google) or, if that finds nothing, to " +
-                "OpenStreetMap's Nominatim. Postal codes, neighbourhood names and map taps are handled " +
-                "offline. Recent searches are kept on the phone.",
+            "Everything is calculated on your phone. Only an address or full postal code you search for " +
+                "leaves it: it goes to your phone's geocoding service (usually Google) or, if that finds " +
+                "nothing, to OpenStreetMap's Nominatim. The first three characters of a postal code, " +
+                "neighbourhood names and taps on the map are handled offline. Recent searches stay on the " +
+                "phone and are left out of its backups.",
         )
         section(
             "Data as of",

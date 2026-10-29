@@ -34,7 +34,9 @@ dependencies {
 
 tasks.test {
     // The engine tests read the data the app ships, straight from its assets.
-    systemProperty("data.dir", rootDir.resolve("../../app/src/main/assets/data").canonicalPath)
+    val dataDir = rootDir.resolve("../../app/src/main/assets/data").canonicalFile
+    inputs.dir(dataDir)
+    systemProperty("data.dir", dataDir.path)
     testLogging {
         events("failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
