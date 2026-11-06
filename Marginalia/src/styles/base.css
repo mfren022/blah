@@ -1,0 +1,323 @@
+/* ==========================================================================
+   Base: fallback tokens (default theme), reset, typography, utilities.
+   JS writes the live theme as inline custom properties on <html>; these are
+   the first-paint defaults for the Oxblood theme in light and dark.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+  --desk: #d6cfc3;
+  --cover: #5b2a2a;
+  --cover-ink: #e8d6a8;
+  --cover-shade: #381a1a;
+  --cover-light: #714646;
+  --paper: #fbf7ef;
+  --paper-2: #f2ede5;
+  --paper-3: #e9e3db;
+  --edge: #c9c2b9;
+  --leaf: #fdfbf7;
+  --leaf-2: #f8f6f2;
+  --ink: #2a2420;
+  --ink-soft: #69625b;
+  --ink-faint: #938c84;
+  --accent: #9b3426;
+  --accent-ink: #ffffff;
+  --accent-soft: #f2e4dc;
+  --accent-strong: #7f2f24;
+  --gilt: #b8923a;
+  --rule: rgba(42, 36, 32, 0.24);
+  --rule-strong: rgba(42, 36, 32, 0.5);
+  --rule-weight: 1px;
+  --grid: rgba(42, 36, 32, 0.1);
+  --focus: #8f3426;
+  --page-stack: 3px 3px 0 -1px #f2ede5, 3px 3px 0 0 #c9c2b9, 6px 6px 0 -1px #e9e3db, 6px 6px 0 0 #c4bcb3, 12px 18px 28px rgba(0, 0, 0, 0.25);
+  --page-stack-left: -3px 3px 0 -1px #f2ede5, -3px 3px 0 0 #c9c2b9, -6px 6px 0 -1px #e9e3db, -6px 6px 0 0 #c4bcb3, -12px 18px 28px rgba(0, 0, 0, 0.25);
+  --panel-stack: 2.5px 2.5px 0 -1px #f2ede5, 2.5px 2.5px 0 0 #c9c2b9, 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-soft: 0 6px 22px rgba(0, 0, 0, 0.18);
+  --cover-shadow: 0 16px 44px rgba(0, 0, 0, 0.38);
+  --font-heading: 'Fraunces Variable', 'Fraunces', Georgia, serif;
+  --font-body: 'Literata Variable', 'Literata', Georgia, serif;
+  --font-ui: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --font-scale: 1;
+  --line-height: 1.55;
+  --space: 1;
+  --stack-depth: 12px;
+  --status-want: #2f5b9a;
+  --status-reading: #9a6412;
+  --status-finished: #2c7a4b;
+  --status-dnf: #a33a3a;
+  --radius: 6px;
+  --radius-sm: 4px;
+  --gap: calc(1rem * var(--space));
+  --ease: cubic-bezier(0.32, 0.08, 0.24, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --desk: #0e0c0c;
+    --cover: #3d1c1c;
+    --cover-ink: #d9c38a;
+    --cover-shade: #261111;
+    --cover-light: #573a3a;
+    --paper: #211d1b;
+    --paper-2: #2a2624;
+    --paper-3: #312c29;
+    --edge: #4e4743;
+    --leaf: #272321;
+    --leaf-2: #2e2a28;
+    --ink: #ece4d6;
+    --ink-soft: #b1aaa0;
+    --ink-faint: #878079;
+    --accent: #e0806b;
+    --accent-ink: #161311;
+    --accent-soft: #3a2a25;
+    --accent-strong: #e59a87;
+    --gilt: #d1ad5b;
+    --rule: rgba(236, 228, 214, 0.24);
+    --rule-strong: rgba(236, 228, 214, 0.5);
+    --grid: rgba(236, 228, 214, 0.12);
+    --focus: #e59a87;
+    --status-want: #8fb3e6;
+    --status-reading: #e3b45c;
+    --status-finished: #7cc49a;
+    --status-dnf: #e08a8a;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --desk: #0e0c0c;
+  --cover: #3d1c1c;
+  --cover-ink: #d9c38a;
+  --cover-shade: #261111;
+  --cover-light: #573a3a;
+  --paper: #211d1b;
+  --paper-2: #2a2624;
+  --paper-3: #312c29;
+  --edge: #4e4743;
+  --leaf: #272321;
+  --leaf-2: #2e2a28;
+  --ink: #ece4d6;
+  --ink-soft: #b1aaa0;
+  --ink-faint: #878079;
+  --accent: #e0806b;
+  --accent-ink: #161311;
+  --accent-soft: #3a2a25;
+  --accent-strong: #e59a87;
+  --gilt: #d1ad5b;
+  --rule: rgba(236, 228, 214, 0.24);
+  --rule-strong: rgba(236, 228, 214, 0.5);
+  --grid: rgba(236, 228, 214, 0.12);
+  --focus: #e59a87;
+  --status-want: #8fb3e6;
+  --status-reading: #e3b45c;
+  --status-finished: #7cc49a;
+  --status-dnf: #e08a8a;
+}
+
+:root[data-corners='square'] {
+  --radius: 1px;
+  --radius-sm: 1px;
+}
+
+/* --------------------------------------------------------------- reset */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: calc(100% * var(--font-scale));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--desk);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: var(--line-height);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+p {
+  margin: 0 0 0.8em;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 560;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+/* ----------------------------------------------------------- utilities */
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ui {
+  font-family: var(--font-ui);
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+.faint {
+  color: var(--ink-faint);
+}
+
+.small {
+  font-size: 0.82rem;
+}
+
+.tiny {
+  font-size: 0.72rem;
+}
+
+.nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: calc(0.5rem * var(--space));
+  flex-wrap: wrap;
+}
+
+.row--between {
+  justify-content: space-between;
+}
+
+.row--end {
+  justify-content: flex-end;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.stack--tight {
+  gap: calc(0.5rem * var(--space));
+}
+
+.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clamp-2,
+.clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.clamp-2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.clamp-3 {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.prose {
+  font-family: var(--font-body);
+  hyphens: auto;
+  text-wrap: pretty;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.dropcap::first-letter {
+  float: left;
+  font-family: var(--font-heading);
+  font-size: 3.1em;
+  line-height: 0.82;
+  padding: 0.08em 0.1em 0 0;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

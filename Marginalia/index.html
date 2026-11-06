@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Marginalia — a reading journal: browse books, shelve them, track your page and chart your reading." />
+    <meta name="theme-color" content="#5b2a2a" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <title>Marginalia</title>
+    <script>
+      // Apply the saved light/dark choice before first paint to avoid a flash.
+      try {
+        var s = JSON.parse(localStorage.getItem('marginalia:v1') || 'null');
+        var m = s && s.settings && s.settings.mode;
+        if (m === 'light' || m === 'dark') document.documentElement.setAttribute('data-theme', m);
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Marginalia needs JavaScript to run.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
