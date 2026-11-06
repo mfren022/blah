@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Oxblood Cloth theme: the desk behind the book, and the cover boards. -->
+    <color name="desk">#d6cfc3</color>
+    <color name="cover">#5b2a2a</color>
+    <color name="accent">#9b3426</color>
+    <color name="icon_background">#d6cfc3</color>
+</resources>

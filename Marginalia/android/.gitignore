@@ -1,0 +1,3 @@
+build/
+# Signing key and its password are created locally by build-apk.sh; never commit them.
+signing/

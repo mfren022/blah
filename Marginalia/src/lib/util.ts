@@ -132,7 +132,39 @@ export function clothFor(seed: string): string {
   return CLOTH_COLORS[hashString(seed) % CLOTH_COLORS.length];
 }
 
+/** Native bridge exposed by the Android app (android/), absent in browsers. */
+export interface AndroidBridge {
+  saveFile?(name: string, mimeType: string, base64: string): void;
+  setBarColors?(hex: string): void;
+  systemTheme?(): string;
+}
+
+declare global {
+  interface Window {
+    MarginaliaAndroid?: AndroidBridge;
+  }
+}
+
+function utf8ToBase64(text: string): string {
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(binary);
+}
+
 export function downloadFile(name: string, content: string | Blob, type = 'application/json') {
+  const android = typeof window !== 'undefined' ? window.MarginaliaAndroid : undefined;
+  if (android?.saveFile) {
+    // In the Android app, hand the bytes to the system "save as" dialog.
+    if (typeof content === 'string') {
+      android.saveFile(name, type, utf8ToBase64(content));
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => android.saveFile!(name, content.type || type, String(reader.result).split(',')[1] ?? '');
+      reader.readAsDataURL(content);
+    }
+    return;
+  }
   const blob = typeof content === 'string' ? new Blob([content], { type }) : content;
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

@@ -610,7 +610,8 @@ function DataSection() {
   const exportJson = () => {
     const payload = { app: 'marginalia', version: state.version, exportedAt: new Date().toISOString(), state };
     downloadFile(`marginalia-backup-${today()}.json`, JSON.stringify(payload, null, 2));
-    toast({ message: `Exported ${plural(total, 'book')}` });
+    // In the Android app the system save dialog confirms instead.
+    if (!window.MarginaliaAndroid?.saveFile) toast({ message: `Exported ${plural(total, 'book')}` });
   };
 
   const readFile = (file: File, kind: 'json' | 'csv') => {

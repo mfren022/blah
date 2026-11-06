@@ -17,6 +17,9 @@
         if (m === 'light' || m === 'dark') {
           document.documentElement.setAttribute('data-theme', m);
           document.documentElement.setAttribute('data-app-theme', '');
+        } else if (window.MarginaliaAndroid && window.MarginaliaAndroid.systemTheme) {
+          // Inside the Android app: follow the phone's dark mode from the first frame.
+          document.documentElement.setAttribute('data-theme', window.MarginaliaAndroid.systemTheme());
         }
       } catch (e) {}
     </script>

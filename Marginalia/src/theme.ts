@@ -70,6 +70,11 @@ export function useThemeApplier(settings: Settings): 'light' | 'dark' {
     root.setAttribute('data-mode', mode);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', vars['--cover']);
+    try {
+      window.MarginaliaAndroid?.setBarColors?.(vars['--cover']);
+    } catch {
+      /* not in the Android app */
+    }
   }, [settings, mode]);
   return mode;
 }

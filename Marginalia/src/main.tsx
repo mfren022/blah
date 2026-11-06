@@ -30,8 +30,9 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// Offline support for the installed app (not in dev or the single-file build).
-if (import.meta.env.PROD && import.meta.env.MODE !== 'single' && 'serviceWorker' in navigator && location.protocol.startsWith('http')) {
+// Offline support for the installed web app (not in dev, the single-file preview or the Android app,
+// which bundles everything already).
+if (import.meta.env.PROD && import.meta.env.MODE === 'production' && 'serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {
       /* offline support is optional */

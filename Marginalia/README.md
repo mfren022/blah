@@ -92,6 +92,7 @@ npm run dev        # http://localhost:5173
 npm test           # unit tests (Vitest)
 npm run build      # type-check + production build into dist/
 npm run e2e        # end-to-end smoke test against the build (needs Playwright, see below)
+npm run apk        # Android app → android/build/Marginalia.apk (see "Android app")
 ```
 
 `dist/` is a static site with relative paths and hash routing, so it works from any static host or a sub-folder
@@ -104,6 +105,27 @@ handy for sharing a preview.
 The smoke test (`e2e/smoke.mjs`) drives the built app in Chromium through browse, book page, shelving, editions,
 logging pages, finishing, library, statistics, review, settings, export and offline search. Open Library is
 replaced by fixtures in its documented response shapes. It needs `playwright` (`npm i -D playwright && npx playwright install chromium`).
+
+## Android app
+
+`npm run apk` builds `android/build/Marginalia.apk`. It is the same app with every file bundled inside, in a
+small native shell (`android/`), and needs a network connection only for Open Library lookups. In the Android app:
+- it follows the phone's dark mode unless you choose otherwise in Settings;
+- the status and navigation bars take the binding's colour;
+- backup and CSV imports use the system file picker, and exports open the system "save as" dialog;
+- Open Library links open in your browser.
+
+**Install:** copy the APK to the phone and open it. The first time, Android asks you to allow installs from that
+app (your browser or file manager). Needs Android 7.0 or newer. It isn't on the Play Store.
+
+**Updates and your library:** Android installs an update over an existing copy, keeping its library, only when
+both are signed with the same key. The first build creates a key in `android/signing/`. Git ignores that folder,
+so keep a copy of it and later builds can update the app in place. A build signed with a different key needs the
+old app uninstalled first. The library lives inside the app, so export a backup from Settings before uninstalling.
+
+**Building it** needs Node, a JDK and the Android build tools (aapt2, dx, zipalign, apksigner and a platform
+`android.jar`). On Ubuntu: `sudo apt-get install aapt apksigner zipalign dalvik-exchange android-sdk-platform-23`.
+To use an Android SDK instead, see the variables at the top of `android/build-apk.sh`.
 
 ## How it is built
 
