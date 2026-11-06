@@ -113,8 +113,12 @@ function apply(next: Route, hash: string) {
 export function navigate(to: string, opts: { replace?: boolean } = {}) {
   const hash = to.startsWith('#') ? to : `#${to.startsWith('/') ? to : `/${to}`}`;
   if (hash === location.hash) return;
-  if (opts.replace) history.replaceState(null, '', hash);
-  else history.pushState(null, '', hash);
+  try {
+    if (opts.replace) history.replaceState(null, '', hash);
+    else history.pushState(null, '', hash);
+  } catch {
+    /* some sandboxed frames refuse history changes; keep the route in memory */
+  }
   apply(parseHash(hash), hash);
 }
 
@@ -123,7 +127,11 @@ export function setQuery(params: Record<string, string | number | undefined | nu
   const base = location.hash.split('?')[0] || '#/';
   const hash = hrefWith(base, params);
   if (hash === location.hash) return;
-  history.replaceState(null, '', hash);
+  try {
+    history.replaceState(null, '', hash);
+  } catch {
+    /* see navigate() */
+  }
   emit(parseHash(hash), hash);
 }
 

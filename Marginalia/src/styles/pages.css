@@ -1435,3 +1435,8 @@ figure.chart-leaf {
   margin-top: 10px;
   flex-wrap: nowrap;
 }
+
+.sample-note {
+  align-items: center;
+  margin: -8px 0 18px;
+}

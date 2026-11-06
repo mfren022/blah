@@ -14,7 +14,10 @@
       try {
         var s = JSON.parse(localStorage.getItem('marginalia:v1') || 'null');
         var m = s && s.settings && s.settings.mode;
-        if (m === 'light' || m === 'dark') document.documentElement.setAttribute('data-theme', m);
+        if (m === 'light' || m === 'dark') {
+          document.documentElement.setAttribute('data-theme', m);
+          document.documentElement.setAttribute('data-app-theme', '');
+        }
       } catch (e) {}
     </script>
   </head>

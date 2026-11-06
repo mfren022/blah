@@ -18,7 +18,7 @@ import { FORMAT_LABELS } from '../stats/engine';
 export function ReadingPage() {
   const settings = useSettings();
   const entries = useEntries();
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const reading = entries.filter((e) => e.status === 'reading').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   const upNext = entries
     .filter((e) => e.status === 'want')
@@ -34,9 +34,21 @@ export function ReadingPage() {
   const overview = useMemo(() => computeOverview(entries, ctx), [entries, settings.yearlyBookGoal, settings.yearlyPageGoal]); // eslint-disable-line react-hooks/exhaustive-deps
   const todayPages = useMemo(() => pagesByDay(entries).get(t) ?? 0, [entries, t]);
 
+  const sampleCount = entries.filter((e) => e.sample).length;
   const verso = (
     <>
       <Rule level="page">Currently Reading</Rule>
+      {sampleCount > 0 && (
+        <div className="notice notice--info sample-note">
+          <Icon name="sparkle" />
+          <span className="grow">
+            You're looking at a sample library of {sampleCount} invented books, so every page has something to show.
+          </span>
+          <button type="button" className="btn btn--sm" onClick={() => dispatch({ type: 'clearSample' })}>
+            Remove samples
+          </button>
+        </div>
+      )}
       {reading.length === 0 ? (
         <Empty
           icon="bookmark"

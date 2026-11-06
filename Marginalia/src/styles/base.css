@@ -142,6 +142,7 @@ body {
   background: var(--desk);
   color: var(--ink);
   font-family: var(--font-body);
+  font-size: 1rem;
   line-height: var(--line-height);
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
