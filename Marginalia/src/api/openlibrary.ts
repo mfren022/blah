@@ -132,7 +132,11 @@ function persistentCache(): Record<string, CacheRecord> {
 }
 
 function schedulePersist() {
-  if (typeof localStorage === 'undefined') return;
+  try {
+    if (typeof localStorage === 'undefined') return;
+  } catch {
+    return; // storage is blocked (e.g. a sandboxed frame)
+  }
   clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
     const cache = persistentCache();

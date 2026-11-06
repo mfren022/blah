@@ -171,6 +171,13 @@ await step('the chart builder regroups and offers a table view', async () => {
   await page.locator('.chart__table', { hasText: 'Mystery' }).waitFor();
 });
 
+await step('save the chart as a starting point', async () => {
+  await page.getByRole('button', { name: 'Save this chart' }).click();
+  await page.getByLabel('Name for this chart').fill('My genres');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.locator('.presets').getByRole('button', { name: 'My genres', exact: true }).waitFor();
+});
+
 await step('rate and review the book, and it persists after reload', async () => {
   await page.goto(base + '#/book/' + encodeURIComponent('ol:OL1001W'));
   await settle();

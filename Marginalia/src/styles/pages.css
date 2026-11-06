@@ -1430,3 +1430,8 @@ figure.chart-leaf {
 .shelf-picker .chip {
   flex: none;
 }
+
+.save-chart {
+  margin-top: 10px;
+  flex-wrap: nowrap;
+}

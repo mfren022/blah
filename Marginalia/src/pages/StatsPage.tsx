@@ -179,6 +179,7 @@ export function StatsPage() {
   const allAuthors = useMemo(() => uniq(entries.flatMap((e) => e.book.authors.map((a) => a.name))).sort(), [entries]);
   const activeFilters = countFilters(chart.filters);
   const [moreOpen, setMoreOpen] = useState(activeFilters > 0);
+  const [saveName, setSaveName] = useState<string | null>(null);
 
   const toggleIn = <T extends string>(list: T[], v: T): T[] => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
@@ -394,19 +395,33 @@ export function StatsPage() {
               </span>
             );
           })}
-          <button
-            type="button"
-            className="btn btn--sm"
-            onClick={() => {
-              const name = prompt('Name this chart', chartTitle);
-              if (!name?.trim()) return;
-              dispatch({ type: 'saveChartPreset', chart: { ...structuredClone(chart), id: `preset-${uid()}`, name: name.trim() } });
-              toast({ message: `Saved “${name.trim()}” to your starting points` });
+          {saveName === null && (
+            <button type="button" className="btn btn--sm" onClick={() => setSaveName(chartTitle)}>
+              <Icon name="plus" /> Save this chart
+            </button>
+          )}
+        </div>
+        {saveName !== null && (
+          <form
+            className="row save-chart"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const name = saveName.trim();
+              if (!name) return;
+              dispatch({ type: 'saveChartPreset', chart: { ...structuredClone(chart), id: `preset-${uid()}`, name } });
+              toast({ message: `Saved “${name}” to your starting points` });
+              setSaveName(null);
             }}
           >
-            <Icon name="plus" /> Save this chart
-          </button>
-        </div>
+            <input className="input grow" value={saveName} onChange={(e) => setSaveName(e.target.value)} aria-label="Name for this chart" autoFocus />
+            <button type="submit" className="btn btn--primary btn--sm" disabled={!saveName.trim()}>
+              <Icon name="save" /> Save
+            </button>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSaveName(null)}>
+              Cancel
+            </button>
+          </form>
+        )}
       </section>
     </div>
   );

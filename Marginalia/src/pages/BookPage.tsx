@@ -19,6 +19,7 @@ import { formatFromEdition } from '../data/reducer';
 import { hrefWith, navigate } from '../router';
 import { isSampleId } from '../data/sample';
 import { useMode } from '../components/Shell';
+import { useToast } from '../components/Toasts';
 import { chartSingleColor } from '../stats/colors';
 
 export function BookPage({ id, params }: { id: string; params: URLSearchParams }) {
@@ -527,7 +528,8 @@ function History({ entry }: { entry: LibraryEntry }) {
 }
 
 function SessionRow({ entry, s, n, isLatest, fmt }: { entry: LibraryEntry; s: ReadSession; n: number; isLatest: boolean; fmt: Parameters<typeof formatDate>[1] }) {
-  const { dispatch } = useStore();
+  const { state, dispatch } = useStore();
+  const toast = useToast();
   const [editing, setEditing] = useState(false);
   const days = sessionDays(s);
   const lastPage = s.progress.at(-1)?.page;
@@ -547,7 +549,9 @@ function SessionRow({ entry, s, n, isLatest, fmt }: { entry: LibraryEntry; s: Re
             className="btn btn--ghost btn--sm btn--icon"
             aria-label="Delete this read-through"
             onClick={() => {
-              if (s.progress.length < 3 || confirm('Delete this read-through and its progress log?')) dispatch({ type: 'deleteSession', id: entry.id, sessionId: s.id });
+              const before = state;
+              dispatch({ type: 'deleteSession', id: entry.id, sessionId: s.id });
+              toast({ message: `Deleted read ${n}${s.progress.length ? ' and its progress log' : ''}`, action: { label: 'Undo', run: () => dispatch({ type: 'hydrate', state: before }) } });
             }}
           >
             <Icon name="trash" />

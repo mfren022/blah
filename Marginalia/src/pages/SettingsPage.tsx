@@ -467,6 +467,7 @@ function GoalsSection({ settings, set }: SectionProps) {
 function ShelvesSection() {
   const { state, dispatch } = useStore();
   const entries = useEntries();
+  const toast = useToast();
   const [name, setName] = useState('');
   return (
     <Leaf title="Shelves" sub="Your own shelves, alongside the four reading shelves" id="settings-shelves">
@@ -494,7 +495,12 @@ function ShelvesSection() {
                 className="btn btn--ghost btn--sm btn--icon"
                 aria-label={`Delete shelf ${s.name}`}
                 onClick={() => {
-                  if (count === 0 || confirm(`Delete “${s.name}”? The ${plural(count, 'book')} on it stay in your library.`)) dispatch({ type: 'deleteShelf', shelfId: s.id });
+                  const before = state;
+                  dispatch({ type: 'deleteShelf', shelfId: s.id });
+                  toast({
+                    message: count ? `Deleted “${s.name}” — its ${plural(count, 'book')} stay in your library` : `Deleted “${s.name}”`,
+                    action: { label: 'Undo', run: () => dispatch({ type: 'hydrate', state: before }) },
+                  });
                 }}
               >
                 <Icon name="trash" />
